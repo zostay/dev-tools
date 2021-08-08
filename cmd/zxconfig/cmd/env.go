@@ -19,6 +19,7 @@ var envCmd = &cobra.Command{
 
 func RunEnv(cmd *cobra.Command, args []string) error {
 	config.Init(verbosity)
+	fmt.Println(`ZXCONFIG="If good works cannot gain you your salvation, how can bad works cause you to lose your salvation?"`)
 	walkMap("", viper.AllSettings())
 
 	return nil

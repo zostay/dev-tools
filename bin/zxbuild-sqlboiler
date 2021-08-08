@@ -1,6 +1,10 @@
 #!/bin/zsh
 
-source =(zxconfig env)
+set -xe
+
+if [[ -z "$XZCONFIG" ]]; then
+    source =(zxconfig env)
+fi
 
 zxstart-test-mysql
 trap "docker kill $APP-test-mysql" INT EXIT

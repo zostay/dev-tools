@@ -1,5 +1,11 @@
 #!/bin/zsh
 
+set -xe
+
+if [[ -z "$XZCONFIG" ]]; then
+    source =(zxconfig env)
+fi
+
 if [[ -n "$DOCKER_TARGETS" ]]; then
     for target ("$array[@]"); do
         docker build . --target "$target" -t "$DOCKER_REPOSITORY/$APP-$target"
