@@ -1,1 +1,1 @@
-export PATH="$HOME/.xz/bin:$PATH"
+export PATH="$HOME/.zx/bin:$PATH"
