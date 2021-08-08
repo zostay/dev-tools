@@ -38,7 +38,7 @@ func walkMap(p string, ms map[string]interface{}) {
 		case []interface{}:
 			fmt.Printf("# List key %q to env is not supported", np)
 		default:
-			fmt.Printf(`%s_%s="%s"`, p, cleanValue(v))
+			fmt.Printf(`%s="%s"`, p, cleanValue(v))
 		}
 	}
 }
