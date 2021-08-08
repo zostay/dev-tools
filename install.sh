@@ -1,6 +1,6 @@
 #!/bin/sh
 
-git clone github.com/zostay/dev-tools $HOME/.zx
+git clone git@github.com:zostay/dev-tools.git $HOME/.zx
 
 cd ~/.zx
 
