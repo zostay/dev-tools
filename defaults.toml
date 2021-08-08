@@ -1,0 +1,6 @@
+[sqlboiler]
+package = "internal/models"
+
+[docker]
+targets = []
+repository = "zostay"

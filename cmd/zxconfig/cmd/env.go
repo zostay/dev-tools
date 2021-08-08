@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
-	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
+	"github.com/zostay/dev-tools/pkg/config"
 )
 
 var envCmd = &cobra.Command{
@@ -17,16 +18,18 @@ var envCmd = &cobra.Command{
 }
 
 func RunEnv(cmd *cobra.Command, args []string) error {
-	generic := make(map[string]interface{})
-	bs, err := os.ReadFile(".zx.toml")
-	if err != nil {
-		return err
-	}
-
-	toml.Unmarshal(bs, &generic)
-	walkMap("", generic)
+	config.Init(verbosity)
+	walkMap("", viper.AllSettings())
 
 	return nil
+}
+
+func makePrefix(p, k string) string {
+	np := cleanName(k)
+	if p != "" {
+		np = fmt.Sprintf("%s_%s", p, np)
+	}
+	return np
 }
 
 func walkMap(p string, ms map[string]interface{}) {
@@ -40,20 +43,29 @@ func walkMap(p string, ms map[string]interface{}) {
 
 	for _, k := range keys {
 		v := ms[k]
-		np := cleanName(k)
-		if p != "" {
-			np = fmt.Sprintf("%s_%s", p, np)
-		}
+		np := makePrefix(p, k)
 
 		switch nv := v.(type) {
 		case map[string]interface{}:
 			walkMap(np, nv)
 		case []interface{}:
-			fmt.Printf("# List key %q to env is not supported", np)
+			walkSlice(np, nv)
 		default:
 			fmt.Printf(`%s="%s"`, np, cleanValue(v))
 			fmt.Println("")
 		}
+	}
+}
+
+func walkSlice(p string, vs []interface{}) {
+	if len(vs) > 0 {
+		fmt.Printf("declare -a %s\n", p)
+		fmt.Printf("%s=(\n", p)
+		for _, v := range vs {
+			sv := fmt.Sprintf("%v", v)
+			fmt.Printf("\t\"%s\"\n", cleanValue(sv))
+		}
+		fmt.Printf(")\n")
 	}
 }
 

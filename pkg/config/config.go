@@ -15,18 +15,23 @@ type Config struct {
 	SQLBoiler `toml:"sqlboiler"`
 }
 
-func Init() {
+func Init(verbosity int) {
 	userdir, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to find HOME: %v\n", err)
+	} else {
+
+		viper.SetConfigName("defaults")
+		viper.AddConfigPath(filepath.Join(userdir, ".zx"))
+		viper.SetConfigType("toml")
+
+		if verbosity > 0 {
+			fmt.Fprintf(os.Stderr, "Reading configuration from %q\n", filepath.Join(userdir, ".zx/defaults.toml"))
+		}
 	}
 
-	viper.SetConfigName("zxdefaults")
-	viper.AddConfigPath(filepath.Join(userdir, ".xz"))
-	viper.SetConfigType("toml")
-
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to read .xz.toml: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to read ~/.zx/defaults.toml: %v\n", err)
 	}
 
 	viper.SetConfigName(".zx")
@@ -35,6 +40,8 @@ func Init() {
 
 	if err := viper.MergeInConfig(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to read zxdefaults.toml: %v\n", err)
+	} else if verbosity > 0 {
+		fmt.Fprintf(os.Stderr, "Reading configuration from %q\n", "./.zx.toml")
 	}
 
 	viper.AutomaticEnv()

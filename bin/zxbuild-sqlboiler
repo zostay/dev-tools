@@ -2,12 +2,15 @@
 
 source =(zxconfig env)
 
-if [[ -z "$SQLBOILER_PACKAGE" ]]; then
-    SQLBOILER_PACKAGE="internal/models"
-fi
-
 zxstart-test-mysql
 trap "docker kill $APP-test-mysql" INT EXIT
 
 # DO NOT delete my model extensions
-touch internal/models/not-real-
+touch "$SQLBOILER_PACKAGE/not-a-real-go-module.go"
+for name in "$SQLBOILER_PACKAGE/*.go"; do
+    if [ "${name: -4}" != "x.go" ]; then
+        rm "$name"
+    fi
+done
+
+sqlboiler mysql --no-auto-timestamps --add-soft-deletes

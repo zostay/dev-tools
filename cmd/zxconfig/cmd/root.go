@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/zostay/dev-tools/pkg/config"
 )
 
 var rootCmd = &cobra.Command{
@@ -11,9 +9,10 @@ var rootCmd = &cobra.Command{
 	Short: "Work with .zx.toml files.",
 }
 
-func init() {
-	cobra.OnInitialize(config.Init)
+var verbosity int
 
+func init() {
+	rootCmd.PersistentFlags().CountVarP(&verbosity, "verbose", "v", "increase command verbosity")
 	rootCmd.AddCommand(envCmd)
 }
 

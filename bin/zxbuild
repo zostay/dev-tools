@@ -1,5 +1,37 @@
 #!/bin/zsh
 
-if [ -f $PWD/go.mod ]; then
+source =(zxconfig env)
+
+REBUILD_SCHEMA=1
+BUILD_DOCKER=1
+while getopts ":ds" opt; do
+    case ${opt} in
+        s)
+            REBUILD_SCHEMA=0
+            ;;
+        d)
+            BUILD_DOCKER=0
+            ;;
+    esac
+done
+
+
+if [[ -d "$PWD/$SQLBOILER_PACKAGE" ]]; then
+    if (( $REBUILD_SCHEMA == 1 )) then
+        zxbuild-sqlboiler
+    else
+        echo Skipping schema rebuild.
+    fi
+fi
+
+if [[ -f "$PWD/go.mod" ]]; then
     zxbuild-go "$@"
+fi
+
+if [[ -f "$PWD/Dockerfile" ]]; then
+    if (( $BUILD_DOCKER == 1 )); then
+        zxbuild-docker
+    else
+        echo Skipping docker build.
+    fi
 fi

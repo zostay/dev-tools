@@ -1,0 +1,9 @@
+#!/bin/zsh
+
+if [[ -n "$DOCKER_TARGETS" ]]; then
+    for target ("$array[@]"); do
+        docker build . --target "$target" -t "$DOCKER_REPOSITORY/$APP-$target"
+    done
+else
+    docker build . -t "$DOCKER_REPOSITORY/$APP"
+fi
