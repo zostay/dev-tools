@@ -1,0 +1,13 @@
+#!/bin/zsh
+
+source =(zxconfig env)
+
+if [[ -z "$SQLBOILER_PACKAGE" ]]; then
+    SQLBOILER_PACKAGE="internal/models"
+fi
+
+zxstart-test-mysql
+trap "docker kill $APP-test-mysql" INT EXIT
+
+# DO NOT delete my model extensions
+touch internal/models/not-real-

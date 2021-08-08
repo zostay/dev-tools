@@ -1,5 +1,6 @@
 #!/bin/zsh
 
+source =(zxconfig env)
 
 REBUILD_SCHEMA=1
 BUILD_DOCKER=1

@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/zostay/dev-tools/pkg/config"
 )
 
 var rootCmd = &cobra.Command{
@@ -10,6 +12,8 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	cobra.OnInitialize(config.Init)
+
 	rootCmd.AddCommand(envCmd)
 }
 
