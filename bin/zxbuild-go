@@ -1,0 +1,43 @@
+#!/bin/zsh
+
+
+REBUILD_SCHEMA=1
+BUILD_DOCKER=1
+while getopts ":ds" opt; do
+    case ${opt} in
+        s)
+            REBUILD_SCHEMA=0
+            ;;
+        d)
+            BUILD_DOCKER=0
+            ;;
+    esac
+done
+
+if (( $REBUILD_SCHEMA == 1 )); then
+    ./tools/start-test.sh
+    trap 'docker kill kidbank-test-mysql' INT EXIT
+
+    # DO NOT delete my model extensions
+    touch internal/models/not-a-real-go-module.go
+    for name in internal/models/*.go; do
+        if [ "${name: -4}" != "x.go" ]; then
+            rm "$name"
+        fi
+    done
+
+    sqlboiler mysql --no-auto-timestamps --add-soft-deletes
+else
+    echo Skipping schema rebuild.
+fi
+
+go generate ./...
+go build ./...
+golangci-lint run ./...
+
+if (( $BUILD_DOCKER == 1 )); then
+    docker build . --target api-service -t 009610369800.dkr.ecr.us-east-2.amazonaws.com/kidbank-api
+    docker build . --target website-service -t 009610369800.dkr.ecr.us-east-2.amazonaws.com/kidbank-website
+else
+    echo Skipping docker build.
+fi

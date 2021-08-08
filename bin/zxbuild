@@ -1,0 +1,5 @@
+#!/bin/zsh
+
+if [ -f $PWD/go.mod ]; then
+    zxbuild-go "$@"
+fi

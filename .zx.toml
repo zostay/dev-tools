@@ -1,0 +1,4 @@
+app = "zostay-dev-tools"
+
+[install]
+binfiles = "~/.zx/bin"
