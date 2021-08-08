@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -29,8 +30,20 @@ func RunEnv(cmd *cobra.Command, args []string) error {
 }
 
 func walkMap(p string, ms map[string]interface{}) {
-	for k, v := range ms {
-		np := fmt.Sprintf("%s_%s", p, cleanName(k))
+	keys := make([]string, len(ms))
+	i := 0
+	for k := range ms {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		v := ms[k]
+		np := cleanName(k)
+		if p != "" {
+			np = fmt.Sprintf("%s_%s", p, np)
+		}
 
 		switch nv := v.(type) {
 		case map[string]interface{}:
@@ -38,17 +51,18 @@ func walkMap(p string, ms map[string]interface{}) {
 		case []interface{}:
 			fmt.Printf("# List key %q to env is not supported", np)
 		default:
-			fmt.Printf(`%s="%s"`, p, cleanValue(v))
+			fmt.Printf(`%s="%s"`, np, cleanValue(v))
+			fmt.Println("")
 		}
 	}
 }
 
 func cleanName(n string) string {
 	ns := strings.FieldsFunc(n, func(r rune) bool {
-		return (r >= 'A' && r <= 'Z') ||
+		return !((r >= 'A' && r <= 'Z') ||
 			(r >= 'a' && r <= 'z') ||
 			(r >= '0' && r <= '9') ||
-			r == '_'
+			r == '_')
 	})
 	return strings.ToUpper(strings.Join(ns, "_"))
 }

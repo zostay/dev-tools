@@ -1,5 +1,7 @@
 #!/bin/zsh
 
+set -xe
+
 if [[ -d "$HOME/.zx" ]]; then
     git --git-dir="$HOME/.zx/.git" pull
 else
