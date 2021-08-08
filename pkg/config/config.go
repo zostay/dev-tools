@@ -9,40 +9,56 @@ import (
 )
 
 type Config struct {
-	App string
+	App       string
+	EnvPrefix string `toml:"env_prefix"`
 
 	Install   `toml:"install"`
 	SQLBoiler `toml:"sqlboiler"`
 }
 
 func Init(verbosity int) {
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to find PWD: %v\n", err)
+	} else {
+		viper.AddConfigPath(wd)
+	}
+
 	userdir, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to find HOME: %v\n", err)
 	} else {
-
-		viper.SetConfigName("defaults")
 		viper.AddConfigPath(filepath.Join(userdir, ".zx"))
-		viper.SetConfigType("toml")
+	}
 
-		if verbosity > 0 {
-			fmt.Fprintf(os.Stderr, "Reading configuration from %q\n", filepath.Join(userdir, ".zx/defaults.toml"))
-		}
+	viper.SetConfigName("defaults")
+	viper.SetConfigType("toml")
+
+	if verbosity > 0 {
+		fmt.Fprintf(os.Stderr, "Reading configuration for defaults.toml\n")
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to read ~/.zx/defaults.toml: %v\n", err)
+		fmt.Fprintln(os.Stderr, "Failed to read defaults.toml: %v\n")
 	}
 
 	viper.SetConfigName(".zx")
-	viper.AddConfigPath(".")
 	viper.SetConfigType("toml")
 
 	if err := viper.MergeInConfig(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to read zxdefaults.toml: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to read .zx.toml: %v\n", err)
 	} else if verbosity > 0 {
-		fmt.Fprintf(os.Stderr, "Reading configuration from %q\n", "./.zx.toml")
+		fmt.Fprintln(os.Stderr, "Read configuration for .zx.toml")
 	}
 
-	viper.AutomaticEnv()
+	envPrefix := viper.GetString("env_prefix")
+	if envPrefix == "" {
+		envPrefix = viper.GetString("app")
+	}
+	if envPrefix != "" {
+		viper.SetEnvPrefix(envPrefix)
+		viper.AutomaticEnv()
+	} else {
+		fmt.Fprintln(os.Stderr, "Not loading environment config. Please set the \"app\" or \"env_prefix\" key in .zx.toml.")
+	}
 }
