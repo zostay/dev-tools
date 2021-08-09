@@ -1,60 +1,24 @@
-package cmd
+package server
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
-	"github.com/gobwas/glob"
-	"github.com/spf13/cobra"
-
+	"github.com/zostay/dev-tools/internal/backoff"
+	"github.com/zostay/dev-tools/internal/fswatch"
 	"github.com/zostay/dev-tools/pkg/config"
 )
 
-var apiCmd = &cobra.Command{
-	Use:   "api",
-	Short: "Start API server(s)",
-	RunE:  RunAPI,
-}
-
-func RunAPI(cmd *cobra.Command, args []string) error {
-	config.Init(0)
-
-	cfg, err := config.Get()
-	if err != nil {
-		return err
-	}
-
-	done := new(sync.WaitGroup)
-	for _, target := range cfg.Web.Targets {
-		if target.Type != config.APITarget {
-			continue
-		}
-
-		if err := startAPITarget(done, &target); err != nil {
-			go stopEverything()
-			done.Wait()
-			return err
-		}
-	}
-
-	done.Wait()
-
-	return nil
-}
-
-type worker struct {
+type Worker struct {
 	config           *config.WebTarget
 	done             *sync.WaitGroup
 	quit             chan struct{}
-	fsevents         chan fsnotify.Event
+	fsevents         chan fswatch.Event
 	fserrors         chan error
 	paused           bool
 	whilePaused      int
@@ -68,17 +32,18 @@ type worker struct {
 	buildBackoffQuit func()
 	runBackoffQuit   func()
 	limbo            sync.Locker
+	quitters         []func()
 }
 
-func newWorker(
+func NewWorker(
 	config *config.WebTarget,
 	done *sync.WaitGroup,
-) *worker {
-	return &worker{
+) *Worker {
+	return &Worker{
 		config:           config,
 		done:             done,
 		quit:             make(chan struct{}),
-		fsevents:         make(chan fsnotify.Event),
+		fsevents:         make(chan fswatch.Event),
 		fserrors:         make(chan error),
 		paused:           true,
 		whilePaused:      0,
@@ -92,10 +57,23 @@ func newWorker(
 		buildBackoffQuit: nil,
 		runBackoffQuit:   nil,
 		limbo:            new(sync.Mutex),
+		quitters:         make([]func(), 0),
 	}
 }
 
-func (w *worker) run() {
+func (w *Worker) RegisterQuitter(q func()) {
+	w.quitters = append(w.quitters, q)
+}
+
+func (w *Worker) EventsListener() chan fswatch.Event {
+	return w.fsevents
+}
+
+func (w *Worker) ErrorsListener() chan error {
+	return w.fserrors
+}
+
+func (w *Worker) Run() {
 	defer w.done.Done()
 
 	go func() {
@@ -106,24 +84,32 @@ func (w *worker) run() {
 
 	for {
 		select {
+
+		// on this signal we start a build
 		case <-w.rebuild:
 			w.startRebuild()
 
+		// build is complete, so now we need to restart the runner
 		case err := <-w.rebuilt:
 			w.completeRebuild(err)
 
+		// we received a file system event, so trigger a new build
 		case event := <-w.fsevents:
 			w.triggerRebuild(event)
 
+		// show file system event errors
 		case err := <-w.fserrors:
 			fmt.Fprintf(os.Stderr, "FSNotify Error: %v\n", err)
 
+		// this is going to start the server
 		case <-w.runStart:
 			w.startRun()
 
+		// this triggers when the server quits to trigger restart
 		case err := <-w.runQuit:
 			w.completeRun(err)
 
+		// we've been told to quit, so shutdown
 		case <-w.quit:
 			w.shutdown()
 			return
@@ -131,17 +117,26 @@ func (w *worker) run() {
 	}
 }
 
-func (w *worker) runLineStr() string {
+func (w *Worker) Quit() {
+	w.quit <- struct{}{}
+}
+
+func (w *Worker) runLineStr() string {
 	return strings.Join(w.config.Run, " ")
 }
 
-func (w *worker) buildLineStr() string {
+func (w *Worker) buildLineStr() string {
 	return strings.Join(w.config.Build, " ")
 }
 
-func (w *worker) startRebuild() {
+func (w *Worker) startRebuild() {
+	if len(w.config.Build) == 0 {
+		// this configuration has no build process
+		return
+	}
+
 	w.limbo.Lock()
-	w.buildBackoffQuit = backoff(w.done, func() error {
+	w.buildBackoffQuit = backoff.Generic(w.done, func() error {
 		var err error
 		w.buildCmd, err = w.startCmd(w.config.Build)
 		if err != nil {
@@ -161,7 +156,7 @@ func (w *worker) startRebuild() {
 	})
 }
 
-func (w *worker) completeRebuild(err error) {
+func (w *Worker) completeRebuild(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error during build %q: %v", w.buildLineStr(), err)
 	}
@@ -179,7 +174,7 @@ func (w *worker) completeRebuild(err error) {
 	//}
 }
 
-func (w *worker) triggerRebuild(event fsnotify.Event) {
+func (w *Worker) triggerRebuild(event fswatch.Event) {
 	if w.paused {
 		w.whilePaused++
 		return
@@ -191,9 +186,9 @@ func (w *worker) triggerRebuild(event fsnotify.Event) {
 	go func() { w.rebuild <- struct{}{} }()
 }
 
-func (w *worker) startRun() {
+func (w *Worker) startRun() {
 	w.limbo.Lock()
-	w.runBackoffQuit = backoff(w.done, func() error {
+	w.runBackoffQuit = backoff.Generic(w.done, func() error {
 		var err error
 		w.runCmd, err = w.startCmd(w.config.Run)
 		if err != nil {
@@ -213,7 +208,7 @@ func (w *worker) startRun() {
 	})
 }
 
-func (w *worker) completeRun(err error) {
+func (w *Worker) completeRun(err error) {
 	w.runCmd = nil
 	if err != nil && err.Error() != "signal: hangup" {
 		fmt.Fprintf(os.Stderr, "Command %q quit prematurely: %v\n", w.runLineStr(), err)
@@ -231,7 +226,7 @@ func (w *worker) completeRun(err error) {
 	}()
 }
 
-func (w *worker) shutdown() {
+func (w *Worker) shutdown() {
 	w.limbo.Lock()
 	if w.buildBackoffQuit != nil {
 		w.buildBackoffQuit()
@@ -241,10 +236,13 @@ func (w *worker) shutdown() {
 	}
 	w.quitCmd(w.runCmd)
 	w.quitCmd(w.buildCmd)
+	for _, quitter := range w.quitters {
+		go quitter()
+	}
 	w.limbo.Unlock()
 }
 
-func (w *worker) startCmd(cmdLine []string) (*exec.Cmd, error) {
+func (w *Worker) startCmd(cmdLine []string) (*exec.Cmd, error) {
 	fmt.Fprintf(os.Stderr, "Run> %s ...\n", strings.Join(cmdLine, " "))
 
 	var cmd *exec.Cmd
@@ -262,165 +260,10 @@ func (w *worker) startCmd(cmdLine []string) (*exec.Cmd, error) {
 	return cmd, err
 }
 
-func (w *worker) quitCmd(cmd *exec.Cmd) {
+func (w *Worker) quitCmd(cmd *exec.Cmd) {
 	if cmd != nil {
 		if err := cmd.Process.Signal(syscall.SIGHUP); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to hangup command: %v", err)
 		}
 	}
-}
-
-var workers = make([]worker, 0)
-
-func startAPITarget(
-	done *sync.WaitGroup,
-	target *config.WebTarget,
-) error {
-	w := newWorker(target, done)
-
-	for _, wcfg := range target.Watches {
-		globs := make([]glob.Glob, len(wcfg.Filters))
-		for i, f := range wcfg.Filters {
-			g, err := glob.Compile(f)
-			if err != nil {
-				return err
-			}
-
-			globs[i] = g
-		}
-
-		err := setupFSNotifyRecursive(
-			w,
-			wcfg.Targets,
-			globs,
-			done,
-		)
-
-		if err != nil {
-			return err
-		}
-	}
-
-	done.Add(1)
-	go w.run()
-
-	return nil
-}
-
-func stopEverything() {
-	for _, worker := range workers {
-		worker.quit <- struct{}{}
-	}
-}
-
-func backoff(done *sync.WaitGroup, doit func() error) func() {
-	var (
-		backoffTime = 1 * time.Second
-		quitOnce    = new(sync.Once)
-		quit        = make(chan struct{})
-		quitter     = func() {
-			quitOnce.Do(func() { quit <- struct{}{} })
-		}
-	)
-
-	done.Add(1)
-	go func() {
-		defer done.Done()
-		for {
-			err := doit()
-			if err == nil {
-				go quitter()
-				return
-			}
-
-			fmt.Fprintf(os.Stderr, "Try again in %v\n", backoffTime)
-
-			select {
-			case <-time.After(backoffTime):
-				continue
-			case <-quit:
-				return
-			}
-
-			if backoffTime < 15*time.Second {
-				backoffTime = backoffTime * 2
-			}
-		}
-	}()
-
-	return quitter
-}
-
-func setupFSNotifyRecursive(
-	w *worker,
-	targets []string,
-	globs []glob.Glob,
-	done *sync.WaitGroup,
-) error {
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		return err
-	}
-
-	for _, t := range targets {
-		err := filepath.WalkDir(t, func(path string, d fs.DirEntry, err error) error {
-			if d.IsDir() || path == t {
-				if err := watcher.Add(path); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-
-		if err != nil {
-			watcher.Close()
-			return err
-		}
-	}
-
-	tlist := "[" + strings.Join(targets, ",") + "]"
-	done.Add(1)
-	go func() {
-		defer done.Done()
-		expected := false
-		for {
-			select {
-			case event, ok := <-watcher.Events:
-				if !ok && !expected {
-					fmt.Fprintf(os.Stderr, "Unexpected clsoure of watcher event stream %s", tlist)
-					return
-				}
-
-				if fi, err := os.Stat(event.Name); err == nil && fi.IsDir() {
-					if event.Op == fsnotify.Create || event.Op == fsnotify.Rename {
-						watcher.Add(event.Name)
-					}
-				}
-
-				if len(globs) > 0 {
-					for _, g := range globs {
-						if g.Match(event.Name) {
-							w.fsevents <- event
-						}
-					}
-				} else {
-					w.fsevents <- event
-				}
-
-			case err, ok := <-watcher.Errors:
-				if !ok && !expected {
-					fmt.Fprintf(os.Stderr, "Unexpected closure of watcher error stream %s", tlist)
-					return
-				}
-				w.fserrors <- err
-
-			case <-w.quit:
-				expected = true
-				watcher.Close()
-				return
-			}
-		}
-	}()
-
-	return nil
 }

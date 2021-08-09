@@ -10,7 +10,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(apiCmd)
+	rootCmd.AddCommand(serverCmd)
 }
 
 func Execute() error {
