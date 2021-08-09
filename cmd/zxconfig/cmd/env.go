@@ -13,7 +13,7 @@ import (
 
 var envCmd = &cobra.Command{
 	Use:   "env",
-	Short: "Output the contenst of .zx.toml file as an env file",
+	Short: "Output the contents of ZX configs as an env file",
 	RunE:  RunEnv,
 }
 

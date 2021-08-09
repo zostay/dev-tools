@@ -14,6 +14,7 @@ type Config struct {
 
 	Install   `toml:"install"`
 	SQLBoiler `toml:"sqlboiler"`
+	Web
 }
 
 func Init(verbosity int) {
@@ -61,4 +62,10 @@ func Init(verbosity int) {
 	} else {
 		fmt.Fprintln(os.Stderr, "Not loading environment config. Please set the \"app\" or \"env_prefix\" key in .zx.toml.")
 	}
+}
+
+func Get() (*Config, error) {
+	var cfg Config
+	err := viper.Unmarshal(&cfg)
+	return &cfg, err
 }

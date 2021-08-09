@@ -14,6 +14,7 @@ var verbosity int
 func init() {
 	rootCmd.PersistentFlags().CountVarP(&verbosity, "verbose", "v", "increase command verbosity")
 	rootCmd.AddCommand(envCmd)
+	rootCmd.AddCommand(mergeCmd)
 }
 
 func Execute() error {
