@@ -40,7 +40,7 @@ func Init(verbosity int) {
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to read defaults.toml: %v\n")
+		fmt.Fprintf(os.Stderr, "Failed to read defaults.toml: %v\n", err)
 	}
 
 	viper.SetConfigName(".zx")

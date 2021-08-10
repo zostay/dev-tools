@@ -1,9 +1,14 @@
 package server
 
 import (
+	"bufio"
 	"fmt"
+	"io"
+	"net"
+	"net/url"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"sync"
 	"syscall"
@@ -33,6 +38,8 @@ type Worker struct {
 	runBackoffQuit   func()
 	limbo            sync.Locker
 	quitters         []func()
+	recvAddr         chan net.Addr
+	addr             net.Addr
 }
 
 func NewWorker(
@@ -58,6 +65,8 @@ func NewWorker(
 		runBackoffQuit:   nil,
 		limbo:            new(sync.Mutex),
 		quitters:         make([]func(), 0),
+		recvAddr:         make(chan net.Addr),
+		addr:             nil,
 	}
 }
 
@@ -115,6 +124,14 @@ func (w *Worker) Run() {
 			return
 		}
 	}
+}
+
+func (w *Worker) Addr() net.Addr {
+	if w.addr == nil {
+		w.addr = <-w.recvAddr
+	}
+
+	return w.addr
 }
 
 func (w *Worker) Quit() {
@@ -252,12 +269,72 @@ func (w *Worker) startCmd(cmdLine []string) (*exec.Cmd, error) {
 		cmd = exec.Command(cmdLine[0])
 	}
 
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	stdo, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
 
-	err := cmd.Start()
+	stde, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, err
+	}
+
+	stdor := io.TeeReader(stdo, os.Stdout)
+	stder := io.TeeReader(stde, os.Stderr)
+
+	err = w.monitorForAddr(stdor, stder)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cmd.Start()
 
 	return cmd, err
+}
+
+type workerAddr struct {
+	host string
+}
+
+func (wa *workerAddr) Network() string {
+	return "tcp"
+}
+
+func (wa *workerAddr) String() string {
+	return wa.host
+}
+
+func (w *Worker) monitorForAddr(rs ...io.Reader) error {
+	if w.config.ServerAddressMatch == "" {
+		return nil
+	}
+
+	m, err := regexp.Compile(w.config.ServerAddressMatch)
+	if err != nil {
+		return err
+	}
+
+	for _, r := range rs {
+		s := bufio.NewScanner(r)
+		go func(s *bufio.Scanner) {
+			looking := true
+			for s.Scan() {
+				if looking {
+					if gs := m.FindStringSubmatch(s.Text()); gs != nil {
+						url, err := url.Parse(gs[1])
+						if err != nil {
+							fmt.Fprintf(os.Stderr, "Error parsing URL %q to make address: %v", gs[1], err)
+							continue
+						}
+
+						w.recvAddr <- &workerAddr{url.Host}
+					}
+				}
+			}
+		}(s)
+	}
+
+	return nil
 }
 
 func (w *Worker) quitCmd(cmd *exec.Cmd) {

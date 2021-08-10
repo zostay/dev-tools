@@ -31,13 +31,12 @@ func Generic(done *sync.WaitGroup, doit func() error) func() {
 
 			select {
 			case <-time.After(backoffTime):
+				if backoffTime < 15*time.Second {
+					backoffTime = backoffTime * 2
+				}
 				continue
 			case <-quit:
 				return
-			}
-
-			if backoffTime < 15*time.Second {
-				backoffTime = backoffTime * 2
 			}
 		}
 	}()

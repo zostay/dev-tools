@@ -74,18 +74,20 @@ func setupFSNotifyRecursive(
 	done.Add(1)
 	go func() {
 		defer done.Done()
-		expected := false
 		for {
 			select {
 			case event, ok := <-watcher.Events:
-				if !ok && !expected {
-					fmt.Fprintf(os.Stderr, "Unexpected clsoure of watcher event stream %s", tlist)
+				if !ok {
+					fmt.Fprintf(os.Stderr, "Unexpected clsoure of watcher event stream %s\n", tlist)
 					return
 				}
 
 				if fi, err := os.Stat(event.Name); err == nil && fi.IsDir() {
 					if event.Op == fsnotify.Create || event.Op == fsnotify.Rename {
-						watcher.Add(event.Name)
+						if err := watcher.Add(event.Name); err != nil {
+							fmt.Fprintf(os.Stderr, "Failed to add new directory %q to event string %s: %v\n", event.Name, tlist, err)
+							return
+						}
 					}
 				}
 
@@ -100,14 +102,13 @@ func setupFSNotifyRecursive(
 				}
 
 			case err, ok := <-watcher.Errors:
-				if !ok && !expected {
-					fmt.Fprintf(os.Stderr, "Unexpected closure of watcher error stream %s", tlist)
+				if !ok {
+					fmt.Fprintf(os.Stderr, "Unexpected closure of watcher error stream %s\n", tlist)
 					return
 				}
 				w.ErrorsListener() <- err
 
 			case <-quit:
-				expected = true
 				watcher.Close()
 				return
 			}

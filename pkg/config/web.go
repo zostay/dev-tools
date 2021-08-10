@@ -32,5 +32,11 @@ type WebTarget struct {
 
 	ServerAddressMatch string
 
-	Watches []FileWatch
+	Watches  []FileWatch
+	Dispatch []ProxyDispatch
+}
+
+type ProxyDispatch struct {
+	Target string
+	Path   string
 }
