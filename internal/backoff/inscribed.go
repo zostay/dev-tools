@@ -13,7 +13,7 @@ type InscribedState struct {
 
 func Inscribed(done *sync.WaitGroup, state *InscribedState, doit func() error) func() {
 	var (
-		backoffTime = 1 * time.Second << (state.failures - 1)
+		backoffTime = 1 * time.Second << state.failures
 		quitOnce    = new(sync.Once)
 		quit        = make(chan struct{})
 		quitter     = func() {

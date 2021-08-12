@@ -158,12 +158,12 @@ func (c *Cmd) handle(e *event) bool {
 	case stateKill:
 		c.kill(e.err)
 	case stateQuit:
-		return false
+		return true
 	default:
 		panic("unknown cmd state")
 	}
 
-	return true
+	return false
 }
 
 func (c *Cmd) kill(err error) {
