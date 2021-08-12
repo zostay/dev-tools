@@ -35,8 +35,10 @@ func RunServer(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		fmt.Fprintf(os.Stderr, "Starting worker %s ... \n", name)
+
 		done.Add(1)
-		s, err := startServerTarget(&target, done)
+		s, err := startServerTarget(target, done)
 		if err != nil {
 			done.Done()
 			go stopEverything()
@@ -52,8 +54,10 @@ func RunServer(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		fmt.Fprintf(os.Stderr, "Starting front-end %s ... \n", name)
+
 		done.Add(1)
-		s, err := startFrontendTarget(&target, done)
+		s, err := startFrontendTarget(target, done, workers)
 		if err != nil {
 			done.Done()
 			go stopEverything()
@@ -76,17 +80,20 @@ func RunServer(cmd *cobra.Command, args []string) error {
 }
 
 type Server interface {
-	Addr() net.Addr
+	AddrListener() chan net.Addr
 	Quit()
 }
 
 var workers = make(map[string]Server)
 
 func startServerTarget(
-	target *config.WebTarget,
+	target config.WebTarget,
 	done *sync.WaitGroup,
 ) (Server, error) {
-	w := server.NewWorker(target, done)
+	w, err := server.NewWorker(&target, done)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, wcfg := range target.Watches {
 		q, err := fswatch.SetupWatcher(w, done, &wcfg)
@@ -98,29 +105,38 @@ func startServerTarget(
 		w.RegisterQuitter(q)
 	}
 
-	go w.Run()
+	w.Start()
 
 	return w, nil
 }
 
 func startFrontendTarget(
-	target *config.WebTarget,
+	target config.WebTarget,
 	done *sync.WaitGroup,
+	workers map[string]Server,
 ) (Server, error) {
 	f := gohttp.New(done)
 
 	for _, dcfg := range target.Dispatch {
 		var (
-			target = dcfg.Target
-			path   = dcfg.Path
+			tname = dcfg.Target
+			path  = dcfg.Path
 		)
 
-		url := url.URL{
-			Scheme: "http",
-			Host:   workers[target].Addr().String(),
-		}
+		done.Add(1)
+		go func(w Server) {
+			defer done.Done()
+			for {
+				addr := <-w.AddrListener()
 
-		f.AddProxy(path, &url)
+				url := url.URL{
+					Scheme: "http",
+					Host:   addr.String(),
+				}
+
+				f.SetProxy(path, &url)
+			}
+		}(workers[tname])
 	}
 
 	l, err := net.Listen("tcp", ":0")
