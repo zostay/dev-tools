@@ -124,7 +124,7 @@ func startFrontendTarget(
 		)
 
 		done.Add(1)
-		go func(w Server) {
+		go func(path string, w Server) {
 			defer done.Done()
 			for {
 				addr := <-w.AddrListener()
@@ -134,9 +134,10 @@ func startFrontendTarget(
 					Host:   addr.String(),
 				}
 
+				fmt.Fprintf(os.Stderr, "Updating proxy %q => %q\n", path, url.String())
 				f.SetProxy(path, &url)
 			}
-		}(workers[tname])
+		}(path, workers[tname])
 	}
 
 	l, err := net.Listen("tcp", ":0")

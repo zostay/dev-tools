@@ -16,7 +16,6 @@ type Frontend struct {
 	addrs   chan net.Addr
 	plock   *sync.RWMutex
 	proxies map[string]*httputil.ReverseProxy
-	l       net.Listener
 	s       *http.Server
 	done    *sync.WaitGroup
 }

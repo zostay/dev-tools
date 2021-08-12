@@ -56,7 +56,11 @@ type Cmd struct {
 	stoponce      *sync.Once
 }
 
-func Command(cmdLine []string, done *sync.WaitGroup) *Cmd {
+func Command(cmdLine []string, done *sync.WaitGroup) (*Cmd, error) {
+	if len(cmdLine) < 1 {
+		return nil, errors.New("cmdLine is too short")
+	}
+
 	c := Cmd{
 		cmdLine:       cmdLine,
 		done:          done,
@@ -69,7 +73,7 @@ func Command(cmdLine []string, done *sync.WaitGroup) *Cmd {
 
 	c.makeQuitter(func() {})
 
-	return &c
+	return &c, nil
 }
 
 func (c *Cmd) makeQuitter(q func()) {

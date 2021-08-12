@@ -23,8 +23,11 @@ type RunCmd struct {
 	addr      *future.DeferredPromise
 }
 
-func RunCommand(cmdLine []string, done *sync.WaitGroup, addrMatch *regexp.Regexp) *RunCmd {
-	c := acmd.Command(cmdLine, done)
+func RunCommand(cmdLine []string, done *sync.WaitGroup, addrMatch *regexp.Regexp) (*RunCmd, error) {
+	c, err := acmd.Command(cmdLine, done)
+	if err != nil {
+		return nil, err
+	}
 
 	r := RunCmd{
 		Cmd:       c,
@@ -54,7 +57,7 @@ func RunCommand(cmdLine []string, done *sync.WaitGroup, addrMatch *regexp.Regexp
 		return nil
 	}
 
-	return &r
+	return &r, nil
 }
 
 type workerAddr struct {
@@ -69,31 +72,35 @@ func (wa *workerAddr) String() string {
 	return wa.host
 }
 
-func (r *RunCmd) monitorForAddr(rs ...io.Reader) error {
+func (r *RunCmd) addrMatcher(s *bufio.Scanner) future.Actor {
 	m := r.AddrMatch
+	return func() (interface{}, error) {
+		// TODO might want to apply a contextual timeout to limit how
+		// long we wait for the address to show up.
+		looking := true
+		for s.Scan() {
+			if looking {
+				if gs := m.FindStringSubmatch(s.Text()); gs != nil {
+					url, err := url.Parse(gs[1])
+					if err != nil {
+						fmt.Fprintf(os.Stderr, "Error parsing URL %q to make address: %v", gs[1], err)
+						return nil, err
+					}
+
+					return &workerAddr{url.Host}, nil
+				}
+			}
+		}
+		return nil, errors.New("address never found in server log output")
+	}
+}
+
+func (r *RunCmd) monitorForAddr(rs ...io.Reader) error {
 	for _, rd := range rs {
 		s := bufio.NewScanner(rd)
 		r.addr.When(
 			future.Start(func(s *bufio.Scanner) future.Actor {
-				// TODO might want to apply a contextual timeout to limit how
-				// long we wait for the address to show up.
-				return future.Actor(func() (interface{}, error) {
-					looking := true
-					for s.Scan() {
-						if looking {
-							if gs := m.FindStringSubmatch(s.Text()); gs != nil {
-								url, err := url.Parse(gs[1])
-								if err != nil {
-									fmt.Fprintf(os.Stderr, "Error parsing URL %q to make address: %v", gs[1], err)
-									return nil, err
-								}
-
-								return &workerAddr{url.Host}, nil
-							}
-						}
-					}
-					return nil, errors.New("address never found in server log output")
-				})
+				return r.addrMatcher(s)
 			}(s)),
 		)
 	}

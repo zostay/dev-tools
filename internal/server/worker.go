@@ -63,6 +63,8 @@ func NewWorker(
 		config: config,
 		done:   done,
 
+		events: make(chan event),
+
 		addrs:     make(chan net.Addr),
 		addrMatch: addrMatch,
 
@@ -78,7 +80,16 @@ func NewWorker(
 }
 
 func (w *Worker) setupBuilder() {
-	w.builder = acmd.Command(w.config.Build, w.done)
+	if len(w.config.Build) == 0 {
+		return
+	}
+
+	var err error
+	w.builder, err = acmd.Command(w.config.Build, w.done)
+	if err != nil {
+		panic(err)
+	}
+
 	w.builder.Start()
 	w.done.Add(1)
 	go func() {
@@ -98,7 +109,16 @@ func (w *Worker) setupBuilder() {
 }
 
 func (w *Worker) setupRunner() {
-	w.runner = RunCommand(w.config.Run, w.done, w.addrMatch)
+	if len(w.config.Run) == 0 {
+		return
+	}
+
+	var err error
+	w.runner, err = RunCommand(w.config.Run, w.done, w.addrMatch)
+	if err != nil {
+		panic(err)
+	}
+
 	w.runner.Start()
 	w.done.Add(2)
 	go func() {
@@ -126,14 +146,7 @@ func (w *Worker) setupRunner() {
 }
 
 func (w *Worker) Start() {
-	w.done.Add(2)
-	go func() {
-		defer w.done.Done()
-		w.events <- event{
-			state: stateStart,
-		}
-	}()
-
+	w.done.Add(1)
 	go func() {
 		defer w.done.Done()
 		for {
@@ -158,6 +171,10 @@ func (w *Worker) Start() {
 			}
 		}
 	}()
+
+	w.events <- event{
+		state: stateStart,
+	}
 }
 
 func (w *Worker) handle(e *event) bool {
