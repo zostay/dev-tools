@@ -45,6 +45,8 @@ type WebTarget struct {
 	AddressMatch  string  `mapstructure:"address_match"`
 	AddressFormat AddrFmt `mapstructure:"address_format"`
 
+	OpenBrowser bool `mapstructure:"open_browser"`
+
 	Watches  []FileWatch
 	Dispatch []ProxyDispatch
 }

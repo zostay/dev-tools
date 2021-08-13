@@ -40,11 +40,9 @@ func (f *Frontend) SetProxy(path string, to *url.URL) {
 func (f *Frontend) Serve(l net.Listener) error {
 	f.logger.Printf("Frontend is listening on %s ...", l.Addr().String())
 
-	defer func() {
-		go func(a net.Addr) {
-			f.addrs <- a
-		}(l.Addr())
-	}()
+	go func(a net.Addr) {
+		f.addrs <- a
+	}(l.Addr())
 
 	f.s.Handler = f.MakeHandler()
 	return f.s.Serve(l)

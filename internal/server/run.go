@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"sync"
 
+	"github.com/zostay/dev-tools/internal/netx"
 	"github.com/zostay/dev-tools/pkg/acmd"
 	"github.com/zostay/dev-tools/pkg/config"
 	"github.com/zostay/dev-tools/pkg/future"
@@ -91,20 +92,12 @@ func (r *RunCmd) addrMatcher(s *bufio.Scanner) future.Actor {
 				if gs := m.FindStringSubmatch(s.Text()); len(gs) == 2 {
 					urlText := gs[1]
 					if r.AddrFmt == config.AddrFmtHostPort {
-						host, port, err := net.SplitHostPort(urlText)
+						hostport, err := netx.AddrToHostPort(urlText)
 						if err != nil {
 							r.logger.Printf("Error parsing host:port %q to make address: %v", urlText, err)
 							return nil, err
 						}
 
-						switch host {
-						case "::":
-							host = "::1"
-						case "0.0.0.0":
-							host = "127.0.0.1"
-						}
-
-						hostport := net.JoinHostPort(host, port)
 						urlText = fmt.Sprintf("http://%s", hostport)
 					}
 
