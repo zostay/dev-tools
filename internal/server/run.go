@@ -3,6 +3,7 @@ package server
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -13,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/zostay/dev-tools/pkg/acmd"
+	"github.com/zostay/dev-tools/pkg/config"
 	"github.com/zostay/dev-tools/pkg/future"
 )
 
@@ -20,6 +22,7 @@ type RunCmd struct {
 	*acmd.Cmd
 
 	AddrMatch *regexp.Regexp
+	AddrFmt   config.AddrFmt
 	addr      *future.DeferredPromise
 	logger    *log.Logger
 }
@@ -29,6 +32,7 @@ func RunCommand(
 	done *sync.WaitGroup,
 	logger *log.Logger,
 	addrMatch *regexp.Regexp,
+	addrFmt config.AddrFmt,
 ) (*RunCmd, error) {
 	c, err := acmd.Command(cmdLine, done, logger)
 	if err != nil {
@@ -38,6 +42,7 @@ func RunCommand(
 	r := RunCmd{
 		Cmd:       c,
 		AddrMatch: addrMatch,
+		AddrFmt:   addrFmt,
 		addr:      future.Deferred(),
 		logger:    logger,
 	}
@@ -84,9 +89,28 @@ func (r *RunCmd) addrMatcher(s *bufio.Scanner) future.Actor {
 		for s.Scan() {
 			if looking {
 				if gs := m.FindStringSubmatch(s.Text()); len(gs) == 2 {
-					url, err := url.Parse(gs[1])
+					urlText := gs[1]
+					if r.AddrFmt == config.AddrFmtHostPort {
+						host, port, err := net.SplitHostPort(urlText)
+						if err != nil {
+							r.logger.Printf("Error parsing host:port %q to make address: %v", urlText, err)
+							return nil, err
+						}
+
+						switch host {
+						case "::":
+							host = "::1"
+						case "0.0.0.0":
+							host = "127.0.0.1"
+						}
+
+						hostport := net.JoinHostPort(host, port)
+						urlText = fmt.Sprintf("http://%s", hostport)
+					}
+
+					url, err := url.Parse(urlText)
 					if err != nil {
-						r.logger.Printf("Error parsing URL %q to make address: %v", gs[1], err)
+						r.logger.Printf("Error parsing URL %q to make address: %v", urlText, err)
 						return nil, err
 					}
 

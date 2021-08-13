@@ -123,7 +123,7 @@ func (w *Worker) setupRunner() {
 	}
 
 	var err error
-	w.runner, err = RunCommand(w.config.Run, w.done, w.logger, w.addrMatch)
+	w.runner, err = RunCommand(w.config.Run, w.done, w.logger, w.addrMatch, w.config.AddressFormat)
 	if err != nil {
 		panic(err)
 	}
