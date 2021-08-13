@@ -117,7 +117,7 @@ func startFrontendTarget(
 	done *sync.WaitGroup,
 	workers map[string]Server,
 ) (Server, error) {
-	f := gohttp.New(done)
+	f := gohttp.New(done, logger)
 
 	for _, dcfg := range target.Dispatch {
 		var (
@@ -147,7 +147,9 @@ func startFrontendTarget(
 		return nil, err
 	}
 
+	done.Add(1)
 	go func() {
+		defer done.Done()
 		err := f.Serve(l)
 		if err != nil {
 			logger.Printf("gohttp server error: %v\n", err)

@@ -2,12 +2,11 @@ package gohttp
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 )
@@ -18,15 +17,17 @@ type Frontend struct {
 	proxies map[string]*httputil.ReverseProxy
 	s       *http.Server
 	done    *sync.WaitGroup
+	logger  *log.Logger
 }
 
-func New(done *sync.WaitGroup) *Frontend {
+func New(done *sync.WaitGroup, logger *log.Logger) *Frontend {
 	return &Frontend{
 		addrs:   make(chan net.Addr),
 		plock:   new(sync.RWMutex),
 		proxies: make(map[string]*httputil.ReverseProxy),
 		s:       new(http.Server),
 		done:    done,
+		logger:  logger,
 	}
 }
 
@@ -37,6 +38,8 @@ func (f *Frontend) SetProxy(path string, to *url.URL) {
 }
 
 func (f *Frontend) Serve(l net.Listener) error {
+	f.logger.Printf("Frontend is listening on %s ...", l.Addr().String())
+
 	defer func() {
 		go func(a net.Addr) {
 			f.addrs <- a
@@ -54,7 +57,7 @@ func (f *Frontend) AddrListener() chan net.Addr {
 func (f *Frontend) Quit() {
 	err := f.s.Shutdown(context.TODO())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error shutting down gohttp: %v\n", err)
+		f.logger.Printf("Error shutting down gohttp: %v\n", err)
 	}
 }
 
