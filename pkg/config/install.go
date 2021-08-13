@@ -1,5 +1,5 @@
 package config
 
 type Install struct {
-	BinFiles string `toml:"binfiles"`
+	BinFiles string `mapstructure:"binfiles"`
 }

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 	"net"
 	"net/url"
 	"os"
@@ -21,6 +21,8 @@ var serverCmd = &cobra.Command{
 	RunE:  RunServer,
 }
 
+var logger = log.New(os.Stderr, "", 0)
+
 func RunServer(cmd *cobra.Command, args []string) error {
 	config.Init(0)
 
@@ -35,7 +37,7 @@ func RunServer(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		fmt.Fprintf(os.Stderr, "Starting worker %s ... \n", name)
+		logger.Printf("Starting worker %s ... \n", name)
 
 		done.Add(1)
 		s, err := startServerTarget(target, done)
@@ -54,7 +56,7 @@ func RunServer(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		fmt.Fprintf(os.Stderr, "Starting front-end %s ... \n", name)
+		logger.Printf("Starting front-end %s ... \n", name)
 
 		done.Add(1)
 		s, err := startFrontendTarget(target, done, workers)
@@ -70,7 +72,7 @@ func RunServer(cmd *cobra.Command, args []string) error {
 
 	for _, target := range cfg.Web.Targets {
 		if target.Type != config.FrontendTarget && target.Type != config.ServerTarget {
-			fmt.Fprintf(os.Stderr, "Web target type %q is not supported.\n", target.Type)
+			logger.Printf("Web target type %q is not supported.\n", target.Type)
 		}
 	}
 
@@ -90,7 +92,7 @@ func startServerTarget(
 	target config.WebTarget,
 	done *sync.WaitGroup,
 ) (Server, error) {
-	w, err := server.NewWorker(&target, done)
+	w, err := server.NewWorker(logger, &target, done)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +136,7 @@ func startFrontendTarget(
 					Host:   addr.String(),
 				}
 
-				fmt.Fprintf(os.Stderr, "Updating proxy %q => %q\n", path, url.String())
+				logger.Printf("Updating proxy %q => %q\n", path, url.String())
 				f.SetProxy(path, &url)
 			}
 		}(path, workers[tname])
@@ -148,7 +150,7 @@ func startFrontendTarget(
 	go func() {
 		err := f.Serve(l)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "gohttp server error: %v\n", err)
+			logger.Printf("gohttp server error: %v\n", err)
 		}
 	}()
 

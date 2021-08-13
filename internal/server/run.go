@@ -3,8 +3,8 @@ package server
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/url"
 	"os"
@@ -21,10 +21,16 @@ type RunCmd struct {
 
 	AddrMatch *regexp.Regexp
 	addr      *future.DeferredPromise
+	logger    *log.Logger
 }
 
-func RunCommand(cmdLine []string, done *sync.WaitGroup, addrMatch *regexp.Regexp) (*RunCmd, error) {
-	c, err := acmd.Command(cmdLine, done)
+func RunCommand(
+	cmdLine []string,
+	done *sync.WaitGroup,
+	logger *log.Logger,
+	addrMatch *regexp.Regexp,
+) (*RunCmd, error) {
+	c, err := acmd.Command(cmdLine, done, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -33,18 +39,15 @@ func RunCommand(cmdLine []string, done *sync.WaitGroup, addrMatch *regexp.Regexp
 		Cmd:       c,
 		AddrMatch: addrMatch,
 		addr:      future.Deferred(),
+		logger:    logger,
 	}
 
 	c.ReadyHandler = func(cmd *exec.Cmd) error {
-		stdo, err := cmd.StdoutPipe()
-		if err != nil {
-			return err
-		}
+		stdo, wo := io.Pipe()
+		cmd.Stdout = wo
 
-		stde, err := cmd.StderrPipe()
-		if err != nil {
-			return err
-		}
+		stde, we := io.Pipe()
+		cmd.Stderr = we
 
 		stdor := io.TeeReader(stdo, os.Stdout)
 		stder := io.TeeReader(stde, os.Stderr)
@@ -80,10 +83,10 @@ func (r *RunCmd) addrMatcher(s *bufio.Scanner) future.Actor {
 		looking := true
 		for s.Scan() {
 			if looking {
-				if gs := m.FindStringSubmatch(s.Text()); gs != nil {
+				if gs := m.FindStringSubmatch(s.Text()); len(gs) == 2 {
 					url, err := url.Parse(gs[1])
 					if err != nil {
-						fmt.Fprintf(os.Stderr, "Error parsing URL %q to make address: %v", gs[1], err)
+						r.logger.Printf("Error parsing URL %q to make address: %v", gs[1], err)
 						return nil, err
 					}
 

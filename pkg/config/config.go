@@ -10,10 +10,10 @@ import (
 
 type Config struct {
 	App       string
-	EnvPrefix string `toml:"env_prefix"`
+	EnvPrefix string `mapstructure:"env_prefix"`
 
-	Install   `toml:"install"`
-	SQLBoiler `toml:"sqlboiler"`
+	Install   `mapstructure:"install"`
+	SQLBoiler `mapstructure:"sqlboiler"`
 	Web
 }
 

@@ -5,7 +5,7 @@ package acmd
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -54,9 +54,14 @@ type Cmd struct {
 	eventlooponce *sync.Once
 	startonce     *sync.Once
 	stoponce      *sync.Once
+	logger        *log.Logger
 }
 
-func Command(cmdLine []string, done *sync.WaitGroup) (*Cmd, error) {
+func Command(
+	cmdLine []string,
+	done *sync.WaitGroup,
+	logger *log.Logger,
+) (*Cmd, error) {
 	if len(cmdLine) < 1 {
 		return nil, errors.New("cmdLine is too short")
 	}
@@ -69,6 +74,7 @@ func Command(cmdLine []string, done *sync.WaitGroup) (*Cmd, error) {
 		eventlooponce: new(sync.Once),
 		startonce:     new(sync.Once),
 		stoponce:      new(sync.Once),
+		logger:        logger,
 	}
 
 	c.makeQuitter(func() {})
@@ -188,7 +194,7 @@ func (c *Cmd) start() {
 	q := backoff.Generic(c.done, func() error {
 		cmd, err := c.buildCmd()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Command %q failed restart: %v\n", c.String(), err)
+			c.logger.Printf("Command %q failed restart: %v\n", c.String(), err)
 			return err
 		}
 
@@ -204,7 +210,7 @@ func (c *Cmd) start() {
 }
 
 func (c *Cmd) buildCmd() (*exec.Cmd, error) {
-	fmt.Fprintf(os.Stderr, "Run> %s ...\n", c.String())
+	c.logger.Printf("Run> %s ...\n", c.String())
 
 	var cmd *exec.Cmd
 	if len(c.cmdLine) > 1 {
@@ -237,7 +243,7 @@ func (c *Cmd) ready(cmd *exec.Cmd) {
 	q := backoff.Inscribed(c.done, &c.readyState, func() error {
 		err := cmd.Start()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error building with %q: %v", c.String(), err)
+			c.logger.Printf("Error building with %q: %v", c.String(), err)
 			return err
 		}
 
@@ -261,9 +267,9 @@ func (c *Cmd) started(cmd *exec.Cmd) {
 	q := func() {
 		once.Do(func() {
 			if err := cmd.Process.Signal(syscall.SIGHUP); err != nil {
-				fmt.Fprintf(os.Stderr, "Error sending SIGHUP to %q: %v\n", c.String(), err)
+				c.logger.Printf("Error sending SIGHUP to %q: %v\n", c.String(), err)
 				if err := cmd.Process.Kill(); err != nil {
-					fmt.Fprintf(os.Stderr, "Unable to kill %q: %v\n", c.String(), err)
+					c.logger.Printf("Unable to kill %q: %v\n", c.String(), err)
 				}
 			}
 		})

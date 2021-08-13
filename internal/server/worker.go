@@ -1,9 +1,9 @@
 package server
 
 import (
-	"fmt"
+	"errors"
+	"log"
 	"net"
-	"os"
 	"regexp"
 	"sync"
 	"time"
@@ -30,6 +30,8 @@ type event struct {
 }
 
 type Worker struct {
+	logger *log.Logger
+
 	config *config.WebTarget
 	done   *sync.WaitGroup
 
@@ -51,15 +53,22 @@ type Worker struct {
 }
 
 func NewWorker(
+	logger *log.Logger,
 	config *config.WebTarget,
 	done *sync.WaitGroup,
 ) (*Worker, error) {
-	addrMatch, err := regexp.Compile(config.ServerAddressMatch)
+	if config.AddressMatch == "" {
+		return nil, errors.New("you must set the web.targets.….server_address_match in the config")
+	}
+
+	addrMatch, err := regexp.Compile(config.AddressMatch)
 	if err != nil {
 		return nil, err
 	}
 
 	w := Worker{
+		logger: logger,
+
 		config: config,
 		done:   done,
 
@@ -85,7 +94,7 @@ func (w *Worker) setupBuilder() {
 	}
 
 	var err error
-	w.builder, err = acmd.Command(w.config.Build, w.done)
+	w.builder, err = acmd.Command(w.config.Build, w.done, w.logger)
 	if err != nil {
 		panic(err)
 	}
@@ -114,26 +123,27 @@ func (w *Worker) setupRunner() {
 	}
 
 	var err error
-	w.runner, err = RunCommand(w.config.Run, w.done, w.addrMatch)
+	w.runner, err = RunCommand(w.config.Run, w.done, w.logger, w.addrMatch)
 	if err != nil {
 		panic(err)
 	}
 
 	w.runner.Start()
 	w.done.Add(2)
-	go func() {
-		addr, err := w.runner.Addr()
+	go func(r *RunCmd) {
+		addr, err := r.Addr()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error reading server address: %v", err)
+			w.logger.Printf("error reading server address: %v", err)
 			return
 		}
 		w.addrs <- addr
-	}()
-	go func() {
+	}(w.runner)
+
+	go func(r *RunCmd) {
 		defer w.done.Done()
-		err := w.runner.Wait()
+		err := r.Wait()
 		if err != nil && err.Error() != "signal: hangup" {
-			fmt.Fprintf(os.Stderr, "unexpected quit: %v", err)
+			w.logger.Printf("unexpected quit: %v", err)
 			<-time.After(5 * time.Second)
 		} else {
 			<-time.After(100 * time.Millisecond)
@@ -142,7 +152,7 @@ func (w *Worker) setupRunner() {
 		w.events <- event{
 			state: stateRestart,
 		}
-	}()
+	}(w.runner)
 }
 
 func (w *Worker) Start() {
@@ -167,7 +177,7 @@ func (w *Worker) Start() {
 				}()
 
 			case err := <-w.fserrors:
-				fmt.Fprintf(os.Stderr, "FSNotify Error: %v\n", err)
+				w.logger.Printf("FSNotify Error: %v\n", err)
 			}
 		}
 	}()
@@ -215,7 +225,7 @@ func (w *Worker) change(name string) {
 	}
 
 	w.paused = true
-	fmt.Fprintf(os.Stderr, "FSNotify detected change: %s\n", name)
+	w.logger.Printf("FSNotify detected change: %s\n", name)
 
 	w.done.Add(1)
 	go func() {

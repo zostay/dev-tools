@@ -30,7 +30,7 @@ type WebTarget struct {
 	Build []string
 	Run   []string
 
-	ServerAddressMatch string
+	AddressMatch string `mapstructure:"address_match"`
 
 	Watches  []FileWatch
 	Dispatch []ProxyDispatch
