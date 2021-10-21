@@ -1,0 +1,15 @@
+#!/bin/zsh
+
+set -xe
+
+if [[ -z "$ZXCONFIG" ]]; then
+    source =(zxconfig env)
+fi
+
+go generate ./...
+
+if [[ -n "$ZX_INSTALL_BINFILES" ]]; then
+    go build -o "$ZX_INSTALL_BINFILES" ./...
+else
+    go install ./...
+fi

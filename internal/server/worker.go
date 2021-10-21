@@ -134,7 +134,13 @@ func (w *Worker) setupDaemon() {
 	}
 
 	var err error
-	w.daemon, err = RunCommand(w.config.Run, w.done, w.logger, w.addrMatch, w.config.AddressFormat)
+	w.daemon, err = RunCommand(
+		w.config.Run,
+		w.done,
+		w.logger,
+		w.addrMatch,
+		w.config.AddressFormat,
+	)
 	if err != nil {
 		panic(err)
 	}

@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -10,6 +12,8 @@ import (
 
 	"github.com/zostay/dev-tools/pkg/config"
 )
+
+const zxPrefix = "ZX_"
 
 var envCmd = &cobra.Command{
 	Use:   "env",
@@ -59,7 +63,11 @@ func walkMap(p string, ms map[string]interface{}) {
 		case []interface{}:
 			walkSlice(np, nv)
 		default:
-			fmt.Printf(`%s="%s"`, np, cleanValue(v))
+			cv := cleanValue(v)
+			if isExpandablePathVar(np) {
+				cv = expandPath(cv)
+			}
+			fmt.Printf(`%s%s="%s"`, zxPrefix, np, cv)
 			fmt.Println("")
 		}
 	}
@@ -112,4 +120,33 @@ func cleanValue(v interface{}) string {
 		}
 	}
 	return cv.String()
+}
+
+// isExpandablePathVar returns true if the given clean name ends with FILES or
+// DIR.
+func isExpandablePathVar(cn string) bool {
+	return strings.HasSuffix(cn, "FILES") ||
+		strings.HasSuffix(cn, "DIR")
+}
+
+// expandPath expands paths into absolute paths for tools, including turning ~
+// prefix into a home directory. If the user's home directory cannot be
+// determined, then there's no error, just ~ is not expanded. If there is an
+// error turning the path into an absolute path, then the path is returned
+// unexpanded.
+func expandPath(p string) string {
+	home, err := os.UserHomeDir()
+	if err == nil {
+		if p == "~" {
+			p = home
+		} else if strings.HasPrefix(p, "~/") {
+			p = home + p[1:]
+		}
+	}
+
+	if ap, err := filepath.Abs(p); err == nil {
+		return ap
+	} else {
+		return p
+	}
 }

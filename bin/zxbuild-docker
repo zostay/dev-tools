@@ -6,10 +6,10 @@ if [[ -z "$XZCONFIG" ]]; then
     source =(zxconfig env)
 fi
 
-if [[ -n "$DOCKER_TARGETS" ]]; then
+if [[ -n "$ZX_DOCKER_TARGETS" ]]; then
     for target ("$array[@]"); do
-        docker build . --target "$target" -t "$DOCKER_REPOSITORY/$APP-$target"
+        docker build . --target "$target" -t "$ZX_DOCKER_REPOSITORY/$ZX_APP-$target"
     done
 else
-    docker build . -t "$DOCKER_REPOSITORY/$APP"
+    docker build . -t "$ZX_DOCKER_REPOSITORY/$ZX_APP"
 fi
