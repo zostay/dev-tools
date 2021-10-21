@@ -33,23 +33,23 @@ func Init(verbosity int) {
 	}
 
 	viper.SetConfigName("defaults")
-	viper.SetConfigType("toml")
+	viper.SetConfigType("yaml")
 
 	if verbosity > 0 {
-		fmt.Fprintf(os.Stderr, "Reading configuration for defaults.toml\n")
+		fmt.Fprintf(os.Stderr, "Reading configuration for defaults.yaml\n")
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to read defaults.toml: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to read defaults.yaml: %v\n", err)
 	}
 
 	viper.SetConfigName(".zx")
-	viper.SetConfigType("toml")
+	viper.SetConfigType("yaml")
 
 	if err := viper.MergeInConfig(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to read .zx.toml: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to read .zx.yaml: %v\n", err)
 	} else if verbosity > 0 {
-		fmt.Fprintln(os.Stderr, "Read configuration for .zx.toml")
+		fmt.Fprintln(os.Stderr, "Read configuration for .zx.yaml")
 	}
 
 	envPrefix := viper.GetString("env_prefix")
@@ -60,7 +60,7 @@ func Init(verbosity int) {
 		viper.SetEnvPrefix(envPrefix)
 		viper.AutomaticEnv()
 	} else {
-		fmt.Fprintln(os.Stderr, "Not loading environment config. Please set the \"app\" or \"env_prefix\" key in .zx.toml.")
+		fmt.Fprintln(os.Stderr, "Not loading environment config. Please set the \"app\" or \"env_prefix\" key in .zx.yaml.")
 	}
 }
 

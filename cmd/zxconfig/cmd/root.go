@@ -6,7 +6,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "zxconfig",
-	Short: "Work with .zx.toml files.",
+	Short: "Work with .zx.yaml files.",
 }
 
 var verbosity int // the verbosity level to use when working with zxconfig
