@@ -69,7 +69,7 @@ func RunServer(cmd *cobra.Command, args []string) error {
 			initialize = initServerTarget
 			configure = configServerTarget
 
-		// front-ends are static files to be served by http started here
+		// front-ends are ingress servers that route calls by prefix
 		case config.FrontendTarget:
 			initialize = initFrontendTarget
 			configure = configFrontendTarget

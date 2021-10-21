@@ -33,10 +33,12 @@ type event struct {
 	cmd *exec.Cmd
 }
 
-type StartHandler func() error
-type ReadyHandler func(cmd *exec.Cmd) error
-type StartedHandler func(cmd *exec.Cmd) error
-type StopHandler func(error)
+type (
+	StartHandler   func() error
+	ReadyHandler   func(cmd *exec.Cmd) error
+	StartedHandler func(cmd *exec.Cmd) error
+	StopHandler    func(error)
+)
 
 type Cmd struct {
 	StartHandler   StartHandler
@@ -44,9 +46,10 @@ type Cmd struct {
 	StartedHandler StartedHandler
 	StopHandler    StopHandler
 
-	cmdLine []string
-	done    *sync.WaitGroup
-	result  *future.DeferredPromise
+	workingDir string
+	cmdLine    []string
+	done       *sync.WaitGroup
+	result     *future.DeferredPromise
 
 	quitter       func(error)
 	events        chan event
@@ -58,6 +61,7 @@ type Cmd struct {
 }
 
 func Command(
+	workingDir string,
 	cmdLine []string,
 	done *sync.WaitGroup,
 	logger *log.Logger,
@@ -67,6 +71,7 @@ func Command(
 	}
 
 	c := Cmd{
+		workingDir:    workingDir,
 		cmdLine:       cmdLine,
 		done:          done,
 		result:        future.Deferred(),
@@ -219,6 +224,7 @@ func (c *Cmd) buildCmd() (*exec.Cmd, error) {
 		cmd = exec.Command(c.cmdLine[0])
 	}
 
+	cmd.Dir = c.workingDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

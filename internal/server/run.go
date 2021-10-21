@@ -29,13 +29,14 @@ type RunCmd struct {
 }
 
 func RunCommand(
+	workingDir string,
 	cmdLine []string,
 	done *sync.WaitGroup,
 	logger *log.Logger,
 	addrMatch *regexp.Regexp,
 	addrFmt config.AddrFmt,
 ) (*RunCmd, error) {
-	c, err := acmd.Command(cmdLine, done, logger)
+	c, err := acmd.Command(workingDir, cmdLine, done, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -81,9 +82,21 @@ func (wa *workerAddr) String() string {
 	return wa.host
 }
 
+// postAddrMatcherReader continues reading from the scanner after the match so
+// output continues to be logged.
+func (r *RunCmd) postAddrMatcher(s *bufio.Scanner) {
+	for s.Scan() {
+		// do nothing
+	}
+}
+
 func (r *RunCmd) addrMatcher(s *bufio.Scanner) future.Actor {
 	m := r.AddrMatch
 	return func() (interface{}, error) {
+		defer func() {
+			go r.postAddrMatcher(s)
+		}()
+
 		// TODO might want to apply a contextual timeout to limit how
 		// long we wait for the address to show up.
 		looking := true

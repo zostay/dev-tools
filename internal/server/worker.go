@@ -105,7 +105,12 @@ func (w *Worker) setupBuilder() {
 	}
 
 	var err error
-	w.builder, err = acmd.Command(w.config.Build, w.done, w.logger)
+	w.builder, err = acmd.Command(
+		w.config.WorkingDir,
+		w.config.Build,
+		w.done,
+		w.logger,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -135,6 +140,7 @@ func (w *Worker) setupDaemon() {
 
 	var err error
 	w.daemon, err = RunCommand(
+		w.config.WorkingDir,
 		w.config.Run,
 		w.done,
 		w.logger,

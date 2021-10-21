@@ -42,6 +42,8 @@ type WebTarget struct {
 	Build []string
 	Run   []string
 
+	WorkingDir string `mapstructure:"working_dir"`
+
 	AddressMatch  string  `mapstructure:"address_match"`
 	AddressFormat AddrFmt `mapstructure:"address_format"`
 
