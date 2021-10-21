@@ -16,6 +16,7 @@ func init() {
 	rootCmd.PersistentFlags().CountVarP(&verbosity, "verbose", "v", "increase command verbosity")
 	rootCmd.AddCommand(envCmd)
 	rootCmd.AddCommand(mergeCmd)
+	rootCmd.AddCommand(viperCmd)
 }
 
 // Execute runs the zxconfig command.

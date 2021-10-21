@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -62,10 +63,57 @@ func Init(verbosity int) {
 	} else {
 		fmt.Fprintln(os.Stderr, "Not loading environment config. Please set the \"app\" or \"env_prefix\" key in .zx.yaml.")
 	}
+
+	// Expand some keys
+	for _, k := range viper.AllKeys() {
+		switch v := viper.Get(k).(type) {
+		case []interface{}:
+			if strings.HasSuffix(k, ".run") {
+				vs := make([]string, len(v))
+				for i, iv := range v {
+					if siv, ok := iv.(string); ok {
+						if strings.ContainsRune(siv, '$') {
+							vs[i] = ExpandStdValue(siv)
+						} else {
+							vs[i] = siv
+						}
+					} else {
+						vs[i] = fmt.Sprintf("%s", iv)
+					}
+				}
+				viper.Set(k, vs)
+			}
+		}
+	}
 }
 
 func Get() (*Config, error) {
 	var cfg Config
 	err := viper.Unmarshal(&cfg)
 	return &cfg, err
+}
+
+func BasicEnv(n string) string {
+	switch n {
+	case "HOME":
+		home, err := os.UserHomeDir()
+		if err == nil {
+			return home
+		} else {
+			return ""
+		}
+	case "PWD":
+		wd, err := os.Getwd()
+		if err == nil {
+			return wd
+		} else {
+			return ""
+		}
+	default:
+		return ""
+	}
+}
+
+func ExpandStdValue(v string) string {
+	return os.Expand(v, BasicEnv)
 }
