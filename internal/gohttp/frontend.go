@@ -60,6 +60,9 @@ func (f *Frontend) AddrListener() chan net.Addr {
 	return f.addrs
 }
 
+func (f *Frontend) Start() {
+}
+
 func (f *Frontend) Quit() {
 	err := f.s.Shutdown(context.TODO())
 	if err != nil {
@@ -116,7 +119,7 @@ func (f *Frontend) MakeHandler() http.HandlerFunc {
 func (f *Frontend) FindBestProxy(path string) *proxyURL {
 	pp := strings.Split(path, "/")
 
-	var bestlen = 0
+	bestlen := 0
 	var bestproxy *proxyURL
 
 	f.plock.RLock()

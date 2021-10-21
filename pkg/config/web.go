@@ -49,6 +49,8 @@ type WebTarget struct {
 
 	Watches  []FileWatch
 	Dispatch []ProxyDispatch
+
+	Depends []string
 }
 
 type ProxyDispatch struct {

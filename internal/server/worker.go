@@ -55,7 +55,7 @@ type Worker struct {
 	quitting bool
 
 	builder *acmd.Cmd
-	runner  *RunCmd
+	daemon  *RunCmd
 
 	quitters []func()
 }
@@ -128,18 +128,18 @@ func (w *Worker) setupBuilder() {
 	}()
 }
 
-func (w *Worker) setupRunner() {
+func (w *Worker) setupDaemon() {
 	if len(w.config.Run) == 0 {
 		return
 	}
 
 	var err error
-	w.runner, err = RunCommand(w.config.Run, w.done, w.logger, w.addrMatch, w.config.AddressFormat)
+	w.daemon, err = RunCommand(w.config.Run, w.done, w.logger, w.addrMatch, w.config.AddressFormat)
 	if err != nil {
 		panic(err)
 	}
 
-	w.runner.Start()
+	w.daemon.Start()
 	w.done.Add(2)
 	go func(r *RunCmd) {
 		addr, err := r.Addr()
@@ -148,7 +148,7 @@ func (w *Worker) setupRunner() {
 			return
 		}
 		w.addrs <- addr
-	}(w.runner)
+	}(w.daemon)
 
 	go func(r *RunCmd) {
 		defer w.done.Done()
@@ -163,7 +163,7 @@ func (w *Worker) setupRunner() {
 		w.events <- event{
 			state: stateRestart,
 		}
-	}(w.runner)
+	}(w.daemon)
 }
 
 func (w *Worker) Start() {
@@ -202,7 +202,7 @@ func (w *Worker) handle(e *event) bool {
 	switch e.state {
 	case stateStart:
 		w.setupBuilder()
-		w.setupRunner()
+		w.setupDaemon()
 
 	case stateChange:
 		w.change(e.name)
@@ -227,7 +227,7 @@ func (w *Worker) rebuild() {
 }
 
 func (w *Worker) restart() {
-	w.setupRunner()
+	w.setupDaemon()
 }
 
 func (w *Worker) change(name string) {
@@ -251,7 +251,7 @@ func (w *Worker) kill() {
 	w.quitting = true
 
 	w.builder.Stop()
-	w.runner.Stop()
+	w.daemon.Stop()
 }
 
 func (w *Worker) AddrListener() chan net.Addr {

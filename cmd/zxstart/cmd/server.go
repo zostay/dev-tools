@@ -34,17 +34,15 @@ type Server interface {
 	// Start starts the application server.
 	Start()
 
-	// Restart tells the application server to reload it's configuration and
-	// perform a full restart if necessary.
-	Restart()
-
 	// Quit tells teh application server to shutdown.
 	Quit()
 }
 
-var (
-	logger  = log.New(os.Stderr, "", 0)
-	workers = make(map[string]Server)
+var logger = log.New(os.Stderr, "", 0)
+
+type (
+	InitServerFunc   func(config.WebTarget, *sync.WaitGroup) (Server, error)
+	ConfigServerFunc func(string, config.WebTarget, *sync.WaitGroup, map[string]Server) error
 )
 
 func RunServer(cmd *cobra.Command, args []string) error {
@@ -55,19 +53,38 @@ func RunServer(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	done := new(sync.WaitGroup)
-	for name, target := range cfg.Web.Targets {
-		if target.Type != config.ServerTarget {
+	var (
+		workers = make(map[string]Server)
+		done    = new(sync.WaitGroup)
+
+		initialize InitServerFunc
+		configure  ConfigServerFunc
+	)
+
+	// prepare
+	for _, target := range cfg.Web.Targets {
+		switch target.Type {
+		// servers are complete app servers on their own port
+		case config.ServerTarget:
+			initialize = initServerTarget
+			configure = configServerTarget
+
+		// front-ends are static files to be served by http started here
+		case config.FrontendTarget:
+			initialize = initFrontendTarget
+			configure = configFrontendTarget
+
+		default:
+			logger.Printf("Web target type %q is not supported.\n", target.Type)
 			continue
 		}
+	}
 
-		logger.Printf("Starting worker %s ... \n", name)
-
-		done.Add(1)
-		s, err := startServerTarget(target, done)
+	// init - construct and prep each server
+	for name, target := range cfg.Web.Targets {
+		s, err := initialize(target, done)
 		if err != nil {
-			done.Done()
-			go stopEverything()
+			go stopEverything(workers)
 			done.Wait()
 			return err
 		}
@@ -75,32 +92,30 @@ func RunServer(cmd *cobra.Command, args []string) error {
 		workers[name] = s
 	}
 
+	// config - tell each server what it is going to do
 	for name, target := range cfg.Web.Targets {
-		if target.Type != config.FrontendTarget {
-			continue
-		}
-
-		logger.Printf("Starting front-end %s ... \n", name)
-
-		done.Add(1)
-		s, err := startFrontendTarget(target, done, workers)
+		err := configure(name, target, done, workers)
 		if err != nil {
-			done.Done()
-			go stopEverything()
+			go stopEverything(workers)
 			done.Wait()
 			return err
 		}
-
-		workers[name] = s
 	}
 
+	// process - start each server
+	for name, server := range workers {
+		logger.Printf("Starting server %s ... \n", name)
+
+		server.Start()
+	}
+
+	// post-process - connect the server to the hoomin
 	for name, target := range cfg.Web.Targets {
 		if target.Type != config.FrontendTarget && target.Type != config.ServerTarget {
 			logger.Printf("Web target type %q is not supported.\n", target.Type)
 		}
 
 		if target.OpenBrowser {
-			logger.Printf("OPEN BROWSER %q", name)
 			s := workers[name]
 
 			var openCmdName string
@@ -134,12 +149,13 @@ func RunServer(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// sticks here
 	done.Wait()
 
 	return nil
 }
 
-func startServerTarget(
+func initServerTarget(
 	target config.WebTarget,
 	done *sync.WaitGroup,
 ) (Server, error) {
@@ -148,27 +164,46 @@ func startServerTarget(
 		return nil, err
 	}
 
+	return w, nil
+}
+
+func configServerTarget(
+	name string,
+	target config.WebTarget,
+	done *sync.WaitGroup,
+	workers map[string]Server,
+) error {
+	w := workers[name].(*server.Worker)
+
 	for _, wcfg := range target.Watches {
 		q, err := fswatch.SetupWatcher(w, done, &wcfg)
 		if err != nil {
-			stopEverything()
-			return nil, err
+			stopEverything(workers)
+			return err
 		}
 
 		w.RegisterQuitter(q)
 	}
 
-	w.Start()
-
-	return w, nil
+	return nil
 }
 
-func startFrontendTarget(
+func initFrontendTarget(
+	target config.WebTarget,
+	done *sync.WaitGroup,
+) (Server, error) {
+	f := gohttp.New(done, logger)
+
+	return f, nil
+}
+
+func configFrontendTarget(
+	name string,
 	target config.WebTarget,
 	done *sync.WaitGroup,
 	workers map[string]Server,
-) (Server, error) {
-	f := gohttp.New(done, logger)
+) error {
+	f := workers[name].(*gohttp.Frontend)
 
 	for _, dcfg := range target.Dispatch {
 		var (
@@ -195,7 +230,7 @@ func startFrontendTarget(
 
 	l, err := net.Listen("tcp", ":0")
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	done.Add(1)
@@ -207,10 +242,12 @@ func startFrontendTarget(
 		}
 	}()
 
-	return f, nil
+	return nil
 }
 
-func stopEverything() {
+func stopEverything(
+	workers map[string]Server,
+) {
 	for _, worker := range workers {
 		go worker.Quit()
 	}
