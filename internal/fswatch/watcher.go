@@ -8,34 +8,49 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/bmatcuk/doublestar"
 	"github.com/fsnotify/fsnotify"
-	"github.com/gobwas/glob"
 
 	"github.com/zostay/dev-tools/pkg/config"
 )
 
+// Event is just an fsnotify.Event.
 type Event fsnotify.Event
 
+// Watcher is a class that can receive event streams related to file system
+// changes.
 type Watcher interface {
+	// EventsListener returns a channel related to the object that is ready to
+	// receive file sytem change events.
 	EventsListener() chan Event
+
+	// ErrorsListener returns a channel related to the object that is ready to
+	// receive file system change error events.
 	ErrorsListener() chan error
 }
 
-func SetupWatcher(w Watcher, done *sync.WaitGroup, config *config.FileWatch) (func(), error) {
-	globs := make([]glob.Glob, len(config.Filters))
-	for i, f := range config.Filters {
-		g, err := glob.Compile(f)
-		if err != nil {
-			return nil, err
-		}
+// TODO Does this really need a WaitGroup? Do we really care about when the FS
+// notifier has completely finished watching something? Should it be sent as
+// part of the quitter instead or something?
 
-		globs[i] = g
+// SetupWatcher is the entry point for setting up a watch on some set of files
+// and to pass those events and errors onto the given Watcher. It returns a
+// quit function, which can be used to tell the Watcher to exit and stop
+// watching for file system changes. If an error is returned, the watcher is not
+// setup and no events should be sent.
+//
+// If a sync.WaitGroup is given, then it will be notified when the watcher has
+// quit.
+func SetupWatcher(w Watcher, done *sync.WaitGroup, config *config.FileWatch) (func(), error) {
+	// use a throw-away waitgroup if none is given.
+	if done == nil {
+		done = new(sync.WaitGroup)
 	}
 
 	quitter, err := setupFSNotifyRecursive(
 		w,
 		config.Targets,
-		globs,
+		config.Filters,
 		done,
 	)
 
@@ -45,7 +60,7 @@ func SetupWatcher(w Watcher, done *sync.WaitGroup, config *config.FileWatch) (fu
 func setupFSNotifyRecursive(
 	w Watcher,
 	targets []string,
-	globs []glob.Glob,
+	patterns []string,
 	done *sync.WaitGroup,
 ) (func(), error) {
 	watcher, err := fsnotify.NewWatcher()
@@ -62,7 +77,6 @@ func setupFSNotifyRecursive(
 			}
 			return nil
 		})
-
 		if err != nil {
 			watcher.Close()
 			return nil, err
@@ -91,9 +105,14 @@ func setupFSNotifyRecursive(
 					}
 				}
 
-				if len(globs) > 0 {
-					for _, g := range globs {
-						if g.Match(event.Name) {
+				if len(patterns) > 0 {
+					for _, g := range patterns {
+						matches, err := doublestar.PathMatch(g, event.Name)
+						if err != nil {
+							w.ErrorsListener() <- err
+						}
+
+						if matches {
 							w.EventsListener() <- Event(event)
 						}
 					}
