@@ -9,10 +9,12 @@ var rootCmd = &cobra.Command{
 	Short: "Start development servers.",
 }
 
+// init sets up the zxstart command.
 func init() {
 	rootCmd.AddCommand(serverCmd)
 }
 
+// Execute runst eh zxstart command.
 func Execute() error {
 	return rootCmd.Execute()
 }

@@ -24,8 +24,21 @@ var serverCmd = &cobra.Command{
 	RunE:  RunServer,
 }
 
+// Server is the interface used to implement each type of application server
+// that zxstart can manage.
 type Server interface {
+	// AddrListener tells the caller where to connect to this application
+	// server.
 	AddrListener() chan net.Addr
+
+	// Start starts the application server.
+	Start()
+
+	// Restart tells the application server to reload it's configuration and
+	// perform a full restart if necessary.
+	Restart()
+
+	// Quit tells teh application server to shutdown.
 	Quit()
 }
 

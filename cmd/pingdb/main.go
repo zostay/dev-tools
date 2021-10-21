@@ -3,6 +3,9 @@ package main
 // Adapted from:
 // https://stackoverflow.com/questions/41053830/how-to-ping-remote-mysql-using-golang
 
+// This command-line tool pings a MySQL server to detect that the server is
+// alive and ready to use.
+
 import (
 	"database/sql"
 	"flag"

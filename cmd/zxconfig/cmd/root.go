@@ -9,14 +9,16 @@ var rootCmd = &cobra.Command{
 	Short: "Work with .zx.toml files.",
 }
 
-var verbosity int
+var verbosity int // the verbosity level to use when working with zxconfig
 
+// init initializes the zxconfig command.
 func init() {
 	rootCmd.PersistentFlags().CountVarP(&verbosity, "verbose", "v", "increase command verbosity")
 	rootCmd.AddCommand(envCmd)
 	rootCmd.AddCommand(mergeCmd)
 }
 
+// Execute runs the zxconfig command.
 func Execute() error {
 	return rootCmd.Execute()
 }

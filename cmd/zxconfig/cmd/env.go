@@ -17,6 +17,8 @@ var envCmd = &cobra.Command{
 	RunE:  RunEnv,
 }
 
+// RunEnv reads in the .zx.yaml file and outputs all the configuration values
+// found there as a environment file.
 func RunEnv(cmd *cobra.Command, args []string) error {
 	config.Init(verbosity)
 	fmt.Println(`ZXCONFIG="If good works cannot gain you your salvation, how can bad works cause you to lose your salvation?"`)
@@ -25,6 +27,8 @@ func RunEnv(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+// makePrefix converts a prefix and key value into a "prefix_key" string and
+// returns it.
 func makePrefix(p, k string) string {
 	np := cleanName(k)
 	if p != "" {
@@ -33,6 +37,9 @@ func makePrefix(p, k string) string {
 	return np
 }
 
+// walkMap walks a key-value map in the configuration file and generates an
+// environment value for every value found in it. Each key value file is
+// rendered as a KEY="VALUE", properly escaped.
 func walkMap(p string, ms map[string]interface{}) {
 	keys := make([]string, len(ms))
 	i := 0
@@ -58,6 +65,9 @@ func walkMap(p string, ms map[string]interface{}) {
 	}
 }
 
+// walkSlice walks a list of values in the configuration file and generates
+// environment value for every value found in it. These array values are output
+// using array declarations.
 func walkSlice(p string, vs []interface{}) {
 	if len(vs) > 0 {
 		fmt.Printf("declare -a %s\n", p)
@@ -70,6 +80,8 @@ func walkSlice(p string, vs []interface{}) {
 	}
 }
 
+// cleanName converts keys found in the configuration file to names appropriate
+// for use in a env file.
 func cleanName(n string) string {
 	ns := strings.FieldsFunc(n, func(r rune) bool {
 		return !((r >= 'A' && r <= 'Z') ||
@@ -80,6 +92,8 @@ func cleanName(n string) string {
 	return strings.ToUpper(strings.Join(ns, "_"))
 }
 
+// cleanValue cleans up a value for embedding in an environment string with
+// proper escaping to be read back by a shell program.
 func cleanValue(v interface{}) string {
 	sv := fmt.Sprintf("%v", v)
 	cv := new(strings.Builder)

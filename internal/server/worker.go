@@ -29,6 +29,14 @@ type event struct {
 	name string
 }
 
+// Worker is a state machine that maintains two processes. One runs
+// periodically, the builder, and the other runs all the time, the daemon. Both
+// processes are optional. We start by running the builder. If it fails, we keep
+// running the builder until it succeeds. Once it succeeds we run the daemon.
+// If the daemon quits for any reason, we restart it. If a rebuild is ordered,
+// then we start by starting the builder. We keep running the builder until it
+// succeeds. When the builder succeeds, we trigger a restart of the daemon. This
+// continues until we are told to quit.
 type Worker struct {
 	logger *log.Logger
 
@@ -52,6 +60,9 @@ type Worker struct {
 	quitters []func()
 }
 
+// NewWorker builds a new worker that runs a builder and a daemon. It will
+// notify the given sync.WaitGroup when the build and daemon processes have
+// completely quit.
 func NewWorker(
 	logger *log.Logger,
 	config *config.WebTarget,
