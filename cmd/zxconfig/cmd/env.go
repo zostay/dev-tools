@@ -13,7 +13,7 @@ import (
 	"github.com/zostay/dev-tools/pkg/config"
 )
 
-const zxPrefix = "ZX_"
+const zxPrefix = config.ZxPrefix + "_"
 
 var envCmd = &cobra.Command{
 	Use:   "env",

@@ -9,9 +9,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+const ZxPrefix = "ZX"
+
 type Config struct {
-	App       string
-	EnvPrefix string `mapstructure:"env_prefix"`
+	App string
 
 	Install   `mapstructure:"install"`
 	SQLBoiler `mapstructure:"sqlboiler"`
@@ -58,7 +59,7 @@ func Init(verbosity int) {
 		envPrefix = viper.GetString("app")
 	}
 	if envPrefix != "" {
-		viper.SetEnvPrefix(envPrefix)
+		viper.SetEnvPrefix(ZxPrefix)
 		viper.AutomaticEnv()
 	} else {
 		fmt.Fprintln(os.Stderr, "Not loading environment config. Please set the \"app\" or \"env_prefix\" key in .zx.yaml.")
