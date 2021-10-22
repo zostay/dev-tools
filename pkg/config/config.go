@@ -9,8 +9,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+// ZxPrefix is the environment prefix to add before dev-tools environment
+// variables.
 const ZxPrefix = "ZX"
 
+// Config is the structure that the ZX configuration is expected to fill in.
 type Config struct {
 	App string
 
@@ -19,6 +22,9 @@ type Config struct {
 	Web
 }
 
+// Init initializes the ZX configuration. If verbosity is set to a non-zero
+// value it reports which configuration files it is reading from. Use the Get()
+// function to return the configuration as a pointer to a Config object.
 func Init(verbosity int) {
 	wd, err := os.Getwd()
 	if err != nil {
@@ -65,6 +71,9 @@ func Init(verbosity int) {
 		fmt.Fprintln(os.Stderr, "Not loading environment config. Please set the \"app\" or \"env_prefix\" key in .zx.yaml.")
 	}
 
+	// TODO The value interpolation for .run keys is pretty half-assed and needs
+	// fixing.
+
 	// Expand some keys
 	for _, k := range viper.AllKeys() {
 		switch v := viper.Get(k).(type) {
@@ -88,12 +97,15 @@ func Init(verbosity int) {
 	}
 }
 
+// Get returns the loaded ZX configuration or an error.
 func Get() (*Config, error) {
 	var cfg Config
 	err := viper.Unmarshal(&cfg)
 	return &cfg, err
 }
 
+// BasicEnv is a tool for mapping HOME and PWD environment variables in some
+// values in the configuration file which can be interpolated.
 func BasicEnv(n string) string {
 	switch n {
 	case "HOME":
@@ -115,6 +127,8 @@ func BasicEnv(n string) string {
 	}
 }
 
+// ExpandStdValue performs environment value interpolation with variables
+// returned by BasicEnv.
 func ExpandStdValue(v string) string {
 	return os.Expand(v, BasicEnv)
 }
