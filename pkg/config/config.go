@@ -17,8 +17,6 @@ const ZxPrefix = "ZX"
 type Config struct {
 	App string
 
-	Install   `mapstructure:"install"`
-	SQLBoiler `mapstructure:"sqlboiler"`
 	Web
 }
 
