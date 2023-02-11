@@ -1,4 +1,10 @@
 app: zostay-dev-tools
 
+changelog: Changes.md
+
+github:
+  owner: zostay
+  project: go-email
+
 install:
     binfiles: "~/.zx/bin"

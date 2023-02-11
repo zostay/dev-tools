@@ -1,4 +1,4 @@
-package cmd
+package release
 
 import (
 	"github.com/spf13/cobra"
@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	releaseCmd = &cobra.Command{
+	Cmd = &cobra.Command{
 		Use:   "release",
 		Short: "commands related to software releases",
 	}
@@ -16,10 +16,10 @@ var (
 )
 
 func init() {
-	releaseCmd.AddCommand(startReleaseCmd)
-	releaseCmd.AddCommand(finishReleaseCmd)
+	Cmd.AddCommand(startReleaseCmd)
+	Cmd.AddCommand(finishReleaseCmd)
 
-	releaseCmd.PersistentFlags().StringVar(&targetBranch, "target-branch", "master", "the branch to merge into during release")
+	Cmd.PersistentFlags().StringVar(&targetBranch, "target-branch", "master", "the branch to merge into during release")
 }
 
 func MakeReleaseConfig() *release.Config {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/zostay/go-email/v2/tools/pm/cmd"
+	"github.com/zostay/dev-tools/zxpm/cmd"
 )
 
 func main() {

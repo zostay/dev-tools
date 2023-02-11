@@ -1,4 +1,4 @@
-package cmd
+package config
 
 import (
 	"os"
@@ -10,17 +10,17 @@ import (
 	"github.com/zostay/dev-tools/pkg/config"
 )
 
-var mergeCmd = &cobra.Command{
+var MergeCmd = &cobra.Command{
 	Use:   "merge",
-	Short: "Output the contents of ZX configs as a YAML",
+	Short: "Output the contents of a completely merged ZX config as YAML",
 	RunE:  RunMerge,
 }
 
 // RunMerge loads the .zx.yaml and whatever other configuration is present and
 // detectable by the configuration tooling and outputs a fresh YAML file of all
 // the gathered configuration information.
-func RunMerge(cmd *cobra.Command, args []string) error {
-	config.Init(verbosity)
+func RunMerge(cmd *cobra.Command, _ []string) error {
+	config.Init(verbosity(cmd))
 	bs, err := yaml.Marshal(viper.AllSettings())
 	if err != nil {
 		return err

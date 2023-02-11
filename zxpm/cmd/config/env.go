@@ -1,4 +1,4 @@
-package cmd
+package config
 
 import (
 	"fmt"
@@ -15,16 +15,16 @@ import (
 
 const zxPrefix = config.ZxPrefix + "_"
 
-var envCmd = &cobra.Command{
+var EnvCmd = &cobra.Command{
 	Use:   "env",
-	Short: "Output the contents of ZX configs as an env file",
+	Short: "Output the contennts of ZX configs as an env file",
 	RunE:  RunEnv,
 }
 
 // RunEnv reads in the .zx.yaml file and outputs all the configuration values
 // found there as a environment file.
-func RunEnv(cmd *cobra.Command, args []string) error {
-	config.Init(verbosity)
+func RunEnv(cmd *cobra.Command, _ []string) error {
+	config.Init(verbosity(cmd))
 	fmt.Println(`ZXCONFIG="If good works cannot gain you your salvation, how can bad works cause you to lose your salvation?"`)
 	walkMap("", viper.AllSettings())
 

@@ -1,17 +1,24 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+
+	"github.com/zostay/dev-tools/zxpm/cmd/changelog"
+	"github.com/zostay/dev-tools/zxpm/cmd/config"
+	"github.com/zostay/dev-tools/zxpm/cmd/release"
+)
 
 var (
 	rootCmd = &cobra.Command{
-		Use:   "pm",
+		Use:   "zxpm",
 		Short: "Golang project management tools by zostay",
 	}
 )
 
 func init() {
-	rootCmd.AddCommand(changelogCmd)
-	rootCmd.AddCommand(releaseCmd)
+	rootCmd.AddCommand(changelog.Cmd)
+	rootCmd.AddCommand(config.Cmd)
+	rootCmd.AddCommand(release.Cmd)
 	rootCmd.AddCommand(templateFileCmd)
 }
 
