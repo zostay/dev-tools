@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/zostay/go-email/v2/tools/pm/changes"
-	"github.com/zostay/go-email/v2/tools/pm/release"
+	"github.com/zostay/dev-tools/zxpm/changes"
+	"github.com/zostay/dev-tools/zxpm/release"
 )
 
 var (

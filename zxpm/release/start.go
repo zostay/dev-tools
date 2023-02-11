@@ -11,7 +11,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/google/go-github/v49/github"
 
-	"github.com/zostay/go-email/v2/tools/pm/changes"
+	"github.com/zostay/dev-tools/zxpm/changes"
 )
 
 var ignoreStatus = map[string]struct{}{
