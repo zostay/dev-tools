@@ -35,7 +35,7 @@ func (f *ReleaseFinishTask) CaptureChangesInfo(ctx context.Context) error {
 		return fmt.Errorf("unable to read log of changes: %w", err)
 	}
 
-	tools.Set(ctx, "release.description", string(chgs))
+	tools.Set(ctx, release.ValueDescription, string(chgs))
 
 	return nil
 }

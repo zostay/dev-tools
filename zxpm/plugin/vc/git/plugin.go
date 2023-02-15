@@ -9,7 +9,7 @@ import (
 type Plugin struct{}
 
 func (p *Plugin) Implements() []string {
-	return []string{release.StartTask}
+	return []string{release.StartTask, release.FinishTask}
 }
 
 func (p *Plugin) Prepare(

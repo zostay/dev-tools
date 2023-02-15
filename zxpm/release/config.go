@@ -12,6 +12,8 @@ import (
 const (
 	StartTask  = "start-release"
 	FinishTask = "finish-release"
+
+	ValueDescription = "release.description"
 )
 
 type Config struct {
