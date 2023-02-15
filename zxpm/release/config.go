@@ -9,6 +9,11 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 )
 
+const (
+	StartTask  = "start-release"
+	FinishTask = "finish-release"
+)
+
 type Config struct {
 	// Version is the semantic version of the release being processed.
 	Version *semver.Version

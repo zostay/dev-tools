@@ -12,16 +12,9 @@ import (
 	"github.com/zostay/dev-tools/zxpm/plugin/tools"
 )
 
-var ignoreStatus = map[string]struct{}{
-	".session.vim": {},
-}
-
 type ReleaseStartTask struct {
 	plugin.Boilerplate
-
-	repo   *git.Repository
-	remote *git.Remote
-	wc     *git.Worktree
+	Git
 
 	Version             string
 	Branch              string
@@ -29,31 +22,6 @@ type ReleaseStartTask struct {
 	BranchRefSpec       config.RefSpec
 	TargetBranch        string
 	TargetBranchRefName plumbing.ReferenceName
-}
-
-func (s *ReleaseStartTask) SetupGitRepo() error {
-	l, err := git.PlainOpen(".")
-	if err != nil {
-		return fmt.Errorf("unable to open git repository at .: %w", err)
-	}
-
-	s.repo = l
-
-	r, err := s.repo.Remote("origin")
-	if err != nil {
-		return fmt.Errorf("unable to connect to remote origin: %w", err)
-	}
-
-	s.remote = r
-
-	w, err := s.repo.Worktree()
-	if err != nil {
-		return fmt.Errorf("unable to examine the working copy: %w", err)
-	}
-
-	s.wc = w
-
-	return nil
 }
 
 func (s *ReleaseStartTask) Setup(_ context.Context) error {

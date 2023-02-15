@@ -6,27 +6,29 @@ import (
 	"github.com/zostay/dev-tools/zxpm/release"
 )
 
-const todayFormat = "2006-01-02"
-
 type Plugin struct{}
 
 func (p *Plugin) Implements() []string {
-	return []string{"start-release", "finish-release"}
+	return []string{release.StartTask, release.FinishTask}
 }
 
-func (p *Plugin) Prepare(task string, cfg *config.Config, taskConfig any) plugin.Task {
+func (p *Plugin) Prepare(
+	task string,
+	cfg *config.Config,
+	taskConfig any,
+) plugin.Task {
 	switch task {
-	case "start-release":
-		releaseCfg := taskConfig.(*release.TaskConfig)
+	case release.StartTask:
+		releaseCfg := taskConfig.(*release.Config)
 		return &ReleaseStartTask{
-			Version:   releaseCfg.Version,
-			Today:     releaseCfg.Now.Format(todayFormat),
+			Version:   releaseCfg.Version.String(),
+			Today:     releaseCfg.Today,
 			Changelog: cfg.Paths["changelog"],
 		}
-	case "finish-release":
-		releaseCfg := taskConfig.(*release.TaskConfig)
+	case release.FinishTask:
+		releaseCfg := taskConfig.(*release.Config)
 		return &ReleaseFinishTask{
-			Version:   releaseCfg.SemVer(),
+			Version:   releaseCfg.Version,
 			Changelog: cfg.Paths["changelog"],
 		}
 	}

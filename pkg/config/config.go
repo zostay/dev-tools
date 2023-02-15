@@ -17,6 +17,8 @@ const ZxPrefix = "ZX"
 type Config struct {
 	App string
 
+	Paths map[string]string
+
 	Web
 }
 

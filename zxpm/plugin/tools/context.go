@@ -43,12 +43,31 @@ func ForCleanup(ctx context.Context, newCleaner SimpleTask) {
 	pctx.cleanup = append(pctx.cleanup, newCleaner)
 }
 
+func ListCleanupTasks(ctx context.Context) []SimpleTask {
+	pctx := pluginContextFrom(ctx)
+	tasks := make([]SimpleTask, len(pctx.cleanup))
+	for i, f := range pctx.cleanup {
+		tasks[len(tasks)-i-1] = f
+	}
+	return tasks
+}
+
 func ToAdd(ctx context.Context, newFile string) {
 	pctx := pluginContextFrom(ctx)
 	pctx.addFiles = append(pctx.addFiles, newFile)
 }
 
+func ListAdded(ctx context.Context) []string {
+	pctx := pluginContextFrom(ctx)
+	return pctx.addFiles
+}
+
 func Set(ctx context.Context, key, value string) {
 	pctx := pluginContextFrom(ctx)
 	pctx.properties[key] = value
+}
+
+func Get(ctx context.Context, key string) string {
+	pctx := pluginContextFrom(ctx)
+	return pctx.properties[key]
 }
