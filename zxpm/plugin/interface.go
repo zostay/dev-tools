@@ -37,6 +37,8 @@ type Task interface {
 	Teardown(context.Context) error
 }
 
+type Tasks []Task
+
 // Interface is the base interface that all plugins implement.
 type Interface interface {
 	// Implements will list the names of the tasks that this plugin Interface

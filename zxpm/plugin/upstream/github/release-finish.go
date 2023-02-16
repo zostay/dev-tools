@@ -114,7 +114,7 @@ func (f *ReleaseFinishTask) CreateRelease(ctx context.Context) error {
 	return nil
 }
 
-func (f *ReleaseFinishTask) Run(ctx context.Context) plugin.Operations {
+func (f *ReleaseFinishTask) Run() plugin.Operations {
 	return plugin.Operations{
 		{
 			Order:  70,
