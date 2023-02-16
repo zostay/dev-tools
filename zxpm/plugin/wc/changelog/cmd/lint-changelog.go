@@ -1,4 +1,4 @@
-package changelog
+package cmd
 
 import (
 	"fmt"
@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	lintChangelogCmd = &cobra.Command{
+	LintChangelog = &cobra.Command{
 		Use:   "lint",
 		Short: "Check the changelog file for problems",
 		Args:  cobra.NoArgs,
-		Run:   LintChangelog,
+		Run:   LintChangelogMain,
 	}
 
 	isRelease    bool
@@ -23,11 +23,11 @@ var (
 )
 
 func init() {
-	lintChangelogCmd.Flags().BoolVarP(&isRelease, "release", "r", false, "verify that there's no WIP section")
-	lintChangelogCmd.Flags().BoolVarP(&isPreRelease, "pre-release", "p", false, "verify that the WIP section looks good")
+	LintChangelog.Flags().BoolVarP(&isRelease, "release", "r", false, "verify that there's no WIP section")
+	LintChangelog.Flags().BoolVarP(&isPreRelease, "pre-release", "p", false, "verify that the WIP section looks good")
 }
 
-func LintChangelog(_ *cobra.Command, _ []string) {
+func LintChangelogMain(_ *cobra.Command, _ []string) {
 	changelog, err := os.Open(release.GoEmailConfig.Changelog)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "unable to open Changes file: %v", err)

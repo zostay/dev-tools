@@ -1,4 +1,4 @@
-package changelog
+package cmd
 
 import (
 	"fmt"
@@ -12,15 +12,15 @@ import (
 )
 
 var (
-	extractChangelogCmd = &cobra.Command{
+	ExtractChangelog = &cobra.Command{
 		Use:   "extract <version>",
 		Short: "extract the bullets for the changelog section for the given version",
 		Args:  cobra.ExactArgs(1),
-		Run:   ExtractChangelog,
+		Run:   ExtractChangelogMain,
 	}
 )
 
-func ExtractChangelog(_ *cobra.Command, args []string) {
+func ExtractChangelogMain(_ *cobra.Command, args []string) {
 	r, err := changes.ExtractSection(release.GoEmailConfig.Changelog, args[0])
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to read changelog section: %v\n", err)

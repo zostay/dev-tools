@@ -3,6 +3,7 @@ package changelog
 import (
 	"github.com/zostay/dev-tools/pkg/config"
 	"github.com/zostay/dev-tools/zxpm/plugin"
+	"github.com/zostay/dev-tools/zxpm/plugin/wc/changelog/cmd"
 	"github.com/zostay/dev-tools/zxpm/release"
 )
 
@@ -33,4 +34,20 @@ func (p *Plugin) Prepare(
 		}
 	}
 	return nil
+}
+
+func (p *Plugin) Commands() []plugin.CommandDescriptor {
+	return []plugin.CommandDescriptor{
+		{
+			Command: cmd.Changelog,
+		},
+		{
+			Parents: []string{"changelog"},
+			Command: cmd.ExtractChangelog,
+		},
+		{
+			Parents: []string{"changelog"},
+			Command: cmd.LintChangelog,
+		},
+	}
 }
