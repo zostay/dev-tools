@@ -113,7 +113,7 @@ func (f *ReleaseFinishTask) CreateRelease(ctx context.Context) error {
 	return nil
 }
 
-func (f *ReleaseFinishTask) Run() plugin.Operations {
+func (f *ReleaseFinishTask) Run(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  70,
@@ -123,5 +123,5 @@ func (f *ReleaseFinishTask) Run() plugin.Operations {
 			Order:  75,
 			Action: f.CreateRelease,
 		},
-	}
+	}, nil
 }

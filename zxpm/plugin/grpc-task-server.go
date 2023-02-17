@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 
-	"github.com/hashicorp/go-plugin"
 	"github.com/oklog/ulid/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,21 +16,23 @@ type GRPCTaskClientState struct {
 	Context *PluginContext
 }
 
-type GRPCTaskInterfaceClient struct {
-	plugin.Plugin
-
+type GRPCTaskInterfaceServer struct {
 	Impl  TaskInterface
 	state map[string]map[string]*GRPCTaskClientState
 }
 
-func NewGRPCTaskInterfaceClient(impl TaskInterface) *GRPCTaskInterfaceClient {
-	names := impl.Implements()
+func NewGRPCTaskInterfaceClient(impl TaskInterface) *GRPCTaskInterfaceServer {
+	names, err := impl.Implements()
+	if err != nil {
+		return nil
+	}
+
 	state := make(map[string]map[string]*GRPCTaskClientState, len(names))
 	for _, name := range names {
 		state[name] = make(map[string]*GRPCTaskClientState, 1)
 	}
 
-	return &GRPCTaskInterfaceClient{
+	return &GRPCTaskInterfaceServer{
 		Impl:  impl,
 		state: state,
 	}
@@ -41,23 +42,29 @@ func generateStateId() string {
 	return ulid.Make().String()
 }
 
-func (c *GRPCTaskInterfaceClient) Implements(
+func (s *GRPCTaskInterfaceServer) Implements(
 	_ context.Context,
 	_ *api.Task_Implements_Request,
 ) (*api.Task_Implements_Response, error) {
-	names := c.Impl.Implements()
+	names, err := s.Impl.Implements()
+	if err != nil {
+		return nil, err
+	}
 	return &api.Task_Implements_Response{
 		Names: names,
 	}, nil
 }
 
-func (c *GRPCTaskInterfaceClient) Prepare(
+func (s *GRPCTaskInterfaceServer) Prepare(
 	ctx context.Context,
 	request *api.Task_Prepare_Request,
 ) (*api.Task_Prepare_Response, error) {
 	globalConfig := translate.APIConfigToPluginConfig(request.GetGlobalConfig())
 
-	task := c.Impl.Prepare(request.GetName(), globalConfig)
+	task, err := s.Impl.Prepare(request.GetName(), globalConfig)
+	if err != nil {
+		return nil, err
+	}
 
 	state := &GRPCTaskClientState{
 		Task:    task,
@@ -66,9 +73,9 @@ func (c *GRPCTaskInterfaceClient) Prepare(
 
 	name := request.GetName()
 	id := generateStateId()
-	c.state[name][id] = state
+	s.state[name][id] = state
 
-	res, err := c.executeStage(ctx, &api.Task_Operation_Request{
+	res, err := s.executeStage(ctx, &api.Task_Operation_Request{
 		Task: &api.Task_Ref{
 			Name:    name,
 			StateId: id,
@@ -88,10 +95,10 @@ func (c *GRPCTaskInterfaceClient) Prepare(
 	}, nil
 }
 
-func (c *GRPCTaskInterfaceClient) deref(ref *api.Task_Ref) (*GRPCTaskClientState, error) {
+func (s *GRPCTaskInterfaceServer) deref(ref *api.Task_Ref) (*GRPCTaskClientState, error) {
 	name := ref.GetName()
 	id := ref.GetStateId()
-	task := c.state[name][id]
+	task := s.state[name][id]
 	if task == nil {
 		return nil, status.Errorf(codes.NotFound, "the task named %q with state ID %q not found", name, id)
 	}
@@ -99,53 +106,53 @@ func (c *GRPCTaskInterfaceClient) deref(ref *api.Task_Ref) (*GRPCTaskClientState
 	return task, nil
 }
 
-func (c *GRPCTaskInterfaceClient) closeTask(
+func (s *GRPCTaskInterfaceServer) closeTask(
 	ctx context.Context,
 	taskRef *api.Task_Ref,
 ) error {
-	_, err := c.deref(taskRef)
+	_, err := s.deref(taskRef)
 	if err != nil {
 		return err
 	}
 
-	_, err = c.executeStage(ctx, &api.Task_Operation_Request{
+	_, err = s.executeStage(ctx, &api.Task_Operation_Request{
 		Task:    taskRef,
 		Storage: map[string]string{},
 	}, Task.Teardown)
 
-	delete(c.state[taskRef.GetName()], taskRef.GetStateId())
+	delete(s.state[taskRef.GetName()], taskRef.GetStateId())
 
 	return err
 }
 
-func (c *GRPCTaskInterfaceClient) Cancel(
+func (s *GRPCTaskInterfaceServer) Cancel(
 	ctx context.Context,
 	request *api.Task_Cancel_Request,
 ) (*api.Task_Cancel_Response, error) {
-	err := c.closeTask(ctx, request.GetTask())
+	err := s.closeTask(ctx, request.GetTask())
 	if err != nil {
 		return nil, err
 	}
 	return &api.Task_Cancel_Response{}, nil
 }
 
-func (c *GRPCTaskInterfaceClient) Complete(
+func (s *GRPCTaskInterfaceServer) Complete(
 	ctx context.Context,
 	request *api.Task_Complete_Request,
 ) (*api.Task_Complete_Response, error) {
-	err := c.closeTask(ctx, request.GetTask())
+	err := s.closeTask(ctx, request.GetTask())
 	if err != nil {
 		return nil, err
 	}
 	return &api.Task_Complete_Response{}, nil
 }
 
-func (c *GRPCTaskInterfaceClient) executeStage(
+func (s *GRPCTaskInterfaceServer) executeStage(
 	ctx context.Context,
 	request *api.Task_Operation_Request,
 	op func(Task, context.Context) error,
 ) (*api.Task_Operation_Response, error) {
-	state, err := c.deref(request.GetTask())
+	state, err := s.deref(request.GetTask())
 	if err != nil {
 		return nil, err
 	}
@@ -163,23 +170,28 @@ func (c *GRPCTaskInterfaceClient) executeStage(
 	}, nil
 }
 
-func (c *GRPCTaskInterfaceClient) ExecuteCheck(
+func (s *GRPCTaskInterfaceServer) ExecuteCheck(
 	ctx context.Context,
 	request *api.Task_Operation_Request,
 ) (*api.Task_Operation_Response, error) {
-	return c.executeStage(ctx, request, Task.Check)
+	return s.executeStage(ctx, request, Task.Check)
 }
 
-func (c *GRPCTaskInterfaceClient) prepareStage(
+func (s *GRPCTaskInterfaceServer) prepareStage(
+	ctx context.Context,
 	ref *api.Task_Ref,
-	prepare func(Task) Operations,
+	prepare func(Task, context.Context) (Operations, error),
 ) (*api.Task_SubStage_Response, error) {
-	state, err := c.deref(ref)
+	state, err := s.deref(ref)
 	if err != nil {
 		return nil, err
 	}
 
-	ops := prepare(state.Task)
+	ops, err := prepare(state.Task, ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	orders := make([]int32, len(ops))
 	for i, op := range ops {
 		orders[i] = int32(op.Order)
@@ -191,42 +203,46 @@ func (c *GRPCTaskInterfaceClient) prepareStage(
 
 }
 
-func (c *GRPCTaskInterfaceClient) PrepareBegin(
-	_ context.Context,
+func (s *GRPCTaskInterfaceServer) PrepareBegin(
+	ctx context.Context,
 	ref *api.Task_Ref,
 ) (*api.Task_SubStage_Response, error) {
-	return c.prepareStage(ref, Task.Begin)
+	return s.prepareStage(ctx, ref, Task.Begin)
 }
 
-func (c *GRPCTaskInterfaceClient) executeSubStage(
+func (s *GRPCTaskInterfaceServer) executeSubStage(
 	ctx context.Context,
 	request *api.Task_Operation_Request,
 	op OperationFunc,
 ) (*api.Task_Operation_Response, error) {
-	return c.executeStage(ctx, request,
+	return s.executeStage(ctx, request,
 		func(_ Task, ctx context.Context) error {
 			return op(ctx)
 		},
 	)
 }
 
-func (c *GRPCTaskInterfaceClient) executePrioritizedStage(
+func (s *GRPCTaskInterfaceServer) executePrioritizedStage(
 	ctx context.Context,
 	request *api.Task_SubStage_Request,
-	opList func(Task) Operations,
+	opList func(Task, context.Context) (Operations, error),
 ) (*api.Task_Operation_Response, error) {
 	opRequest := request.GetRequest()
-	state, err := c.deref(opRequest.GetTask())
+	state, err := s.deref(opRequest.GetTask())
 	if err != nil {
 		return nil, err
 	}
 
-	ops := opList(state.Task)
+	ops, err := opList(state.Task, ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	var res *api.Task_Operation_Response
 	accChanges := make(map[string]string, 10)
 	for _, op := range ops {
 		if op.Order == Ordering(request.SubStage) {
-			res, err = c.executeStage(ctx,
+			res, err = s.executeStage(ctx,
 				&api.Task_Operation_Request{
 					Task:    opRequest.GetTask(),
 					Storage: opRequest.GetStorage(),
@@ -252,41 +268,41 @@ func (c *GRPCTaskInterfaceClient) executePrioritizedStage(
 	}, nil
 }
 
-func (c *GRPCTaskInterfaceClient) ExecuteBegin(
+func (s *GRPCTaskInterfaceServer) ExecuteBegin(
 	ctx context.Context,
 	request *api.Task_SubStage_Request,
 ) (*api.Task_Operation_Response, error) {
-	return c.executePrioritizedStage(ctx, request, Task.Begin)
+	return s.executePrioritizedStage(ctx, request, Task.Begin)
 }
 
-func (c *GRPCTaskInterfaceClient) PrepareRun(
-	_ context.Context,
+func (s *GRPCTaskInterfaceServer) PrepareRun(
+	ctx context.Context,
 	ref *api.Task_Ref,
 ) (*api.Task_SubStage_Response, error) {
-	return c.prepareStage(ref, Task.Run)
+	return s.prepareStage(ctx, ref, Task.Run)
 }
 
-func (c *GRPCTaskInterfaceClient) ExecuteRun(
+func (s *GRPCTaskInterfaceServer) ExecuteRun(
 	ctx context.Context,
 	request *api.Task_SubStage_Request,
 ) (*api.Task_Operation_Response, error) {
-	return c.executePrioritizedStage(ctx, request, Task.Run)
+	return s.executePrioritizedStage(ctx, request, Task.Run)
 }
 
-func (c *GRPCTaskInterfaceClient) PrepareEnd(
-	_ context.Context,
+func (s *GRPCTaskInterfaceServer) PrepareEnd(
+	ctx context.Context,
 	ref *api.Task_Ref,
 ) (*api.Task_SubStage_Response, error) {
-	return c.prepareStage(ref, Task.End)
+	return s.prepareStage(ctx, ref, Task.End)
 }
 
-func (c *GRPCTaskInterfaceClient) ExecuteEnd(ctx context.Context, request *api.Task_SubStage_Request) (*api.Task_Operation_Response, error) {
-	return c.executePrioritizedStage(ctx, request, Task.End)
+func (s *GRPCTaskInterfaceServer) ExecuteEnd(ctx context.Context, request *api.Task_SubStage_Request) (*api.Task_Operation_Response, error) {
+	return s.executePrioritizedStage(ctx, request, Task.End)
 }
 
-func (c *GRPCTaskInterfaceClient) ExecuteFinishing(
+func (s *GRPCTaskInterfaceServer) ExecuteFinishing(
 	ctx context.Context,
 	request *api.Task_Operation_Request,
 ) (*api.Task_Operation_Response, error) {
-	return c.executeStage(ctx, request, Task.Finishing)
+	return s.executeStage(ctx, request, Task.Finishing)
 }

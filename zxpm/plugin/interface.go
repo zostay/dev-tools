@@ -9,13 +9,22 @@ import (
 var ErrUnsupportedTask = fmt.Errorf("this plugin does not support that task")
 
 type Ordering int
-type OperationFunc func(ctx context.Context) error
+
+type OperationFunc func(context.Context) error
+
+func (op OperationFunc) Call(ctx context.Context) error {
+	return op(ctx)
+}
+
+type OperationHandler interface {
+	Call(ctx context.Context) error
+}
 
 type Operations []Operation
 
 type Operation struct {
 	Order  Ordering
-	Action OperationFunc
+	Action OperationHandler
 }
 
 // Task provides some operations to help perform a task. The task is executed
