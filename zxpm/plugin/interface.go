@@ -2,8 +2,7 @@ package plugin
 
 import (
 	"context"
-
-	"github.com/zostay/dev-tools/pkg/config"
+	"strings"
 )
 
 type Ordering int
@@ -39,16 +38,30 @@ type Task interface {
 
 type Tasks []Task
 
-// Interface is the base interface that all plugins implement.
-type Interface interface {
-	// Implements will list the names of the tasks that this plugin Interface
+type Config struct {
+	Values      map[string]string
+	SubSections map[string]*Config
+}
+
+func (c *Config) Get(key string) string {
+	parts := strings.SplitN(key, ".", 2)
+	thisKey := parts[0]
+	if len(parts) == 1 {
+		return c.Values[thisKey]
+	}
+	return c.SubSections[thisKey].Get(parts[1])
+}
+
+// TaskInterface is the base interface that all plugins implement.
+type TaskInterface interface {
+	// Implements will list the names of the tasks that this plugin TaskInterface
 	// implements.
 	Implements() (taskNames []string)
 
 	// Prepare should return an initialized Task object that is configured using
 	// the given global configuration as well as the task configuration. The
 	// object passed for task configuration is specific to the given taskName.
-	Prepare(taskName string, cfg *config.Config, taskCfg any) (task Task)
+	Prepare(taskName string, globalCfg *Config) (task Task)
 }
 
 type Boilerplate struct{}
@@ -60,3 +73,33 @@ func (Boilerplate) Run() Operations                 { return nil }
 func (Boilerplate) End() Operations                 { return nil }
 func (Boilerplate) Finishing(context.Context) error { return nil }
 func (Boilerplate) Teardown(context.Context) error  { return nil }
+
+type CommandInterface interface {
+	List() []CommandDescriptor
+	Run(tag string, args []string, opts map[string]string) int
+}
+
+type CommandDescriptor struct {
+	Tag               string
+	Parents           []string
+	Use               string
+	Short             string
+	MinPositionalArgs int
+	MaxPositionalargs int
+	Options           []OptionDescriptor
+}
+
+type OptionType int
+
+const (
+	OptionBool OptionType = iota + 1
+	OptionaString
+)
+
+type OptionDescriptor struct {
+	Name      string
+	Shorthand string
+	Usage     string
+	Default   string
+	ValueType OptionType
+}

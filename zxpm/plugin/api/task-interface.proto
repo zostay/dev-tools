@@ -1,0 +1,80 @@
+syntax = "proto3";
+package zxpm.plugin;
+
+option go_package = "./api";
+
+import "config.proto";
+
+message Implements {
+  message Response {
+    repeated string names = 1;
+  }
+
+  message Request {
+  }
+}
+
+message Prepare {
+  message Request {
+    string name = 1;
+    Config global_config = 2;
+  }
+
+  message Response {
+    Task.Ref task = 1;
+    map<string, string> storage = 2;
+  }
+}
+
+message Cancel {
+  message Request {
+    Task.Ref task = 1;
+  }
+
+  message Response {
+  }
+}
+
+message Task {
+  message Ref {
+    string name = 1;
+    string state_id = 2;
+  }
+
+  message Operation {
+    message Request {
+      Task.Ref task = 1;
+      map<string, string> storage = 2;
+    }
+
+    message Response {
+      map<string, string> storage_update = 2;
+    }
+  }
+
+  message SubStage {
+    message Response {
+      repeated int32 provided_orders = 1;
+    }
+
+    message Request {
+      Operation.Request request = 1;
+      int32 sub_stage = 2;
+    }
+  }
+}
+
+service TaskExecution {
+  rpc Implements(Implements.Request) returns (Implements.Response) {}
+  rpc Prepare(Prepare.Request) returns (Prepare.Response) {}
+  rpc Cancel(Cancel.Request) returns (Cancel.Response) {}
+
+  rpc ExecuteCheck(Task.Operation.Request) returns (Task.Operation.Response) {}
+  rpc PrepareBegin(Task.Ref) returns (Task.SubStage.Response) {}
+  rpc ExecuteBegin(Task.SubStage.Request) returns (Task.Operation.Response) {}
+  rpc PrepareRun(Task.Ref) returns (Task.SubStage.Response) {}
+  rpc ExecuteRun(Task.SubStage.Response) returns (Task.Operation.Response) {}
+  rpc PrepareEnd(Task.Ref) returns (Task.SubStage.Response) {}
+  rpc ExecuteEnd(Task.SubStage.Request) returns (Task.Operation.Response) {}
+  rpc ExecuteFinishing(Task.Operation.Request) returns (Task.Operation.Response) {}
+}

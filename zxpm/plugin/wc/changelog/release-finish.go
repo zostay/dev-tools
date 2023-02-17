@@ -9,7 +9,7 @@ import (
 
 	"github.com/zostay/dev-tools/zxpm/changes"
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	"github.com/zostay/dev-tools/zxpm/plugin/tools"
+	"github.com/zostay/dev-tools/zxpm/release"
 )
 
 type ReleaseFinishTask struct {
@@ -35,7 +35,7 @@ func (f *ReleaseFinishTask) CaptureChangesInfo(ctx context.Context) error {
 		return fmt.Errorf("unable to read log of changes: %w", err)
 	}
 
-	tools.Set(ctx, release.ValueDescription, string(chgs))
+	plugin.Set(ctx, release.ValueDescription, string(chgs))
 
 	return nil
 }

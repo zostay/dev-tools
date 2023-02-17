@@ -9,7 +9,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	"github.com/zostay/dev-tools/zxpm/plugin/tools"
 )
 
 type ReleaseFinishTask struct {
@@ -52,7 +51,7 @@ func (f *ReleaseFinishTask) TagRelease(ctx context.Context) error {
 		return fmt.Errorf("unable to tag release %s: %w", f.Tag, err)
 	}
 
-	tools.ForCleanup(ctx, func() { _ = f.repo.DeleteTag(f.Tag) })
+	plugin.ForCleanup(ctx, func() { _ = f.repo.DeleteTag(f.Tag) })
 
 	err = f.repo.Push(&git.PushOptions{
 		RemoteName: "origin",
@@ -62,7 +61,7 @@ func (f *ReleaseFinishTask) TagRelease(ctx context.Context) error {
 		return fmt.Errorf("unable to push tags to origin: %w", err)
 	}
 
-	tools.ForCleanup(ctx, func() {
+	plugin.ForCleanup(ctx, func() {
 		_ = f.remote.Push(&git.PushOptions{
 			RemoteName: "origin",
 			RefSpecs:   []config.RefSpec{f.TagRefSpec},

@@ -7,7 +7,6 @@ import (
 	"github.com/google/go-github/v49/github"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	"github.com/zostay/dev-tools/zxpm/plugin/tools"
 	"github.com/zostay/dev-tools/zxpm/release"
 )
 
@@ -95,7 +94,7 @@ func (f *ReleaseFinishTask) MergePullRequest(ctx context.Context) error {
 
 // CreateRelease creates a release on github for the release.
 func (f *ReleaseFinishTask) CreateRelease(ctx context.Context) error {
-	changesInfo := tools.Get(ctx, release.ValueDescription)
+	changesInfo := plugin.Get(ctx, release.ValueDescription)
 	releaseName := fmt.Sprintf("Release v%s", f.Version)
 	_, _, err := f.gh.Repositories.CreateRelease(ctx, f.Owner, f.Project, &github.RepositoryRelease{
 		TagName:              github.String(f.Tag),

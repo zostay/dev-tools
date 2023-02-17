@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/zostay/dev-tools/pkg/config"
-	"github.com/zostay/dev-tools/zxpm/plugin/tools"
 )
 
 type Error []error
@@ -174,7 +173,7 @@ func Execute(
 	cfg *config.Config,
 	ts Tasks,
 ) error {
-	tools.InitializeContext(ctx, cfg)
+	plugin.InitializeContext(ctx, cfg)
 
 	err := executeTaskOperation(ctx, ts, executeSetup)
 	if err != nil {

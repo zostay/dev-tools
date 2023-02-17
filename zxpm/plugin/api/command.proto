@@ -1,0 +1,54 @@
+syntax = "proto3";
+package zxpm.plugin;
+
+option go_package = "./api";
+
+message Command {
+  message Request {
+  }
+
+  message Response {
+    repeated Descriptor command = 1;
+  }
+
+  message Descriptor {
+    string command_tag = 1;
+    repeated string parents = 2;
+    string use = 3;
+    string short = 4;
+    int32 min_positional_args = 7;
+    int32 max_positional_args = 8;
+    repeated Option options = 9;
+  }
+
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_BOOL = 1;
+    TYPE_STRING = 2;
+  }
+
+  message Option {
+    string name = 1;
+    string shorthand = 2;
+    string usage = 3;
+    string default = 4;
+    Type value_type = 5;
+  }
+}
+
+message Exec {
+  message Request {
+    string command_tag = 1;
+    repeated string args = 2;
+    map<string, string> options = 3;
+  }
+
+  message Response {
+    int64 return_value = 1;
+  }
+}
+
+service CommandDefinition {
+  rpc ListCommands(Command.Request) returns (Command.Response) {}
+  rpc RunCommand(Exec.Request) returns (Exec.Response) {}
+}

@@ -8,7 +8,6 @@ import (
 
 	"github.com/zostay/dev-tools/zxpm/changes"
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	"github.com/zostay/dev-tools/zxpm/plugin/tools"
 )
 
 type ReleaseStartTask struct {
@@ -50,7 +49,7 @@ func (s *ReleaseStartTask) FixupChangelog(ctx context.Context) error {
 		return fmt.Errorf("unable to create %s: %w", newChangelog, err)
 	}
 
-	tools.ForCleanup(ctx, func() { _ = os.Remove(newChangelog) })
+	plugin.ForCleanup(ctx, func() { _ = os.Remove(newChangelog) })
 
 	sc := bufio.NewScanner(r)
 	for sc.Scan() {
@@ -73,7 +72,7 @@ func (s *ReleaseStartTask) FixupChangelog(ctx context.Context) error {
 		return fmt.Errorf("unable to overwrite %s with %s: %w", s.Changelog, newChangelog, err)
 	}
 
-	tools.ToAdd(ctx, s.Changelog)
+	plugin.ToAdd(ctx, s.Changelog)
 
 	return nil
 }

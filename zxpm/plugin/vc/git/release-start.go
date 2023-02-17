@@ -9,7 +9,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	"github.com/zostay/dev-tools/zxpm/plugin/tools"
 )
 
 type ReleaseStartTask struct {
@@ -109,10 +108,10 @@ func (s *ReleaseStartTask) MakeReleaseBranch(ctx context.Context) error {
 		return fmt.Errorf("unable to checkout branch %s: %v", s.Branch, err)
 	}
 
-	tools.ForCleanup(ctx, func() {
+	plugin.ForCleanup(ctx, func() {
 		_ = s.repo.Storer.RemoveReference(s.BranchRefName)
 	})
-	tools.ForCleanup(ctx, func() {
+	plugin.ForCleanup(ctx, func() {
 		_ = s.wc.Checkout(&git.CheckoutOptions{
 			Branch: s.TargetBranchRefName,
 		})
@@ -133,7 +132,7 @@ func (s *ReleaseStartTask) Run() plugin.Operations {
 // AddAndCommit adds changes made as part of the release process to the release
 // branch.
 func (s *ReleaseStartTask) AddAndCommit(ctx context.Context) error {
-	addedFiles := tools.ListAdded(ctx)
+	addedFiles := plugin.ListAdded(ctx)
 	for _, fn := range addedFiles {
 		_, err := s.wc.Add(fn)
 		if err != nil {
@@ -159,7 +158,7 @@ func (s *ReleaseStartTask) PushReleaseBranch(ctx context.Context) error {
 		return fmt.Errorf("error pushing changes to github: %w", err)
 	}
 
-	tools.ForCleanup(ctx, func() {
+	plugin.ForCleanup(ctx, func() {
 		_ = s.remote.Push(&git.PushOptions{
 			RemoteName: "origin",
 			RefSpecs:   []config.RefSpec{s.BranchRefSpec},

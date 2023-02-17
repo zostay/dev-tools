@@ -3,7 +3,6 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/zostay/dev-tools/zxpm/cmd/changelog"
 	"github.com/zostay/dev-tools/zxpm/cmd/config"
 	"github.com/zostay/dev-tools/zxpm/cmd/release"
 )
