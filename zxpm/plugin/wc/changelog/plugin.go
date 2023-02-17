@@ -9,15 +9,15 @@ import (
 
 type Plugin struct{}
 
-func (p *Plugin) Implements() []string {
-	return []string{release.StartTask, release.FinishTask}
+func (p *Plugin) Implements() ([]string, error) {
+	return []string{release.StartTask, release.FinishTask}, nil
 }
 
 func (p *Plugin) Prepare(
 	task string,
 	cfg *config.Config,
 	taskConfig any,
-) plugin.Task {
+) (plugin.Task, error) {
 	switch task {
 	case release.StartTask:
 		releaseCfg := taskConfig.(*release.Config)
@@ -25,15 +25,15 @@ func (p *Plugin) Prepare(
 			Version:   releaseCfg.Version.String(),
 			Today:     releaseCfg.Today,
 			Changelog: cfg.Paths["changelog"],
-		}
+		}, nil
 	case release.FinishTask:
 		releaseCfg := taskConfig.(*release.Config)
 		return &ReleaseFinishTask{
 			Version:   releaseCfg.Version,
 			Changelog: cfg.Paths["changelog"],
-		}
+		}, nil
 	}
-	return nil
+	return nil, plugin.ErrUnsupportedTask
 }
 
 func (p *Plugin) Commands() []plugin.CommandDescriptor {

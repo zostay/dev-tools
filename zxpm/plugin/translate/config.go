@@ -21,3 +21,20 @@ func APIConfigToPluginConfig(in *api.Config) *plugin.Config {
 
 	return out
 }
+
+func PluginConfigToAPIConfig(in *plugin.Config) *api.Config {
+	out := &api.Config{
+		Values:      make(map[string]string, len(in.Values)),
+		SubSections: make(map[string]*api.Config, len(in.SubSections)),
+	}
+
+	for k, v := range in.Values {
+		out.Values[k] = v
+	}
+
+	for k, v := range in.SubSections {
+		out.SubSections[k] = PluginConfigToAPIConfig(v)
+	}
+
+	return out
+}

@@ -2,8 +2,11 @@ package plugin
 
 import (
 	"context"
+	"fmt"
 	"strings"
 )
+
+var ErrUnsupportedTask = fmt.Errorf("this plugin does not support that task")
 
 type Ordering int
 type OperationFunc func(ctx context.Context) error
@@ -56,12 +59,12 @@ func (c *Config) Get(key string) string {
 type TaskInterface interface {
 	// Implements will list the names of the tasks that this plugin TaskInterface
 	// implements.
-	Implements() (taskNames []string)
+	Implements() (taskNames []string, err error)
 
 	// Prepare should return an initialized Task object that is configured using
 	// the given global configuration as well as the task configuration. The
 	// object passed for task configuration is specific to the given taskName.
-	Prepare(taskName string, globalCfg *Config) (task Task)
+	Prepare(taskName string, globalCfg *Config) (task Task, err error)
 }
 
 type Boilerplate struct{}

@@ -8,15 +8,15 @@ import (
 
 type Plugin struct{}
 
-func (p *Plugin) Implements() []string {
-	return []string{release.StartTask, release.FinishTask}
+func (p *Plugin) Implements() ([]string, error) {
+	return []string{release.StartTask, release.FinishTask}, nil
 }
 
 func (p *Plugin) Prepare(
 	task string,
 	cfg *config.Config,
 	taskConfig any,
-) plugin.Task {
+) (plugin.Task, error) {
 	switch task {
 	case release.StartTask:
 		releaseCfg := taskConfig.(*release.Config)
@@ -28,7 +28,7 @@ func (p *Plugin) Prepare(
 			BranchRefName:       branchRefName,
 			TargetBranch:        releaseCfg.TargetBranch,
 			TargetBranchRefName: ref("heads", releaseCfg.TargetBranch),
-		}
+		}, nil
 	case release.FinishTask:
 		releaseCfg := taskConfig.(*release.Config)
 		tagRefName := ref("tags", releaseCfg.Tag)
@@ -39,7 +39,7 @@ func (p *Plugin) Prepare(
 			Tag:                 releaseCfg.Tag,
 			TagRefName:          tagRefName,
 			TagRefSpec:          refSpec(tagRefName),
-		}
+		}, nil
 	}
-	return nil
+	return nil, plugin.ErrUnsupportedTask
 }
