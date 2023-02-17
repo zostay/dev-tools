@@ -120,13 +120,13 @@ func (s *ReleaseStartTask) MakeReleaseBranch(ctx context.Context) error {
 	return nil
 }
 
-func (s *ReleaseStartTask) Run() plugin.Operations {
+func (s *ReleaseStartTask) Run(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  30,
 			Action: s.MakeReleaseBranch,
 		},
-	}
+	}, nil
 }
 
 // AddAndCommit adds changes made as part of the release process to the release
@@ -169,7 +169,7 @@ func (s *ReleaseStartTask) PushReleaseBranch(ctx context.Context) error {
 	return nil
 }
 
-func (s *ReleaseStartTask) End() plugin.Operations {
+func (s *ReleaseStartTask) End(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  70,
@@ -179,5 +179,5 @@ func (s *ReleaseStartTask) End() plugin.Operations {
 			Order:  75,
 			Action: s.PushReleaseBranch,
 		},
-	}
+	}, nil
 }

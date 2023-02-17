@@ -85,7 +85,7 @@ func (s *ReleaseStartTask) Check(_ context.Context) error {
 	return s.LintChangelog(changes.CheckPreRelease)
 }
 
-func (s *ReleaseStartTask) Run() plugin.Operations {
+func (s *ReleaseStartTask) Run(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  50,
@@ -97,5 +97,5 @@ func (s *ReleaseStartTask) Run() plugin.Operations {
 				return s.LintChangelog(changes.CheckRelease)
 			},
 		},
-	}
+	}, nil
 }

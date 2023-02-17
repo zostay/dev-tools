@@ -32,9 +32,9 @@ type Operation struct {
 type Task interface {
 	Setup(context.Context) error
 	Check(context.Context) error
-	Begin() Operations
-	Run() Operations
-	End() Operations
+	Begin(context.Context) (Operations, error)
+	Run(context.Context) (Operations, error)
+	End(context.Context) (Operations, error)
 	Finishing(context.Context) error
 	Teardown(context.Context) error
 }
@@ -69,13 +69,13 @@ type TaskInterface interface {
 
 type Boilerplate struct{}
 
-func (Boilerplate) Setup(context.Context) error     { return nil }
-func (Boilerplate) Check(context.Context) error     { return nil }
-func (Boilerplate) Begin() Operations               { return nil }
-func (Boilerplate) Run() Operations                 { return nil }
-func (Boilerplate) End() Operations                 { return nil }
-func (Boilerplate) Finishing(context.Context) error { return nil }
-func (Boilerplate) Teardown(context.Context) error  { return nil }
+func (Boilerplate) Setup(context.Context) error               { return nil }
+func (Boilerplate) Check(context.Context) error               { return nil }
+func (Boilerplate) Begin(context.Context) (Operations, error) { return nil, nil }
+func (Boilerplate) Run(context.Context) (Operations, error)   { return nil, nil }
+func (Boilerplate) End(context.Context) (Operations, error)   { return nil, nil }
+func (Boilerplate) Finishing(context.Context) error           { return nil }
+func (Boilerplate) Teardown(context.Context) error            { return nil }
 
 type CommandInterface interface {
 	List() []CommandDescriptor

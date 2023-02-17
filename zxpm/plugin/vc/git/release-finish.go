@@ -72,11 +72,11 @@ func (f *ReleaseFinishTask) TagRelease(ctx context.Context) error {
 	return nil
 }
 
-func (f *ReleaseFinishTask) End() plugin.Operations {
+func (f *ReleaseFinishTask) End(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  75,
 			Action: f.TagRelease,
 		},
-	}
+	}, nil
 }

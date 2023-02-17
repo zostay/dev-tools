@@ -40,11 +40,11 @@ func (s *ReleaseStartTask) CreateGithubPullRequest(ctx context.Context) error {
 	return nil
 }
 
-func (s *ReleaseStartTask) End() plugin.Operations {
+func (s *ReleaseStartTask) End(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  80,
 			Action: s.CreateGithubPullRequest,
 		},
-	}
+	}, nil
 }
