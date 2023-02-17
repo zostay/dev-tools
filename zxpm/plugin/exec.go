@@ -6,8 +6,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-
-	"github.com/zostay/dev-tools/pkg/config"
 )
 
 type Error []error
@@ -170,10 +168,11 @@ var (
 
 func Execute(
 	ctx context.Context,
-	cfg *config.Config,
+	cfg *Config,
 	ts Tasks,
 ) error {
-	plugin.InitializeContext(ctx, cfg)
+	pctx := NewPluginContext(cfg)
+	InitializeContext(ctx, pctx)
 
 	err := executeTaskOperation(ctx, ts, executeSetup)
 	if err != nil {

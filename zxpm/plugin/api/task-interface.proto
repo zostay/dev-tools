@@ -83,7 +83,7 @@ service TaskExecution {
   rpc PrepareBegin(Task.Ref) returns (Task.SubStage.Response) {}
   rpc ExecuteBegin(Task.SubStage.Request) returns (Task.Operation.Response) {}
   rpc PrepareRun(Task.Ref) returns (Task.SubStage.Response) {}
-  rpc ExecuteRun(Task.SubStage.Response) returns (Task.Operation.Response) {}
+  rpc ExecuteRun(Task.SubStage.Request) returns (Task.Operation.Response) {}
   rpc PrepareEnd(Task.Ref) returns (Task.SubStage.Response) {}
   rpc ExecuteEnd(Task.SubStage.Request) returns (Task.Operation.Response) {}
   rpc ExecuteFinishing(Task.Operation.Request) returns (Task.Operation.Response) {}

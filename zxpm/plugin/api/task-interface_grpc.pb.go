@@ -30,7 +30,7 @@ type TaskExecutionClient interface {
 	PrepareBegin(ctx context.Context, in *Task_Ref, opts ...grpc.CallOption) (*Task_SubStage_Response, error)
 	ExecuteBegin(ctx context.Context, in *Task_SubStage_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error)
 	PrepareRun(ctx context.Context, in *Task_Ref, opts ...grpc.CallOption) (*Task_SubStage_Response, error)
-	ExecuteRun(ctx context.Context, in *Task_SubStage_Response, opts ...grpc.CallOption) (*Task_Operation_Response, error)
+	ExecuteRun(ctx context.Context, in *Task_SubStage_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error)
 	PrepareEnd(ctx context.Context, in *Task_Ref, opts ...grpc.CallOption) (*Task_SubStage_Response, error)
 	ExecuteEnd(ctx context.Context, in *Task_SubStage_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error)
 	ExecuteFinishing(ctx context.Context, in *Task_Operation_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error)
@@ -116,7 +116,7 @@ func (c *taskExecutionClient) PrepareRun(ctx context.Context, in *Task_Ref, opts
 	return out, nil
 }
 
-func (c *taskExecutionClient) ExecuteRun(ctx context.Context, in *Task_SubStage_Response, opts ...grpc.CallOption) (*Task_Operation_Response, error) {
+func (c *taskExecutionClient) ExecuteRun(ctx context.Context, in *Task_SubStage_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error) {
 	out := new(Task_Operation_Response)
 	err := c.cc.Invoke(ctx, "/zxpm.plugin.TaskExecution/ExecuteRun", in, out, opts...)
 	if err != nil {
@@ -164,7 +164,7 @@ type TaskExecutionServer interface {
 	PrepareBegin(context.Context, *Task_Ref) (*Task_SubStage_Response, error)
 	ExecuteBegin(context.Context, *Task_SubStage_Request) (*Task_Operation_Response, error)
 	PrepareRun(context.Context, *Task_Ref) (*Task_SubStage_Response, error)
-	ExecuteRun(context.Context, *Task_SubStage_Response) (*Task_Operation_Response, error)
+	ExecuteRun(context.Context, *Task_SubStage_Request) (*Task_Operation_Response, error)
 	PrepareEnd(context.Context, *Task_Ref) (*Task_SubStage_Response, error)
 	ExecuteEnd(context.Context, *Task_SubStage_Request) (*Task_Operation_Response, error)
 	ExecuteFinishing(context.Context, *Task_Operation_Request) (*Task_Operation_Response, error)
@@ -199,7 +199,7 @@ func (UnimplementedTaskExecutionServer) ExecuteBegin(context.Context, *Task_SubS
 func (UnimplementedTaskExecutionServer) PrepareRun(context.Context, *Task_Ref) (*Task_SubStage_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PrepareRun not implemented")
 }
-func (UnimplementedTaskExecutionServer) ExecuteRun(context.Context, *Task_SubStage_Response) (*Task_Operation_Response, error) {
+func (UnimplementedTaskExecutionServer) ExecuteRun(context.Context, *Task_SubStage_Request) (*Task_Operation_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ExecuteRun not implemented")
 }
 func (UnimplementedTaskExecutionServer) PrepareEnd(context.Context, *Task_Ref) (*Task_SubStage_Response, error) {
@@ -369,7 +369,7 @@ func _TaskExecution_PrepareRun_Handler(srv interface{}, ctx context.Context, dec
 }
 
 func _TaskExecution_ExecuteRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Task_SubStage_Response)
+	in := new(Task_SubStage_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -381,7 +381,7 @@ func _TaskExecution_ExecuteRun_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/zxpm.plugin.TaskExecution/ExecuteRun",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TaskExecutionServer).ExecuteRun(ctx, req.(*Task_SubStage_Response))
+		return srv.(TaskExecutionServer).ExecuteRun(ctx, req.(*Task_SubStage_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
