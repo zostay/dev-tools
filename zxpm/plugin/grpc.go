@@ -43,18 +43,18 @@ func generateStateId() string {
 
 func (c *GRPCTaskInterfaceClient) Implements(
 	_ context.Context,
-	_ *api.Implements_Request,
-) (*api.Implements_Response, error) {
+	_ *api.Task_Implements_Request,
+) (*api.Task_Implements_Response, error) {
 	names := c.Impl.Implements()
-	return &api.Implements_Response{
+	return &api.Task_Implements_Response{
 		Names: names,
 	}, nil
 }
 
 func (c *GRPCTaskInterfaceClient) Prepare(
-	_ context.Context,
-	request *api.Prepare_Request,
-) (*api.Prepare_Response, error) {
+	ctx context.Context,
+	request *api.Task_Prepare_Request,
+) (*api.Task_Prepare_Response, error) {
 	globalConfig := translate.APIConfigToPluginConfig(request.GetGlobalConfig())
 
 	task := c.Impl.Prepare(request.GetName(), globalConfig)
@@ -68,11 +68,23 @@ func (c *GRPCTaskInterfaceClient) Prepare(
 	id := generateStateId()
 	c.state[name][id] = state
 
-	return &api.Prepare_Response{
+	res, err := c.executeStage(ctx, &api.Task_Operation_Request{
+		Task: &api.Task_Ref{
+			Name:    name,
+			StateId: id,
+		},
+		Storage: map[string]string{},
+	}, Task.Setup)
+	if err != nil {
+		return nil, err
+	}
+
+	return &api.Task_Prepare_Response{
 		Task: &api.Task_Ref{
 			Name:    request.GetName(),
 			StateId: id,
 		},
+		Storage: res.GetStorageUpdate(),
 	}, nil
 }
 
@@ -87,18 +99,45 @@ func (c *GRPCTaskInterfaceClient) deref(ref *api.Task_Ref) (*GRPCTaskClientState
 	return task, nil
 }
 
-func (c *GRPCTaskInterfaceClient) Cancel(
-	_ context.Context,
-	request *api.Cancel_Request,
-) (*api.Cancel_Response, error) {
+func (c *GRPCTaskInterfaceClient) closeTask(
+	ctx context.Context,
+	request *api.Task_Cancel_Request,
+) error {
 	_, err := c.deref(request.GetTask())
 	if err != nil {
 		return nil, err
 	}
 
+	_, err = c.executeStage(ctx, &api.Task_Operation_Request{
+		Task:    request.GetTask(),
+		Storage: map[string]string{},
+	}, Task.Teardown)
+
 	delete(c.state[request.GetTask().GetName()], request.GetTask().GetStateId())
 
-	return &api.Cancel_Response{}, nil
+	return err
+}
+
+func (c *GRPCTaskInterfaceClient) Cancel(
+	ctx context.Context,
+	request *api.Task_Cancel_Request,
+) (*api.Task_Cancel_Response, error) {
+	err := c.closeTask(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	return &api.Task_Cancel_Response{}, nil
+}
+
+func (c *GRPCTaskInterfaceClient) Complete(
+	ctx context.Context,
+	request *api.Task_Complete_Request,
+) (*api.Task_Complete_Response, error) {
+	err := c.closeTask(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	return &api.Task_Complete_Response{}, nil
 }
 
 func (c *GRPCTaskInterfaceClient) executeStage(

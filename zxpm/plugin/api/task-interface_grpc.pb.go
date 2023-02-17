@@ -22,9 +22,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TaskExecutionClient interface {
-	Implements(ctx context.Context, in *Implements_Request, opts ...grpc.CallOption) (*Implements_Response, error)
-	Prepare(ctx context.Context, in *Prepare_Request, opts ...grpc.CallOption) (*Prepare_Response, error)
-	Cancel(ctx context.Context, in *Cancel_Request, opts ...grpc.CallOption) (*Cancel_Response, error)
+	Implements(ctx context.Context, in *Task_Implements_Request, opts ...grpc.CallOption) (*Task_Implements_Response, error)
+	Prepare(ctx context.Context, in *Task_Prepare_Request, opts ...grpc.CallOption) (*Task_Prepare_Response, error)
+	Cancel(ctx context.Context, in *Task_Cancel_Request, opts ...grpc.CallOption) (*Task_Cancel_Response, error)
+	Complete(ctx context.Context, in *Task_Complete_Request, opts ...grpc.CallOption) (*Task_Complete_Response, error)
 	ExecuteCheck(ctx context.Context, in *Task_Operation_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error)
 	PrepareBegin(ctx context.Context, in *Task_Ref, opts ...grpc.CallOption) (*Task_SubStage_Response, error)
 	ExecuteBegin(ctx context.Context, in *Task_SubStage_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error)
@@ -43,8 +44,8 @@ func NewTaskExecutionClient(cc grpc.ClientConnInterface) TaskExecutionClient {
 	return &taskExecutionClient{cc}
 }
 
-func (c *taskExecutionClient) Implements(ctx context.Context, in *Implements_Request, opts ...grpc.CallOption) (*Implements_Response, error) {
-	out := new(Implements_Response)
+func (c *taskExecutionClient) Implements(ctx context.Context, in *Task_Implements_Request, opts ...grpc.CallOption) (*Task_Implements_Response, error) {
+	out := new(Task_Implements_Response)
 	err := c.cc.Invoke(ctx, "/zxpm.plugin.TaskExecution/Implements", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -52,8 +53,8 @@ func (c *taskExecutionClient) Implements(ctx context.Context, in *Implements_Req
 	return out, nil
 }
 
-func (c *taskExecutionClient) Prepare(ctx context.Context, in *Prepare_Request, opts ...grpc.CallOption) (*Prepare_Response, error) {
-	out := new(Prepare_Response)
+func (c *taskExecutionClient) Prepare(ctx context.Context, in *Task_Prepare_Request, opts ...grpc.CallOption) (*Task_Prepare_Response, error) {
+	out := new(Task_Prepare_Response)
 	err := c.cc.Invoke(ctx, "/zxpm.plugin.TaskExecution/Prepare", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -61,9 +62,18 @@ func (c *taskExecutionClient) Prepare(ctx context.Context, in *Prepare_Request, 
 	return out, nil
 }
 
-func (c *taskExecutionClient) Cancel(ctx context.Context, in *Cancel_Request, opts ...grpc.CallOption) (*Cancel_Response, error) {
-	out := new(Cancel_Response)
+func (c *taskExecutionClient) Cancel(ctx context.Context, in *Task_Cancel_Request, opts ...grpc.CallOption) (*Task_Cancel_Response, error) {
+	out := new(Task_Cancel_Response)
 	err := c.cc.Invoke(ctx, "/zxpm.plugin.TaskExecution/Cancel", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taskExecutionClient) Complete(ctx context.Context, in *Task_Complete_Request, opts ...grpc.CallOption) (*Task_Complete_Response, error) {
+	out := new(Task_Complete_Response)
+	err := c.cc.Invoke(ctx, "/zxpm.plugin.TaskExecution/Complete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -146,9 +156,10 @@ func (c *taskExecutionClient) ExecuteFinishing(ctx context.Context, in *Task_Ope
 // All implementations must embed UnimplementedTaskExecutionServer
 // for forward compatibility
 type TaskExecutionServer interface {
-	Implements(context.Context, *Implements_Request) (*Implements_Response, error)
-	Prepare(context.Context, *Prepare_Request) (*Prepare_Response, error)
-	Cancel(context.Context, *Cancel_Request) (*Cancel_Response, error)
+	Implements(context.Context, *Task_Implements_Request) (*Task_Implements_Response, error)
+	Prepare(context.Context, *Task_Prepare_Request) (*Task_Prepare_Response, error)
+	Cancel(context.Context, *Task_Cancel_Request) (*Task_Cancel_Response, error)
+	Complete(context.Context, *Task_Complete_Request) (*Task_Complete_Response, error)
 	ExecuteCheck(context.Context, *Task_Operation_Request) (*Task_Operation_Response, error)
 	PrepareBegin(context.Context, *Task_Ref) (*Task_SubStage_Response, error)
 	ExecuteBegin(context.Context, *Task_SubStage_Request) (*Task_Operation_Response, error)
@@ -164,14 +175,17 @@ type TaskExecutionServer interface {
 type UnimplementedTaskExecutionServer struct {
 }
 
-func (UnimplementedTaskExecutionServer) Implements(context.Context, *Implements_Request) (*Implements_Response, error) {
+func (UnimplementedTaskExecutionServer) Implements(context.Context, *Task_Implements_Request) (*Task_Implements_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Implements not implemented")
 }
-func (UnimplementedTaskExecutionServer) Prepare(context.Context, *Prepare_Request) (*Prepare_Response, error) {
+func (UnimplementedTaskExecutionServer) Prepare(context.Context, *Task_Prepare_Request) (*Task_Prepare_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Prepare not implemented")
 }
-func (UnimplementedTaskExecutionServer) Cancel(context.Context, *Cancel_Request) (*Cancel_Response, error) {
+func (UnimplementedTaskExecutionServer) Cancel(context.Context, *Task_Cancel_Request) (*Task_Cancel_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Cancel not implemented")
+}
+func (UnimplementedTaskExecutionServer) Complete(context.Context, *Task_Complete_Request) (*Task_Complete_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Complete not implemented")
 }
 func (UnimplementedTaskExecutionServer) ExecuteCheck(context.Context, *Task_Operation_Request) (*Task_Operation_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ExecuteCheck not implemented")
@@ -211,7 +225,7 @@ func RegisterTaskExecutionServer(s grpc.ServiceRegistrar, srv TaskExecutionServe
 }
 
 func _TaskExecution_Implements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Implements_Request)
+	in := new(Task_Implements_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -223,13 +237,13 @@ func _TaskExecution_Implements_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/zxpm.plugin.TaskExecution/Implements",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TaskExecutionServer).Implements(ctx, req.(*Implements_Request))
+		return srv.(TaskExecutionServer).Implements(ctx, req.(*Task_Implements_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _TaskExecution_Prepare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Prepare_Request)
+	in := new(Task_Prepare_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -241,13 +255,13 @@ func _TaskExecution_Prepare_Handler(srv interface{}, ctx context.Context, dec fu
 		FullMethod: "/zxpm.plugin.TaskExecution/Prepare",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TaskExecutionServer).Prepare(ctx, req.(*Prepare_Request))
+		return srv.(TaskExecutionServer).Prepare(ctx, req.(*Task_Prepare_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _TaskExecution_Cancel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Cancel_Request)
+	in := new(Task_Cancel_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -259,7 +273,25 @@ func _TaskExecution_Cancel_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: "/zxpm.plugin.TaskExecution/Cancel",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TaskExecutionServer).Cancel(ctx, req.(*Cancel_Request))
+		return srv.(TaskExecutionServer).Cancel(ctx, req.(*Task_Cancel_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaskExecution_Complete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Task_Complete_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskExecutionServer).Complete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/zxpm.plugin.TaskExecution/Complete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskExecutionServer).Complete(ctx, req.(*Task_Complete_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -426,6 +458,10 @@ var TaskExecution_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Cancel",
 			Handler:    _TaskExecution_Cancel_Handler,
+		},
+		{
+			MethodName: "Complete",
+			Handler:    _TaskExecution_Complete_Handler,
 		},
 		{
 			MethodName: "ExecuteCheck",

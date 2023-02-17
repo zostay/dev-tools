@@ -35,7 +35,9 @@ func (p *PluginContext) UpdateStorage(store map[string]string) {
 }
 
 func (p *PluginContext) StorageChanges() map[string]string {
-	return p.changes
+	var changes map[string]string
+	changes, p.changes = p.changes, make(map[string]string, 10)
+	return changes
 }
 
 func InitializeContext(ctx context.Context, pctx *PluginContext) context.Context {
