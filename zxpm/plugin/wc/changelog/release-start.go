@@ -89,13 +89,13 @@ func (s *ReleaseStartTask) Run(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  50,
-			Action: s.FixupChangelog,
+			Action: plugin.OperationFunc(s.FixupChangelog),
 		},
 		{
 			Order: 55,
-			Action: func(context.Context) error {
+			Action: plugin.OperationFunc(func(context.Context) error {
 				return s.LintChangelog(changes.CheckRelease)
-			},
+			}),
 		},
 	}, nil
 }

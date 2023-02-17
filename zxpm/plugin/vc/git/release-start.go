@@ -124,7 +124,7 @@ func (s *ReleaseStartTask) Run(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  30,
-			Action: s.MakeReleaseBranch,
+			Action: plugin.OperationFunc(s.MakeReleaseBranch),
 		},
 	}, nil
 }
@@ -173,11 +173,11 @@ func (s *ReleaseStartTask) End(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  70,
-			Action: s.AddAndCommit,
+			Action: plugin.OperationFunc(s.AddAndCommit),
 		},
 		{
 			Order:  75,
-			Action: s.PushReleaseBranch,
+			Action: plugin.OperationFunc(s.PushReleaseBranch),
 		},
 	}, nil
 }

@@ -117,11 +117,11 @@ func (f *ReleaseFinishTask) Run(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  70,
-			Action: f.MergePullRequest,
+			Action: plugin.OperationFunc(f.MergePullRequest),
 		},
 		{
 			Order:  75,
-			Action: f.CreateRelease,
+			Action: plugin.OperationFunc(f.CreateRelease),
 		},
 	}, nil
 }

@@ -76,7 +76,7 @@ func (f *ReleaseFinishTask) End(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  75,
-			Action: f.TagRelease,
+			Action: plugin.OperationFunc(f.TagRelease),
 		},
 	}, nil
 }

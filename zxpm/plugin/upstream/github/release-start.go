@@ -44,7 +44,7 @@ func (s *ReleaseStartTask) End(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  80,
-			Action: s.CreateGithubPullRequest,
+			Action: plugin.OperationFunc(s.CreateGithubPullRequest),
 		},
 	}, nil
 }
