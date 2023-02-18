@@ -1,4 +1,4 @@
-package git
+package plugin_git
 
 import (
 	"fmt"

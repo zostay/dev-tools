@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -13,13 +14,55 @@ import (
 // variables.
 const ZxPrefix = "ZX"
 
-// Config is the structure that the ZX configuration is expected to fill in.
 type Config struct {
-	App string
+	Values      map[string]string
+	SubSections map[string]*Config
+}
 
-	Paths map[string]string
+func New() *Config {
+	return NewCap(10, 10)
+}
 
-	Web
+func NewCap(vCap, ssCap int) *Config {
+	return &Config{
+		Values:      make(map[string]string, vCap),
+		SubSections: make(map[string]*Config, ssCap),
+	}
+}
+
+func (c *Config) navigate(key string) (*Config, string) {
+	parts := strings.SplitN(key, ".", 2)
+	thisKey := parts[0]
+	if len(parts) == 1 {
+		return c, thisKey
+	}
+	return c.SubSections[thisKey].navigate(parts[1])
+}
+
+func (c *Config) Get(key string) string {
+	cfg, key := c.navigate(key)
+	return cfg.Values[key]
+}
+
+func (c *Config) Section(key string) *Config {
+	cfg, key := c.navigate(key)
+	return cfg.SubSections[key]
+}
+
+func FromAnyMap(in map[string]any) *Config {
+	out := NewCap(len(in), len(in))
+	for k, v := range in {
+		if nestedV, isNested := v.(map[string]any); isNested {
+			out.SubSections[k] = FromAnyMap(nestedV)
+		} else {
+			out.Values[k] = cast.ToString(v)
+		}
+	}
+	return out
+}
+
+func FromViper() *Config {
+	return FromAnyMap(viper.AllSettings())
 }
 
 // Init initializes the ZX configuration. If verbosity is set to a non-zero
@@ -95,13 +138,6 @@ func Init(verbosity int) {
 			}
 		}
 	}
-}
-
-// Get returns the loaded ZX configuration or an error.
-func Get() (*Config, error) {
-	var cfg Config
-	err := viper.Unmarshal(&cfg)
-	return &cfg, err
 }
 
 // BasicEnv is a tool for mapping HOME and PWD environment variables in some

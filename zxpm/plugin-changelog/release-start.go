@@ -1,4 +1,4 @@
-package changelog
+package plugin_changelog
 
 import (
 	"bufio"

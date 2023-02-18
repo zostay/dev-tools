@@ -1,4 +1,4 @@
-package github
+package plugin_github
 
 import (
 	"github.com/zostay/dev-tools/pkg/config"

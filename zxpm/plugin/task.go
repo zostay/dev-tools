@@ -3,7 +3,8 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"strings"
+
+	"github.com/zostay/dev-tools/pkg/config"
 )
 
 var ErrUnsupportedTask = fmt.Errorf("this plugin does not support that task")
@@ -50,30 +51,20 @@ type Task interface {
 
 type Tasks []Task
 
-type Config struct {
-	Values      map[string]string
-	SubSections map[string]*Config
-}
-
-func (c *Config) Get(key string) string {
-	parts := strings.SplitN(key, ".", 2)
-	thisKey := parts[0]
-	if len(parts) == 1 {
-		return c.Values[thisKey]
-	}
-	return c.SubSections[thisKey].Get(parts[1])
-}
-
 // TaskInterface is the base interface that all plugins implement.
 type TaskInterface interface {
 	// Implements will list the names of the tasks that this plugin TaskInterface
 	// implements.
-	Implements() (taskNames []string, err error)
+	Implements(ctx context.Context) (taskNames []string, err error)
 
 	// Prepare should return an initialized Task object that is configured using
 	// the given global configuration as well as the task configuration. The
 	// object passed for task configuration is specific to the given taskName.
-	Prepare(taskName string, globalCfg *Config) (task Task, err error)
+	Prepare(
+		ctx context.Context,
+		taskName string,
+		globalCfg *config.Config,
+	) (task Task, err error)
 }
 
 type Boilerplate struct{}

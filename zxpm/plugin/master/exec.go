@@ -1,4 +1,4 @@
-package plugin
+package master
 
 import (
 	"context"
@@ -6,6 +6,9 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/zostay/dev-tools/pkg/config"
+	"github.com/zostay/dev-tools/zxpm/plugin"
 )
 
 type Error []error
@@ -20,10 +23,10 @@ func (e Error) Error() string {
 
 func executeTaskOperation(
 	ctx context.Context,
-	ts Tasks,
-	op func(context.Context, Task) error,
+	ts plugin.Tasks,
+	op func(context.Context, plugin.Task) error,
 ) error {
-	opfs := make([]OperationFunc, len(ts))
+	opfs := make([]plugin.OperationFunc, len(ts))
 	for i := range ts {
 		t := ts[i]
 		opfs = append(opfs, func(ctx context.Context) error {
@@ -36,7 +39,7 @@ func executeTaskOperation(
 
 func executeOperationFuncs(
 	ctx context.Context,
-	opfs []OperationFunc,
+	opfs []plugin.OperationFunc,
 ) error {
 	wg := &sync.WaitGroup{}
 	errs := make(chan error, len(opfs))
@@ -65,26 +68,31 @@ func executeOperationFuncs(
 }
 
 func evaluateOperations(
-	ts Tasks,
-	op func(Task) Operations,
-) Operations {
-	ops := make(Operations, 0, len(ts))
+	ctx context.Context,
+	ts plugin.Tasks,
+	op func(plugin.Task, context.Context) (plugin.Operations, error),
+) (plugin.Operations, error) {
+	ops := make(plugin.Operations, 0, len(ts))
 	for _, t := range ts {
-		ops = append(ops, op(t)...)
+		thisOps, err := op(t, ctx)
+		if err != nil {
+			return nil, err
+		}
+		ops = append(ops, thisOps...)
 	}
 
 	sort.Slice(ops, func(i, j int) bool {
 		return ops[i].Order < ops[j].Order
 	})
 
-	return ops
+	return ops, nil
 }
 
 func gatherOperationFuncs(
-	ops Operations,
-) []Operations {
-	opss := make([]Operations, 0, len(ops))
-	var lastOrder Ordering = -1
+	ops plugin.Operations,
+) []plugin.Operations {
+	opss := make([]plugin.Operations, 0, len(ops))
+	var lastOrder plugin.Ordering = -1
 	for _, op := range ops {
 		order := op.Order
 		if order < 0 {
@@ -94,7 +102,7 @@ func gatherOperationFuncs(
 		}
 
 		if order > lastOrder {
-			opss = append(opss, make(Operations, 0, len(ops)))
+			opss = append(opss, make(plugin.Operations, 0, len(ops)))
 		}
 
 		opss[len(opss)-1] = append(opss[len(opss)-1], op)
@@ -107,18 +115,18 @@ func gatherOperationFuncs(
 
 func executeOperationGroup(
 	ctx context.Context,
-	ops Operations,
+	ops plugin.Operations,
 ) error {
-	opfs := make([]OperationFunc, len(ops))
+	opfs := make([]plugin.OperationFunc, len(ops))
 	for i, op := range ops {
-		opfs[i] = op.Action
+		opfs[i] = op.Action.Call
 	}
 	return executeOperationFuncs(ctx, opfs)
 }
 
 func executeOperationGroups(
 	ctx context.Context,
-	opss []Operations,
+	opss []plugin.Operations,
 ) error {
 	for _, ops := range opss {
 		err := executeOperationGroup(ctx, ops)
@@ -132,25 +140,28 @@ func executeOperationGroups(
 func executePrioritizedOperations(
 	ctx context.Context,
 	stage string,
-	ts Tasks,
-	op func(Task) Operations,
+	ts plugin.Tasks,
+	op func(plugin.Task, context.Context) (plugin.Operations, error),
 ) error {
-	ops := evaluateOperations(ts, op)
+	ops, err := evaluateOperations(ctx, ts, op)
+	if err != nil {
+		return err
+	}
 	opfss := gatherOperationFuncs(ops)
-	err := executeOperationGroups(ctx, opfss)
+	err = executeOperationGroups(ctx, opfss)
 	if err != nil {
 		return fmt.Errorf("failed %s stage %w", stage, err)
 	}
 	return err
 }
 
-type taskOperationFunc func(Task, context.Context) error
+type taskOperationFunc func(plugin.Task, context.Context) error
 
 func executeBasicStage(
 	opFunc taskOperationFunc,
 	stage string,
-) func(context.Context, Task) error {
-	return func(ctx context.Context, t Task) error {
+) func(context.Context, plugin.Task) error {
+	return func(ctx context.Context, t plugin.Task) error {
 		err := opFunc(t, ctx)
 		if err != nil {
 			return fmt.Errorf("failed %s stage: %w", stage, err)
@@ -160,19 +171,19 @@ func executeBasicStage(
 }
 
 var (
-	executeSetup     = executeBasicStage(Task.Setup, "setup")
-	executeCheck     = executeBasicStage(Task.Check, "check")
-	executeFinishing = executeBasicStage(Task.Finishing, "finishing")
-	executeTeardown  = executeBasicStage(Task.Teardown, "teardown")
+	executeSetup     = executeBasicStage(plugin.Task.Setup, "setup")
+	executeCheck     = executeBasicStage(plugin.Task.Check, "check")
+	executeFinishing = executeBasicStage(plugin.Task.Finishing, "finishing")
+	executeTeardown  = executeBasicStage(plugin.Task.Teardown, "teardown")
 )
 
 func Execute(
 	ctx context.Context,
-	cfg *Config,
-	ts Tasks,
+	cfg *config.Config,
+	ts plugin.Tasks,
 ) error {
-	pctx := NewPluginContext(cfg)
-	InitializeContext(ctx, pctx)
+	pctx := plugin.NewPluginContext(cfg)
+	plugin.InitializeContext(ctx, pctx)
 
 	err := executeTaskOperation(ctx, ts, executeSetup)
 	if err != nil {
@@ -184,17 +195,17 @@ func Execute(
 		return err
 	}
 
-	err = executePrioritizedOperations(ctx, "begin", ts, Task.Begin)
+	err = executePrioritizedOperations(ctx, "begin", ts, plugin.Task.Begin)
 	if err != nil {
 		return err
 	}
 
-	err = executePrioritizedOperations(ctx, "run", ts, Task.Run)
+	err = executePrioritizedOperations(ctx, "run", ts, plugin.Task.Run)
 	if err != nil {
 		return err
 	}
 
-	err = executePrioritizedOperations(ctx, "end", ts, Task.End)
+	err = executePrioritizedOperations(ctx, "end", ts, plugin.Task.End)
 	if err != nil {
 		return err
 	}

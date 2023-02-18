@@ -1,4 +1,4 @@
-package github
+package plugin_github
 
 import (
 	"context"

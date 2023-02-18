@@ -1,9 +1,10 @@
-package changelog
+package plugin_changelog
 
 import (
+	"github.com/zostay/dev-tools/zxpm/plugin/wc/changelog/cmd"
+
 	"github.com/zostay/dev-tools/pkg/config"
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	"github.com/zostay/dev-tools/zxpm/plugin/wc/changelog/cmd"
 	"github.com/zostay/dev-tools/zxpm/release"
 )
 
@@ -16,21 +17,22 @@ func (p *Plugin) Implements() ([]string, error) {
 func (p *Plugin) Prepare(
 	task string,
 	cfg *config.Config,
-	taskConfig any,
 ) (plugin.Task, error) {
+	pluginCfg := cfg.Section("github.com/zostay/zxpm/plugin-changelog")
+
 	switch task {
 	case release.StartTask:
 		releaseCfg := taskConfig.(*release.Config)
 		return &ReleaseStartTask{
 			Version:   releaseCfg.Version.String(),
 			Today:     releaseCfg.Today,
-			Changelog: cfg.Paths["changelog"],
+			Changelog: pluginCfg.Get("changelog"),
 		}, nil
 	case release.FinishTask:
 		releaseCfg := taskConfig.(*release.Config)
 		return &ReleaseFinishTask{
 			Version:   releaseCfg.Version,
-			Changelog: cfg.Paths["changelog"],
+			Changelog: pluginCfg.Get("changelog"),
 		}, nil
 	}
 	return nil, plugin.ErrUnsupportedTask

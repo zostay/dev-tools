@@ -2,13 +2,15 @@ package plugin
 
 import (
 	"context"
+
+	"github.com/zostay/dev-tools/pkg/config"
 )
 
 type pluginContextKey struct{}
 type PluginContext struct {
 	cleanup      []SimpleTask
 	addFiles     []string
-	globalConfig *Config
+	globalConfig *config.Config
 	properties   map[string]string
 	changes      map[string]string
 }
@@ -16,7 +18,7 @@ type PluginContext struct {
 type SimpleTask func()
 
 func NewPluginContext(
-	globalConfig *Config,
+	globalConfig *config.Config,
 ) *PluginContext {
 	return &PluginContext{
 		cleanup:      make([]SimpleTask, 0, 10),
