@@ -2,31 +2,7 @@ package plugin
 
 import (
 	"context"
-	"fmt"
-
-	"github.com/zostay/dev-tools/pkg/config"
 )
-
-var ErrUnsupportedTask = fmt.Errorf("this plugin does not support that task")
-
-type Ordering int
-
-type OperationFunc func(context.Context) error
-
-func (op OperationFunc) Call(ctx context.Context) error {
-	return op(ctx)
-}
-
-type OperationHandler interface {
-	Call(ctx context.Context) error
-}
-
-type Operations []Operation
-
-type Operation struct {
-	Order  Ordering
-	Action OperationHandler
-}
 
 // Task provides some operations to help perform a task. The task is executed
 // in a series of stages and if multiple plugins implement a given task, they
@@ -51,22 +27,6 @@ type Task interface {
 
 type Tasks []Task
 
-// TaskInterface is the base interface that all plugins implement.
-type TaskInterface interface {
-	// Implements will list the names of the tasks that this plugin TaskInterface
-	// implements.
-	Implements(ctx context.Context) (taskNames []string, err error)
-
-	// Prepare should return an initialized Task object that is configured using
-	// the given global configuration as well as the task configuration. The
-	// object passed for task configuration is specific to the given taskName.
-	Prepare(
-		ctx context.Context,
-		taskName string,
-		globalCfg *config.Config,
-	) (task Task, err error)
-}
-
 type Boilerplate struct{}
 
 func (Boilerplate) Setup(context.Context) error               { return nil }
@@ -76,33 +36,3 @@ func (Boilerplate) Run(context.Context) (Operations, error)   { return nil, nil 
 func (Boilerplate) End(context.Context) (Operations, error)   { return nil, nil }
 func (Boilerplate) Finishing(context.Context) error           { return nil }
 func (Boilerplate) Teardown(context.Context) error            { return nil }
-
-type CommandInterface interface {
-	List() []CommandDescriptor
-	Run(tag string, args []string, opts map[string]string) int
-}
-
-type CommandDescriptor struct {
-	Tag               string
-	Parents           []string
-	Use               string
-	Short             string
-	MinPositionalArgs int
-	MaxPositionalargs int
-	Options           []OptionDescriptor
-}
-
-type OptionType int
-
-const (
-	OptionBool OptionType = iota + 1
-	OptionaString
-)
-
-type OptionDescriptor struct {
-	Name      string
-	Shorthand string
-	Usage     string
-	Default   string
-	ValueType OptionType
-}

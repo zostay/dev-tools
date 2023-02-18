@@ -6,8 +6,8 @@ import (
 	"github.com/zostay/dev-tools/pkg/config"
 )
 
-type pluginContextKey struct{}
-type PluginContext struct {
+type contextKey struct{}
+type Context struct {
 	cleanup      []SimpleTask
 	addFiles     []string
 	globalConfig *config.Config
@@ -19,8 +19,8 @@ type SimpleTask func()
 
 func NewPluginContext(
 	globalConfig *config.Config,
-) *PluginContext {
-	return &PluginContext{
+) *Context {
+	return &Context{
 		cleanup:      make([]SimpleTask, 0, 10),
 		addFiles:     make([]string, 0, 10),
 		globalConfig: globalConfig,
@@ -29,26 +29,26 @@ func NewPluginContext(
 	}
 }
 
-func (p *PluginContext) UpdateStorage(store map[string]string) {
+func (p *Context) UpdateStorage(store map[string]string) {
 	p.properties = make(map[string]string, len(store))
 	for k, v := range store {
 		p.properties[k] = v
 	}
 }
 
-func (p *PluginContext) StorageChanges() map[string]string {
+func (p *Context) StorageChanges() map[string]string {
 	var changes map[string]string
 	changes, p.changes = p.changes, make(map[string]string, 10)
 	return changes
 }
 
-func InitializeContext(ctx context.Context, pctx *PluginContext) context.Context {
-	return context.WithValue(ctx, pluginContextKey{}, pctx)
+func InitializeContext(ctx context.Context, pctx *Context) context.Context {
+	return context.WithValue(ctx, contextKey{}, pctx)
 }
 
-func pluginContextFrom(ctx context.Context) *PluginContext {
-	v := ctx.Value(pluginContextKey{})
-	pctx, isPluginContext := v.(*PluginContext)
+func contextFrom(ctx context.Context) *Context {
+	v := ctx.Value(contextKey{})
+	pctx, isPluginContext := v.(*Context)
 	if !isPluginContext {
 		panic("context is missing plugin configuration")
 	}
@@ -56,12 +56,12 @@ func pluginContextFrom(ctx context.Context) *PluginContext {
 }
 
 func ForCleanup(ctx context.Context, newCleaner SimpleTask) {
-	pctx := pluginContextFrom(ctx)
+	pctx := contextFrom(ctx)
 	pctx.cleanup = append(pctx.cleanup, newCleaner)
 }
 
 func ListCleanupTasks(ctx context.Context) []SimpleTask {
-	pctx := pluginContextFrom(ctx)
+	pctx := contextFrom(ctx)
 	tasks := make([]SimpleTask, len(pctx.cleanup))
 	for i, f := range pctx.cleanup {
 		tasks[len(tasks)-i-1] = f
@@ -70,27 +70,27 @@ func ListCleanupTasks(ctx context.Context) []SimpleTask {
 }
 
 func ToAdd(ctx context.Context, newFile string) {
-	pctx := pluginContextFrom(ctx)
+	pctx := contextFrom(ctx)
 	pctx.addFiles = append(pctx.addFiles, newFile)
 }
 
 func ListAdded(ctx context.Context) []string {
-	pctx := pluginContextFrom(ctx)
+	pctx := contextFrom(ctx)
 	return pctx.addFiles
 }
 
 func GetConfig(ctx context.Context, key string) string {
-	pctx := pluginContextFrom(ctx)
+	pctx := contextFrom(ctx)
 	return pctx.globalConfig.Get(key)
 }
 
 func Set(ctx context.Context, key, value string) {
-	pctx := pluginContextFrom(ctx)
+	pctx := contextFrom(ctx)
 	pctx.changes[key] = value
 }
 
 func Get(ctx context.Context, key string) string {
-	pctx := pluginContextFrom(ctx)
+	pctx := contextFrom(ctx)
 	if v, changeExists := pctx.changes[key]; changeExists {
 		return v
 	}

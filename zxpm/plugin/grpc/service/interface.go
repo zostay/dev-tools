@@ -14,7 +14,7 @@ import (
 
 type TaskState struct {
 	Task    plugin.Task
-	Context *plugin.PluginContext
+	Context *plugin.Context
 }
 
 type TaskExecution struct {
