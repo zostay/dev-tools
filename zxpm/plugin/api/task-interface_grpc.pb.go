@@ -33,7 +33,7 @@ type TaskExecutionClient interface {
 	ExecuteRun(ctx context.Context, in *Task_SubStage_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error)
 	PrepareEnd(ctx context.Context, in *Task_Ref, opts ...grpc.CallOption) (*Task_SubStage_Response, error)
 	ExecuteEnd(ctx context.Context, in *Task_SubStage_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error)
-	ExecuteFinishing(ctx context.Context, in *Task_Operation_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error)
+	ExecuteFinish(ctx context.Context, in *Task_Operation_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error)
 }
 
 type taskExecutionClient struct {
@@ -143,9 +143,9 @@ func (c *taskExecutionClient) ExecuteEnd(ctx context.Context, in *Task_SubStage_
 	return out, nil
 }
 
-func (c *taskExecutionClient) ExecuteFinishing(ctx context.Context, in *Task_Operation_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error) {
+func (c *taskExecutionClient) ExecuteFinish(ctx context.Context, in *Task_Operation_Request, opts ...grpc.CallOption) (*Task_Operation_Response, error) {
 	out := new(Task_Operation_Response)
-	err := c.cc.Invoke(ctx, "/zxpm.plugin.TaskExecution/ExecuteFinishing", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/zxpm.plugin.TaskExecution/ExecuteFinish", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ type TaskExecutionServer interface {
 	ExecuteRun(context.Context, *Task_SubStage_Request) (*Task_Operation_Response, error)
 	PrepareEnd(context.Context, *Task_Ref) (*Task_SubStage_Response, error)
 	ExecuteEnd(context.Context, *Task_SubStage_Request) (*Task_Operation_Response, error)
-	ExecuteFinishing(context.Context, *Task_Operation_Request) (*Task_Operation_Response, error)
+	ExecuteFinish(context.Context, *Task_Operation_Request) (*Task_Operation_Response, error)
 	mustEmbedUnimplementedTaskExecutionServer()
 }
 
@@ -208,8 +208,8 @@ func (UnimplementedTaskExecutionServer) PrepareEnd(context.Context, *Task_Ref) (
 func (UnimplementedTaskExecutionServer) ExecuteEnd(context.Context, *Task_SubStage_Request) (*Task_Operation_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ExecuteEnd not implemented")
 }
-func (UnimplementedTaskExecutionServer) ExecuteFinishing(context.Context, *Task_Operation_Request) (*Task_Operation_Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ExecuteFinishing not implemented")
+func (UnimplementedTaskExecutionServer) ExecuteFinish(context.Context, *Task_Operation_Request) (*Task_Operation_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExecuteFinish not implemented")
 }
 func (UnimplementedTaskExecutionServer) mustEmbedUnimplementedTaskExecutionServer() {}
 
@@ -422,20 +422,20 @@ func _TaskExecution_ExecuteEnd_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TaskExecution_ExecuteFinishing_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TaskExecution_ExecuteFinish_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Task_Operation_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TaskExecutionServer).ExecuteFinishing(ctx, in)
+		return srv.(TaskExecutionServer).ExecuteFinish(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/zxpm.plugin.TaskExecution/ExecuteFinishing",
+		FullMethod: "/zxpm.plugin.TaskExecution/ExecuteFinish",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TaskExecutionServer).ExecuteFinishing(ctx, req.(*Task_Operation_Request))
+		return srv.(TaskExecutionServer).ExecuteFinish(ctx, req.(*Task_Operation_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -492,8 +492,8 @@ var TaskExecution_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TaskExecution_ExecuteEnd_Handler,
 		},
 		{
-			MethodName: "ExecuteFinishing",
-			Handler:    _TaskExecution_ExecuteFinishing_Handler,
+			MethodName: "ExecuteFinish",
+			Handler:    _TaskExecution_ExecuteFinish_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -13,7 +13,7 @@ import (
 // * Begin (in ascending Order)
 // * Run (in ascending Order)
 // * End (in ascending Order)
-// * Finishing
+// * Finish
 // * Teardown
 type Task interface {
 	Setup(context.Context) error
@@ -21,7 +21,7 @@ type Task interface {
 	Begin(context.Context) (Operations, error)
 	Run(context.Context) (Operations, error)
 	End(context.Context) (Operations, error)
-	Finishing(context.Context) error
+	Finish(context.Context) error
 	Teardown(context.Context) error
 }
 
@@ -34,5 +34,5 @@ func (Boilerplate) Check(context.Context) error               { return nil }
 func (Boilerplate) Begin(context.Context) (Operations, error) { return nil, nil }
 func (Boilerplate) Run(context.Context) (Operations, error)   { return nil, nil }
 func (Boilerplate) End(context.Context) (Operations, error)   { return nil, nil }
-func (Boilerplate) Finishing(context.Context) error           { return nil }
+func (Boilerplate) Finish(context.Context) error              { return nil }
 func (Boilerplate) Teardown(context.Context) error            { return nil }

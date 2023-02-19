@@ -91,10 +91,10 @@ func (t *Task) End(ctx context.Context) (plugin.Operations, error) {
 	return t.operations(ctx, t.client.PrepareEnd)
 }
 
-func (t *Task) Finishing(
+func (t *Task) Finish(
 	ctx context.Context,
 ) error {
-	return t.operation(ctx, t.client.ExecuteCheck)
+	return t.operation(ctx, t.client.ExecuteFinish)
 }
 
 func (t *Task) Teardown(

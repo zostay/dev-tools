@@ -156,12 +156,12 @@ func (e *TaskInterfaceExecutor) end(
 	return e.taskPriorityOperation(ctx, taskName, "End", task, task.End)
 }
 
-func (e *TaskInterfaceExecutor) finishing(
+func (e *TaskInterfaceExecutor) finish(
 	ctx context.Context,
 	taskName string,
 	task plugin.Task,
 ) error {
-	return e.taskOperation(ctx, taskName, "Finishing", task, task.Finishing)
+	return e.taskOperation(ctx, taskName, "Finish", task, task.Finish)
 }
 
 func (e *TaskInterfaceExecutor) teardown(
@@ -207,7 +207,7 @@ func (e *TaskInterfaceExecutor) Execute(
 		e.begin,
 		e.run,
 		e.end,
-		e.finishing,
+		e.finish,
 		e.teardown,
 		e.complete,
 	}

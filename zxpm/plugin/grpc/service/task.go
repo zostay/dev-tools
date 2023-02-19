@@ -84,9 +84,9 @@ func (s *TaskExecution) PrepareEnd(
 	return s.prepareStage(ctx, ref, plugin.Task.End)
 }
 
-func (s *TaskExecution) ExecuteFinishing(
+func (s *TaskExecution) ExecuteFinish(
 	ctx context.Context,
 	request *api.Task_Operation_Request,
 ) (*api.Task_Operation_Response, error) {
-	return s.executeStage(ctx, request, plugin.Task.Finishing)
+	return s.executeStage(ctx, request, plugin.Task.Finish)
 }

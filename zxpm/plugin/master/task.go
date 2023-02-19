@@ -52,8 +52,8 @@ func (t *Task) End(ctx context.Context) (plugin.Operations, error) {
 	return prepareOperations(ctx, t.tasks(), plugin.Task.End)
 }
 
-func (t *Task) Finishing(ctx context.Context) error {
-	return executeTaskOperation(ctx, t.tasks(), executeFinishing)
+func (t *Task) Finish(ctx context.Context) error {
+	return executeTaskOperation(ctx, t.tasks(), executeFinish)
 }
 
 func (t *Task) Teardown(ctx context.Context) error {
@@ -76,10 +76,10 @@ func executeBasicStage(
 }
 
 var (
-	executeSetup     = executeBasicStage(plugin.Task.Setup, "setup")
-	executeCheck     = executeBasicStage(plugin.Task.Check, "check")
-	executeFinishing = executeBasicStage(plugin.Task.Finishing, "finishing")
-	executeTeardown  = executeBasicStage(plugin.Task.Teardown, "teardown")
+	executeSetup    = executeBasicStage(plugin.Task.Setup, "setup")
+	executeCheck    = executeBasicStage(plugin.Task.Check, "check")
+	executeFinish   = executeBasicStage(plugin.Task.Finish, "finish")
+	executeTeardown = executeBasicStage(plugin.Task.Teardown, "teardown")
 )
 
 func executeTaskOperation(
