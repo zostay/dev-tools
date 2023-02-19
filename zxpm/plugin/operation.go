@@ -20,3 +20,9 @@ type Operation struct {
 	Order  Ordering
 	Action OperationHandler
 }
+
+func OperationLess(ops Operations) func(int, int) bool {
+	return func(i, j int) bool {
+		return ops[i].Order < ops[j].Order
+	}
+}

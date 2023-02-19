@@ -62,7 +62,7 @@ func (s *TaskExecution) Prepare(
 ) (*api.Task_Prepare_Response, error) {
 	globalConfig := translate.APIConfigToConfig(request.GetGlobalConfig())
 
-	pctx := plugin.NewPluginContext(globalConfig)
+	pctx := plugin.NewContext(globalConfig)
 	ctx = plugin.InitializeContext(ctx, pctx)
 
 	task, err := s.Impl.Prepare(ctx, request.GetName(), globalConfig)

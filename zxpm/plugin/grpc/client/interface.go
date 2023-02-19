@@ -41,3 +41,25 @@ func (c *TaskInterface) Prepare(
 		storage: res.GetStorage(),
 	}, nil
 }
+
+func (c *TaskInterface) Cancel(
+	ctx context.Context,
+	task plugin.Task,
+) error {
+	ref := task.(*Task).ref
+	_, err := c.client.Cancel(ctx, &api.Task_Cancel_Request{
+		Task: ref,
+	})
+	return err
+}
+
+func (c *TaskInterface) Complete(
+	ctx context.Context,
+	task plugin.Task,
+) error {
+	ref := task.(*Task).ref
+	_, err := c.client.Complete(ctx, &api.Task_Complete_Request{
+		Task: ref,
+	})
+	return err
+}

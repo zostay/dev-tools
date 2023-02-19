@@ -1,7 +1,7 @@
 package plugin_changelog
 
 import (
-	"github.com/zostay/dev-tools/zxpm/plugin/wc/changelog/cmd"
+	"github.com/zostay/dev-tools/zxpm/plugin-changelog/cmd"
 
 	"github.com/zostay/dev-tools/pkg/config"
 	"github.com/zostay/dev-tools/zxpm/plugin"

@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"sync"
+
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/zostay/dev-tools/pkg/config"
 	"github.com/zostay/dev-tools/zxpm/plugin"
@@ -21,204 +22,201 @@ func (e Error) Error() string {
 	return strings.Join(msgs, "; ")
 }
 
-func executeTaskOperation(
-	ctx context.Context,
-	ts plugin.Tasks,
-	op func(context.Context, plugin.Task) error,
-) error {
-	opfs := make([]plugin.OperationFunc, len(ts))
-	for i := range ts {
-		t := ts[i]
-		opfs = append(opfs, func(ctx context.Context) error {
-			return op(ctx, t)
-		})
-	}
-
-	return executeOperationFuncs(ctx, opfs)
+type TaskInterfaceExecutor struct {
+	iface plugin.TaskInterface
 }
 
-func executeOperationFuncs(
-	ctx context.Context,
-	opfs []plugin.OperationFunc,
-) error {
-	wg := &sync.WaitGroup{}
-	errs := make(chan error, len(opfs))
-
-	for _, op := range opfs {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			errs <- op(ctx)
-		}()
-	}
-
-	resultErr := make(Error, 0, len(opfs))
-	for i := 0; i < len(opfs); i++ {
-		err := <-errs
-		if err != nil {
-			resultErr = append(resultErr, err)
-		}
-	}
-
-	if len(resultErr) > 0 {
-		return resultErr
-	}
-	return nil
+func NewExecutor(iface plugin.TaskInterface) *TaskInterfaceExecutor {
+	return &TaskInterfaceExecutor{iface}
 }
 
-func evaluateOperations(
+func (e *TaskInterfaceExecutor) tryCancel(
 	ctx context.Context,
-	ts plugin.Tasks,
-	op func(plugin.Task, context.Context) (plugin.Operations, error),
-) (plugin.Operations, error) {
-	ops := make(plugin.Operations, 0, len(ts))
-	for _, t := range ts {
-		thisOps, err := op(t, ctx)
-		if err != nil {
-			return nil, err
-		}
-		ops = append(ops, thisOps...)
-	}
-
-	sort.Slice(ops, func(i, j int) bool {
-		return ops[i].Order < ops[j].Order
-	})
-
-	return ops, nil
-}
-
-func gatherOperationFuncs(
-	ops plugin.Operations,
-) []plugin.Operations {
-	opss := make([]plugin.Operations, 0, len(ops))
-	var lastOrder plugin.Ordering = -1
-	for _, op := range ops {
-		order := op.Order
-		if order < 0 {
-			order = 0
-		} else if order > 100 {
-			order = 100
-		}
-
-		if order > lastOrder {
-			opss = append(opss, make(plugin.Operations, 0, len(ops)))
-		}
-
-		opss[len(opss)-1] = append(opss[len(opss)-1], op)
-
-		lastOrder = order
-	}
-
-	return opss
-}
-
-func executeOperationGroup(
-	ctx context.Context,
-	ops plugin.Operations,
-) error {
-	opfs := make([]plugin.OperationFunc, len(ops))
-	for i, op := range ops {
-		opfs[i] = op.Action.Call
-	}
-	return executeOperationFuncs(ctx, opfs)
-}
-
-func executeOperationGroups(
-	ctx context.Context,
-	opss []plugin.Operations,
-) error {
-	for _, ops := range opss {
-		err := executeOperationGroup(ctx, ops)
-		if err != nil {
-			return fmt.Errorf("order %d: %w", ops[0].Order, err)
-		}
-	}
-	return nil
-}
-
-func executePrioritizedOperations(
-	ctx context.Context,
+	taskName string,
+	task plugin.Task,
 	stage string,
-	ts plugin.Tasks,
-	op func(plugin.Task, context.Context) (plugin.Operations, error),
-) error {
-	ops, err := evaluateOperations(ctx, ts, op)
+) {
+	logger := hclog.FromContext(ctx)
+	cancelErr := e.iface.Cancel(ctx, task)
+	if cancelErr != nil {
+		logger.Error("failed while canceling task due to error",
+			"stage", stage,
+			"task", taskName,
+			"error", cancelErr)
+	}
+}
+
+func (e *TaskInterfaceExecutor) logFail(
+	ctx context.Context,
+	taskName string,
+	stage string,
+	err error,
+) {
+	logger := hclog.FromContext(ctx)
+	logger.Error("task failed", "stage", stage, "task", taskName, "error", err)
+}
+
+func (e *TaskInterfaceExecutor) prepare(
+	ctx context.Context,
+	cfg *config.Config,
+	taskName string,
+) (plugin.Task, error) {
+	task, err := e.iface.Prepare(ctx, taskName, cfg)
 	if err != nil {
+		if task != nil {
+			e.tryCancel(ctx, taskName, task, "Prepare")
+		}
+		e.logFail(ctx, taskName, "Prepare", err)
+		return nil, err
+	}
+	return task, nil
+}
+
+func (e *TaskInterfaceExecutor) taskOperation(
+	ctx context.Context,
+	taskName string,
+	stage string,
+	task plugin.Task,
+	op func(context.Context) error,
+) error {
+	err := op(ctx)
+	if err != nil {
+		e.tryCancel(ctx, taskName, task, stage)
+		e.logFail(ctx, taskName, stage, err)
 		return err
 	}
-	opfss := gatherOperationFuncs(ops)
-	err = executeOperationGroups(ctx, opfss)
+	return nil
+}
+
+func (e *TaskInterfaceExecutor) setup(
+	ctx context.Context,
+	taskName string,
+	task plugin.Task,
+) error {
+	return e.taskOperation(ctx, taskName, "Setup", task, task.Setup)
+}
+
+func (e *TaskInterfaceExecutor) check(
+	ctx context.Context,
+	taskName string,
+	task plugin.Task,
+) error {
+	return e.taskOperation(ctx, taskName, "Check", task, task.Check)
+}
+
+func (e *TaskInterfaceExecutor) taskPriorityOperation(
+	ctx context.Context,
+	taskName string,
+	stage string,
+	task plugin.Task,
+	prepare func(context.Context) (plugin.Operations, error),
+) error {
+	ops, err := prepare(ctx)
 	if err != nil {
-		return fmt.Errorf("failed %s stage %w", stage, err)
+		e.tryCancel(ctx, taskName, task, stage)
+		e.logFail(ctx, taskName, stage, err)
+		return err
+	}
+
+	sort.Slice(ops, plugin.OperationLess(ops))
+	for _, op := range ops {
+		err := op.Action.Call(ctx)
+		if err != nil {
+			priStage := fmt.Sprintf("%s:%02d", stage, op.Order)
+			e.tryCancel(ctx, taskName, task, priStage)
+			e.logFail(ctx, taskName, priStage, err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (e *TaskInterfaceExecutor) begin(
+	ctx context.Context,
+	taskName string,
+	task plugin.Task,
+) error {
+	return e.taskPriorityOperation(ctx, taskName, "Begin", task, task.Begin)
+}
+
+func (e *TaskInterfaceExecutor) run(
+	ctx context.Context,
+	taskName string,
+	task plugin.Task,
+) error {
+	return e.taskPriorityOperation(ctx, taskName, "Run", task, task.Run)
+}
+
+func (e *TaskInterfaceExecutor) end(
+	ctx context.Context,
+	taskName string,
+	task plugin.Task,
+) error {
+	return e.taskPriorityOperation(ctx, taskName, "End", task, task.End)
+}
+
+func (e *TaskInterfaceExecutor) finishing(
+	ctx context.Context,
+	taskName string,
+	task plugin.Task,
+) error {
+	return e.taskOperation(ctx, taskName, "Finishing", task, task.Finishing)
+}
+
+func (e *TaskInterfaceExecutor) teardown(
+	ctx context.Context,
+	taskName string,
+	task plugin.Task,
+) error {
+	return e.taskOperation(ctx, taskName, "Teardown", task, task.Teardown)
+}
+
+func (e *TaskInterfaceExecutor) complete(
+	ctx context.Context,
+	taskName string,
+	task plugin.Task,
+) error {
+	err := e.iface.Complete(ctx, task)
+	if err != nil {
+		logger := hclog.FromContext(ctx)
+		logger.Error("failed while completing task due to error",
+			"stage", "Complete",
+			"task", taskName,
+			"error", err)
 	}
 	return err
 }
 
-type taskOperationFunc func(plugin.Task, context.Context) error
-
-func executeBasicStage(
-	opFunc taskOperationFunc,
-	stage string,
-) func(context.Context, plugin.Task) error {
-	return func(ctx context.Context, t plugin.Task) error {
-		err := opFunc(t, ctx)
-		if err != nil {
-			return fmt.Errorf("failed %s stage: %w", stage, err)
-		}
-		return nil
-	}
-}
-
-var (
-	executeSetup     = executeBasicStage(plugin.Task.Setup, "setup")
-	executeCheck     = executeBasicStage(plugin.Task.Check, "check")
-	executeFinishing = executeBasicStage(plugin.Task.Finishing, "finishing")
-	executeTeardown  = executeBasicStage(plugin.Task.Teardown, "teardown")
-)
-
-func Execute(
+func (e *TaskInterfaceExecutor) Execute(
 	ctx context.Context,
 	cfg *config.Config,
-	ts plugin.Tasks,
+	taskName string,
 ) error {
-	pctx := plugin.NewPluginContext(cfg)
-	plugin.InitializeContext(ctx, pctx)
+	pctx := plugin.NewContext(cfg)
+	ctx = plugin.InitializeContext(ctx, pctx)
 
-	err := executeTaskOperation(ctx, ts, executeSetup)
+	task, err := e.prepare(ctx, cfg, taskName)
 	if err != nil {
 		return err
 	}
 
-	err = executeTaskOperation(ctx, ts, executeCheck)
-	if err != nil {
-		return err
+	stdOps := []func(context.Context, string, plugin.Task) error{
+		e.setup,
+		e.check,
+		e.begin,
+		e.run,
+		e.end,
+		e.finishing,
+		e.teardown,
+		e.complete,
 	}
 
-	err = executePrioritizedOperations(ctx, "begin", ts, plugin.Task.Begin)
-	if err != nil {
-		return err
-	}
-
-	err = executePrioritizedOperations(ctx, "run", ts, plugin.Task.Run)
-	if err != nil {
-		return err
-	}
-
-	err = executePrioritizedOperations(ctx, "end", ts, plugin.Task.End)
-	if err != nil {
-		return err
-	}
-
-	err = executeTaskOperation(ctx, ts, executeFinishing)
-	if err != nil {
-		return err
-	}
-
-	// TODO figure out how to ensure that teardown is always run
-	err = executeTaskOperation(ctx, ts, executeTeardown)
-	if err != nil {
-		return err
+	for _, stdOp := range stdOps {
+		err = stdOp(ctx, taskName, task)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

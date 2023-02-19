@@ -17,7 +17,7 @@ type Context struct {
 
 type SimpleTask func()
 
-func NewPluginContext(
+func NewContext(
 	globalConfig *config.Config,
 ) *Context {
 	return &Context{
