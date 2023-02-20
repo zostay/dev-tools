@@ -10,7 +10,8 @@ import (
 
 type Plugin struct{}
 
-func (p *Plugin) Implements() ([]string, error) {
+func (p *Plugin) Implements() ([]plugin.TaskMetadata, error) {
+	return []TaskMetadata{}
 	return []string{release.StartTask, release.FinishTask}, nil
 }
 
