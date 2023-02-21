@@ -10,7 +10,7 @@ import (
 	"github.com/zostay/dev-tools/zxpm/release"
 )
 
-type ReleaseFinishTask struct {
+type ReleasePublishTask struct {
 	plugin.Boilerplate
 
 	Changelog string
@@ -19,7 +19,7 @@ type ReleaseFinishTask struct {
 // CaptureChangesInfo loads the bullets for the changelog section relevant to
 // this release into the process configuration for use when creating the release
 // later.
-func (f *ReleaseFinishTask) CaptureChangesInfo(ctx context.Context) error {
+func (f *ReleasePublishTask) CaptureChangesInfo(ctx context.Context) error {
 	version := plugin.GetString(ctx, "release.version")
 	vstring := "v" + version
 	cr, err := changes.ExtractSection(f.Changelog, vstring)
@@ -37,7 +37,7 @@ func (f *ReleaseFinishTask) CaptureChangesInfo(ctx context.Context) error {
 	return nil
 }
 
-func (f *ReleaseFinishTask) Check(ctx context.Context) error {
+func (f *ReleasePublishTask) Check(ctx context.Context) error {
 	if f.Changelog == "" {
 		return fmt.Errorf("missing changelog location in paths config")
 	}

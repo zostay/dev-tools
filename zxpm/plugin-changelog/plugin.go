@@ -9,6 +9,8 @@ import (
 	"github.com/zostay/dev-tools/zxpm/plugin"
 )
 
+var changelogPlugin = plugin.ConfigName(Plugin{})
+
 type Plugin struct{}
 
 var _ plugin.TaskInterface = &Plugin{}
@@ -34,25 +36,15 @@ func (p *Plugin) Prepare(
 	task string,
 	cfg storage.KV,
 ) (plugin.Task, error) {
-	pluginCfg := cfg.Sub("github.com/zostay/zxpm/plugin-changelog")
-
 	switch task {
 	case "/lint/changelog":
-		return &LintChangelogTask{
-			Changelog: pluginCfg.GetString("changelog"),
-		}, nil
+		return &LintChangelogTask{}, nil
 	case "/info/extract-changelog":
-		return &InfoChangelogTask{
-			Changelog: pluginCfg.GetString("changelog"),
-		}, nil
+		return &InfoChangelogTask{}, nil
 	case "/release/mint/changelog":
-		return &ReleaseStartTask{
-			Changelog: pluginCfg.GetString("changelog"),
-		}, nil
+		return &ReleaseMintTask{}, nil
 	case "/release/publish/changelog":
-		return &ReleaseFinishTask{
-			Changelog: pluginCfg.GetString("changelog"),
-		}, nil
+		return &ReleasePublishTask{}, nil
 	}
 	return nil, plugin.ErrUnsupportedTask
 }

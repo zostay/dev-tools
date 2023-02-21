@@ -6,40 +6,21 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zostay/dev-tools/zxpm/changes"
 	"github.com/zostay/dev-tools/zxpm/plugin"
 )
 
-type ReleaseStartTask struct {
+type ReleaseMintTask struct {
 	plugin.Boilerplate
-
-	Changelog string
-}
-
-// LintChangelog performs a check to ensure the changelog is ready for release.
-func (s *ReleaseStartTask) LintChangelog(mode changes.CheckMode) error {
-	changelog, err := os.Open(s.Changelog)
-	if err != nil {
-		return fmt.Errorf("unable to open Changes file: %w", err)
-	}
-
-	linter := changes.NewLinter(changelog, mode)
-	err = linter.Check()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // FixupChangelog alters the changelog to prepare it for release.
-func (s *ReleaseStartTask) FixupChangelog(ctx context.Context) error {
-	r, err := os.Open(s.Changelog)
+func (s *ReleaseMintTask) FixupChangelog(ctx context.Context) error {
+	r, err := os.Open(Changelog(ctx))
 	if err != nil {
-		return fmt.Errorf("unable to open %s: %w", s.Changelog, err)
+		return fmt.Errorf("unable to open %s: %w", Changelog(ctx), err)
 	}
 
-	newChangelog := s.Changelog + ".new"
+	newChangelog := Changelog(ctx) + ".new"
 
 	w, err := os.Create(newChangelog)
 	if err != nil {
@@ -66,35 +47,29 @@ func (s *ReleaseStartTask) FixupChangelog(ctx context.Context) error {
 		return fmt.Errorf("unable to close %s: %w", newChangelog, err)
 	}
 
-	err = os.Rename(newChangelog, s.Changelog)
+	err = os.Rename(newChangelog, Changelog(ctx))
 	if err != nil {
-		return fmt.Errorf("unable to overwrite %s with %s: %w", s.Changelog, newChangelog, err)
+		return fmt.Errorf("unable to overwrite %s with %s: %w", Changelog(ctx), newChangelog, err)
 	}
 
-	plugin.ToAdd(ctx, s.Changelog)
+	plugin.ToAdd(ctx, Changelog(ctx))
 
 	return nil
 }
 
-func (s *ReleaseStartTask) Check(_ context.Context) error {
-	if s.Changelog == "" {
-		return fmt.Errorf("missing changelog location in paths config")
-	}
-
-	return s.LintChangelog(changes.CheckPreRelease)
+func (s *ReleaseMintTask) Check(ctx context.Context) error {
+	return LintChangelog(ctx)
 }
 
-func (s *ReleaseStartTask) Run(context.Context) (plugin.Operations, error) {
+func (s *ReleaseMintTask) Run(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  50,
 			Action: plugin.OperationFunc(s.FixupChangelog),
 		},
 		{
-			Order: 55,
-			Action: plugin.OperationFunc(func(context.Context) error {
-				return s.LintChangelog(changes.CheckRelease)
-			}),
+			Order:  55,
+			Action: plugin.OperationFunc(LintChangelog),
 		},
 	}, nil
 }

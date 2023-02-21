@@ -12,13 +12,11 @@ import (
 
 type InfoChangelogTask struct {
 	plugin.Boilerplate
-
-	Changelog string
 }
 
 func (t *InfoChangelogTask) ExtractChangelog(ctx context.Context) error {
 	version := plugin.GetString(ctx, "info.version")
-	r, err := changes.ExtractSection(t.Changelog, version)
+	r, err := changes.ExtractSection(Changelog(ctx), version)
 	if err != nil {
 		return fmt.Errorf("failed to read changelog section: %w", err)
 	}
