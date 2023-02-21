@@ -14,11 +14,12 @@ const (
 	goalGenerate = "generate"
 	goalInstall  = "install"
 	goalLint     = "lint"
+	goalRelease  = "release"
 	goalRequest  = "request"
 	goalTest     = "test"
 )
 
-func describeBuild() *GoalDescription {
+func DescribeBuild() *GoalDescription {
 	return &GoalDescription{
 		name:   goalBuild,
 		plugin: pluginFullName,
@@ -26,7 +27,7 @@ func describeBuild() *GoalDescription {
 	}
 }
 
-func describeDeploy() *GoalDescription {
+func DescribeDeploy() *GoalDescription {
 	return &GoalDescription{
 		name:   goalDeploy,
 		plugin: pluginFullName,
@@ -42,7 +43,7 @@ func describeGenerate() *GoalDescription {
 	}
 }
 
-func describeInstall() *GoalDescription {
+func DescribeInstall() *GoalDescription {
 	return &GoalDescription{
 		name:   goalInstall,
 		plugin: pluginFullName,
@@ -50,35 +51,35 @@ func describeInstall() *GoalDescription {
 	}
 }
 
-func describeLint() *GoalDescription {
+func DescribeLint() *GoalDescription {
 	return &GoalDescription{
-		name:   "lint",
+		name:   goalLint,
 		plugin: pluginFullName,
 		short:  "Check files and data for errors and anti-patterns.",
 		alias:  []string{"analyze"},
 	}
 }
 
-func describeRequest() *GoalDescription {
+func DescribeRequest() *GoalDescription {
 	return &GoalDescription{
-		name:   "request",
+		name:   goalRequest,
 		plugin: pluginFullName,
 		short:  "Request the merger of a code patch.",
 		alias:  []string{"pull-request", "pr", "merge-request", "mr"},
 	}
 }
 
-func describeRelease() *GoalDescription {
+func DescribeRelease() *GoalDescription {
 	return &GoalDescription{
-		name:   "release",
+		name:   goalRelease,
 		plugin: pluginFullName,
 		short:  "Mint and publish a release.",
 	}
 }
 
-func describeTest() *GoalDescription {
+func DescribeTest() *GoalDescription {
 	return &GoalDescription{
-		name:   "test",
+		name:   goalTest,
 		plugin: pluginFullName,
 		short:  "Run tests.",
 	}

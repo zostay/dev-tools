@@ -21,19 +21,21 @@ func (p *Plugin) Goal(
 ) (plugin.GoalDescription, error) {
 	switch name {
 	case goalBuild:
-		return describeBuild(), nil
+		return DescribeBuild(), nil
 	case goalDeploy:
-		return describeDeploy(), nil
+		return DescribeDeploy(), nil
 	case goalGenerate:
 		return describeGenerate(), nil
 	case goalInstall:
-		return describeInstall(), nil
+		return DescribeInstall(), nil
 	case goalLint:
-		return describeLint(), nil
+		return DescribeLint(), nil
+	case goalRelease:
+		return DescribeRelease(), nil
 	case goalRequest:
-		return describeRequest(), nil
+		return DescribeRequest(), nil
 	case goalTest:
-		return describeTest(), nil
+		return DescribeTest(), nil
 	default:
 		return nil, plugin.ErrUnsupportedGoal
 	}

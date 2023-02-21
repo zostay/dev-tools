@@ -1,6 +1,12 @@
 package plugin_goals
 
-var _ pluginFullName.GoalDescription = &GoalDescription{}
+import (
+	"path"
+
+	"github.com/zostay/dev-tools/zxpm/plugin"
+)
+
+var _ plugin.GoalDescription = &GoalDescription{}
 
 type GoalDescription struct {
 	name   string
@@ -12,10 +18,14 @@ type GoalDescription struct {
 func (g *GoalDescription) Task(name, short string, requires ...string) *TaskDescription {
 	return &TaskDescription{
 		plugin:   g.plugin,
-		name:     name,
+		name:     g.TaskName(name),
 		short:    short,
 		requires: requires,
 	}
+}
+
+func (g *GoalDescription) TaskName(name string) string {
+	return path.Join(g.name, name)
 }
 
 func (g *GoalDescription) Name() string {
