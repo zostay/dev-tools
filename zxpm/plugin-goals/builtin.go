@@ -13,6 +13,7 @@ const (
 	goalDeploy   = "deploy"
 	goalGenerate = "generate"
 	goalInfo     = "info"
+	goalInit     = "init"
 	goalInstall  = "install"
 	goalLint     = "lint"
 	goalRelease  = "release"
@@ -49,6 +50,14 @@ func DescribeInfo() *GoalDescription {
 		name:   goalInfo,
 		plugin: pluginFullName,
 		short:  "Describe information about the project.",
+	}
+}
+
+func DescribeInit() *GoalDescription {
+	return &GoalDescription{
+		name:   goalInit,
+		plugin: pluginFullName,
+		short:  "Initialize a new project directory.",
 	}
 }
 

@@ -28,6 +28,8 @@ func (p *Plugin) Goal(
 		return DescribeGenerate(), nil
 	case goalInfo:
 		return DescribeInfo(), nil
+	case goalInit:
+		return DescribeInit(), nil
 	case goalInstall:
 		return DescribeInstall(), nil
 	case goalLint:
