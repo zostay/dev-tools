@@ -2,6 +2,8 @@ package plugin
 
 import (
 	"context"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/zostay/dev-tools/zxpm/storage"
@@ -53,6 +55,11 @@ func contextFrom(ctx context.Context) *Context {
 	return pctx
 }
 
+func ConfigName(o any) string {
+	pkg := reflect.TypeOf(o).PkgPath()
+	return strings.ReplaceAll(pkg, ".", "_")
+}
+
 func ForCleanup(ctx context.Context, newCleaner SimpleTask) {
 	pctx := contextFrom(ctx)
 	pctx.cleanup = append(pctx.cleanup, newCleaner)
@@ -80,6 +87,10 @@ func ListAdded(ctx context.Context) []string {
 func getc[T any](ctx context.Context, key string, getter func(storage.KV, string) T) T {
 	pctx := contextFrom(ctx)
 	return getter(pctx.globalConfig, key)
+}
+
+func ConfigFor(ctx context.Context, key string) storage.KV {
+	return getc(ctx, key, storage.KV.Sub)
 }
 
 func GetConfig(ctx context.Context, key string) any {
@@ -152,6 +163,16 @@ func GetConfigUint32(ctx context.Context, key string) uint32 {
 
 func GetConfigUint64(ctx context.Context, key string) uint64 {
 	return getc(ctx, key, storage.KV.GetUint64)
+}
+
+func IsConfigSet(ctx context.Context, key string) bool {
+	pctx := contextFrom(ctx)
+	return pctx.globalConfig.IsSet(key)
+}
+
+func IsSet(ctx context.Context, key string) bool {
+	pctx := contextFrom(ctx)
+	return pctx.changes.IsSet(key) || pctx.properties.IsSet(key)
 }
 
 func Set(ctx context.Context, key string, value any) {

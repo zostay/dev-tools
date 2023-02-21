@@ -11,20 +11,13 @@ import (
 	"github.com/zostay/dev-tools/zxpm/plugin"
 )
 
-type ReleaseStartTask struct {
+type ReleaseMintTask struct {
 	plugin.Boilerplate
 	Git
-
-	Version             string
-	Branch              string
-	BranchRefName       plumbing.ReferenceName
-	BranchRefSpec       config.RefSpec
-	TargetBranch        string
-	TargetBranchRefName plumbing.ReferenceName
 }
 
-func (s *ReleaseStartTask) Setup(_ context.Context) error {
-	return s.SetupGitRepo()
+func (s *ReleaseMintTask) Setup(ctx context.Context) error {
+	return s.SetupGitRepo(ctx)
 }
 
 // IsDirty returns true if we consider the tree dirty. We do not consider
@@ -49,14 +42,14 @@ func IsDirty(status git.Status) bool {
 
 // CheckGitCleanliness ensures that the current git repository is clean and that
 // we are on the correct branch from which to trigger a release.
-func (s *ReleaseStartTask) CheckGitCleanliness() error {
+func (s *ReleaseMintTask) CheckGitCleanliness(ctx context.Context) error {
 	headRef, err := s.repo.Head()
 	if err != nil {
 		return fmt.Errorf("unable to find HEAD: %w", err)
 	}
 
-	if headRef.Name() != s.TargetBranchRefName {
-		return fmt.Errorf("you must checkout %s to release", s.TargetBranch)
+	if headRef.Name() != TargetBranchRefName(ctx) {
+		return fmt.Errorf("you must checkout %s to release", TargetBranch(ctx))
 	}
 
 	remoteRefs, err := s.remote.List(&git.ListOptions{})
@@ -66,7 +59,7 @@ func (s *ReleaseStartTask) CheckGitCleanliness() error {
 
 	var masterRef *plumbing.Reference
 	for _, ref := range remoteRefs {
-		if ref.Name() == s.TargetBranchRefName {
+		if ref.Name() == TargetBranchRefName(ctx) {
 			masterRef = ref
 			break
 		}
@@ -88,39 +81,54 @@ func (s *ReleaseStartTask) CheckGitCleanliness() error {
 	return nil
 }
 
-func (s *ReleaseStartTask) Check(_ context.Context) error {
-	return s.CheckGitCleanliness()
+func (s *ReleaseMintTask) Check(ctx context.Context) error {
+	return s.CheckGitCleanliness(ctx)
 }
 
 // MakeReleaseBranch creates the branch that will be used to manage the release.
-func (s *ReleaseStartTask) MakeReleaseBranch(ctx context.Context) error {
+func (s *ReleaseMintTask) MakeReleaseBranch(ctx context.Context) error {
 	headRef, err := s.repo.Head()
 	if err != nil {
 		return fmt.Errorf("unable to retrieve the HEAD ref: %w", err)
 	}
 
+	branchRefName, err := ReleaseBranchRefName(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to determine release branch references: %w", err)
+	}
+
+	branch, _ := ReleaseBranch(ctx)
 	err = s.wc.Checkout(&git.CheckoutOptions{
 		Hash:   headRef.Hash(),
-		Branch: s.BranchRefName,
+		Branch: branchRefName,
 		Create: true,
 	})
 	if err != nil {
-		return fmt.Errorf("unable to checkout branch %s: %v", s.Branch, err)
+		return fmt.Errorf("unable to checkout branch %s: %v", branch, err)
 	}
 
 	plugin.ForCleanup(ctx, func() {
-		_ = s.repo.Storer.RemoveReference(s.BranchRefName)
+		_ = s.repo.Storer.RemoveReference(branchRefName)
 	})
 	plugin.ForCleanup(ctx, func() {
 		_ = s.wc.Checkout(&git.CheckoutOptions{
-			Branch: s.TargetBranchRefName,
+			Branch: TargetBranchRefName(ctx),
 		})
 	})
 
 	return nil
 }
 
-func (s *ReleaseStartTask) Run(context.Context) (plugin.Operations, error) {
+func (s *ReleaseMintTask) Begin(context.Context) (plugin.Operations, error) {
+	return plugin.Operations{
+		{
+			Order:  20,
+			Action: plugin.OperationFunc(SetDefaultReleaseBranch),
+		},
+	}, nil
+}
+
+func (s *ReleaseMintTask) Run(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  30,
@@ -131,7 +139,7 @@ func (s *ReleaseStartTask) Run(context.Context) (plugin.Operations, error) {
 
 // AddAndCommit adds changes made as part of the release process to the release
 // branch.
-func (s *ReleaseStartTask) AddAndCommit(ctx context.Context) error {
+func (s *ReleaseMintTask) AddAndCommit(ctx context.Context) error {
 	addedFiles := plugin.ListAdded(ctx)
 	for _, fn := range addedFiles {
 		_, err := s.wc.Add(fn)
@@ -140,7 +148,8 @@ func (s *ReleaseStartTask) AddAndCommit(ctx context.Context) error {
 		}
 	}
 
-	_, err := s.wc.Commit("releng: v"+s.Version, &git.CommitOptions{})
+	version := plugin.GetString(ctx, "release.version")
+	_, err := s.wc.Commit("releng: v"+version, &git.CommitOptions{})
 	if err != nil {
 		return fmt.Errorf("error committing changes to git: %w", err)
 	}
@@ -149,10 +158,15 @@ func (s *ReleaseStartTask) AddAndCommit(ctx context.Context) error {
 }
 
 // PushReleaseBranch pushes the release branch to github for release testing.
-func (s *ReleaseStartTask) PushReleaseBranch(ctx context.Context) error {
-	err := s.repo.Push(&git.PushOptions{
+func (s *ReleaseMintTask) PushReleaseBranch(ctx context.Context) error {
+	branchRefSpec, err := ReleaseBranchRefSpec(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to determine the ref spec: %w", err)
+	}
+
+	err = s.repo.Push(&git.PushOptions{
 		RemoteName: "origin",
-		RefSpecs:   []config.RefSpec{s.BranchRefSpec},
+		RefSpecs:   []config.RefSpec{branchRefSpec},
 	})
 	if err != nil {
 		return fmt.Errorf("error pushing changes to github: %w", err)
@@ -161,7 +175,7 @@ func (s *ReleaseStartTask) PushReleaseBranch(ctx context.Context) error {
 	plugin.ForCleanup(ctx, func() {
 		_ = s.remote.Push(&git.PushOptions{
 			RemoteName: "origin",
-			RefSpecs:   []config.RefSpec{s.BranchRefSpec},
+			RefSpecs:   []config.RefSpec{branchRefSpec},
 			Prune:      true,
 		})
 	})
@@ -169,7 +183,7 @@ func (s *ReleaseStartTask) PushReleaseBranch(ctx context.Context) error {
 	return nil
 }
 
-func (s *ReleaseStartTask) End(context.Context) (plugin.Operations, error) {
+func (s *ReleaseMintTask) End(context.Context) (plugin.Operations, error) {
 	return plugin.Operations{
 		{
 			Order:  70,

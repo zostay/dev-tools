@@ -1,45 +1,50 @@
 package plugin_git
 
 import (
-	"github.com/zostay/dev-tools/pkg/config"
+	"context"
+
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	"github.com/zostay/dev-tools/zxpm/release"
+	plugin_goals "github.com/zostay/dev-tools/zxpm/plugin-goals"
+	"github.com/zostay/dev-tools/zxpm/storage"
 )
+
+var gitPlugin = plugin.ConfigName(Plugin{})
+
+var _ plugin.TaskInterface = &Plugin{}
 
 type Plugin struct{}
 
-func (p *Plugin) Implements() ([]string, error) {
-	return []string{release.StartTask, release.FinishTask}, nil
+func (p *Plugin) Implements(context.Context) ([]plugin.TaskDescription, error) {
+	release := plugin_goals.DescribeRelease()
+	return []plugin.TaskDescription{
+		release.Task("mint/git", "Verify work directory is clean and push a release branch."),
+		release.Task("publish/git", "Push a release tag.",
+			release.TaskName("mint")),
+	}, nil
+}
+
+func (p *Plugin) Goal(context.Context, string) (plugin.GoalDescription, error) {
+	return nil, plugin.ErrUnsupportedGoal
 }
 
 func (p *Plugin) Prepare(
+	ctx context.Context,
 	task string,
-	cfg *config.Config,
-	taskConfig any,
+	cfg storage.KV,
 ) (plugin.Task, error) {
 	switch task {
-	case release.StartTask:
-		releaseCfg := taskConfig.(*release.Config)
-		branchRefName := ref("heads", releaseCfg.Branch)
-		return &ReleaseStartTask{
-			Version:             releaseCfg.Version.String(),
-			BranchRefSpec:       refSpec(branchRefName),
-			Branch:              releaseCfg.Branch,
-			BranchRefName:       branchRefName,
-			TargetBranch:        releaseCfg.TargetBranch,
-			TargetBranchRefName: ref("heads", releaseCfg.TargetBranch),
-		}, nil
-	case release.FinishTask:
-		releaseCfg := taskConfig.(*release.Config)
-		tagRefName := ref("tags", releaseCfg.Tag)
-		return &ReleaseFinishTask{
-			Version:             releaseCfg.Version.String(),
-			TargetBranch:        releaseCfg.TargetBranch,
-			TargetBranchRefName: ref("heads", releaseCfg.TargetBranch),
-			Tag:                 releaseCfg.Tag,
-			TagRefName:          tagRefName,
-			TagRefSpec:          refSpec(tagRefName),
-		}, nil
+	case "/release/mint/git":
+		return &ReleaseMintTask{}, nil
+	case "/release/publish/git":
+		return &ReleasePublishTask{}, nil
 	}
 	return nil, plugin.ErrUnsupportedTask
+}
+
+func (p *Plugin) Cancel(ctx context.Context, task plugin.Task) error {
+	return nil
+}
+
+func (p *Plugin) Complete(ctx context.Context, task plugin.Task) error {
+	return nil
 }
