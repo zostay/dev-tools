@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zostay/dev-tools/pkg/config"
+	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 var (
@@ -110,7 +110,7 @@ type TaskInterface interface {
 	Prepare(
 		ctx context.Context,
 		taskName string,
-		globalCfg *config.Config,
+		config storage.KV,
 	) (task Task, err error)
 
 	// Cancel must be called when a task is not going to be completed in full.

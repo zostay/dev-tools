@@ -12,6 +12,7 @@ const (
 	goalBuild    = "build"
 	goalDeploy   = "deploy"
 	goalGenerate = "generate"
+	goalInfo     = "info"
 	goalInstall  = "install"
 	goalLint     = "lint"
 	goalRelease  = "release"
@@ -35,11 +36,19 @@ func DescribeDeploy() *GoalDescription {
 	}
 }
 
-func describeGenerate() *GoalDescription {
+func DescribeGenerate() *GoalDescription {
 	return &GoalDescription{
 		name:   goalGenerate,
 		plugin: pluginFullName,
 		short:  "Perform code generation tasks.",
+	}
+}
+
+func DescribeInfo() *GoalDescription {
+	return &GoalDescription{
+		name:   goalInfo,
+		plugin: pluginFullName,
+		short:  "Describe information about the project.",
 	}
 }
 

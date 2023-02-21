@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"sort"
 	"strings"
 	"time"
 
@@ -248,5 +249,6 @@ func (m *KVMem) MissingRequirements() []string {
 			missing = append(missing, k)
 		}
 	}
+	sort.Strings(missing)
 	return missing
 }

@@ -3,8 +3,8 @@ package plugin_goals
 import (
 	"context"
 
-	"github.com/zostay/dev-tools/pkg/config"
 	"github.com/zostay/dev-tools/zxpm/plugin"
+	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 var _ plugin.TaskInterface = &Plugin{}
@@ -25,7 +25,9 @@ func (p *Plugin) Goal(
 	case goalDeploy:
 		return DescribeDeploy(), nil
 	case goalGenerate:
-		return describeGenerate(), nil
+		return DescribeGenerate(), nil
+	case goalInfo:
+		return DescribeInfo(), nil
 	case goalInstall:
 		return DescribeInstall(), nil
 	case goalLint:
@@ -44,7 +46,7 @@ func (p *Plugin) Goal(
 func (p *Plugin) Prepare(
 	context.Context,
 	string,
-	*config.Config,
+	storage.KV,
 ) (plugin.Task, error) {
 	return nil, plugin.ErrUnsupportedTask
 }

@@ -13,7 +13,6 @@ import (
 type ReleaseFinishTask struct {
 	plugin.Boilerplate
 
-	Version   string
 	Changelog string
 }
 
@@ -21,7 +20,8 @@ type ReleaseFinishTask struct {
 // this release into the process configuration for use when creating the release
 // later.
 func (f *ReleaseFinishTask) CaptureChangesInfo(ctx context.Context) error {
-	vstring := "v" + f.Version
+	version := plugin.GetString(ctx, "release.version")
+	vstring := "v" + version
 	cr, err := changes.ExtractSection(f.Changelog, vstring)
 	if err != nil {
 		return fmt.Errorf("unable to get log of changes: %w", err)

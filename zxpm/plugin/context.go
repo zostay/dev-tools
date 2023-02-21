@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/zostay/dev-tools/pkg/config"
 	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
@@ -12,7 +11,7 @@ type contextKey struct{}
 type Context struct {
 	cleanup      []SimpleTask
 	addFiles     []string
-	globalConfig *config.Config
+	globalConfig storage.KV
 	properties   storage.KV
 	changes      storage.KV
 }
@@ -20,7 +19,7 @@ type Context struct {
 type SimpleTask func()
 
 func NewContext(
-	globalConfig *config.Config,
+	globalConfig storage.KV,
 ) *Context {
 	return &Context{
 		cleanup:      make([]SimpleTask, 0, 10),
@@ -78,12 +77,84 @@ func ListAdded(ctx context.Context) []string {
 	return pctx.addFiles
 }
 
-func GetConfig(ctx context.Context, key string) string {
+func getc[T any](ctx context.Context, key string, getter func(storage.KV, string) T) T {
 	pctx := contextFrom(ctx)
-	return pctx.globalConfig.Get(key)
+	return getter(pctx.globalConfig, key)
 }
 
-func Set(ctx context.Context, key, value any) {
+func GetConfig(ctx context.Context, key string) any {
+	return getc(ctx, key, storage.KV.Get)
+}
+
+func GetConfigBool(ctx context.Context, key string) bool {
+	return getc(ctx, key, storage.KV.GetBool)
+}
+
+func GetConfigDuration(ctx context.Context, key string) time.Duration {
+	return getc(ctx, key, storage.KV.GetDuration)
+}
+
+func GetConfigFloat64(ctx context.Context, key string) float64 {
+	return getc(ctx, key, storage.KV.GetFloat64)
+}
+
+func GetConfigInt(ctx context.Context, key string) int {
+	return getc(ctx, key, storage.KV.GetInt)
+}
+
+func GetConfigInt32(ctx context.Context, key string) int32 {
+	return getc(ctx, key, storage.KV.GetInt32)
+}
+
+func GetConfigInt64(ctx context.Context, key string) int64 {
+	return getc(ctx, key, storage.KV.GetInt64)
+}
+
+func GetConfigIntSlice(ctx context.Context, key string) []int {
+	return getc(ctx, key, storage.KV.GetIntSlice)
+}
+
+func GetConfigString(ctx context.Context, key string) string {
+	return getc(ctx, key, storage.KV.GetString)
+}
+
+func GetConfigStringMap(ctx context.Context, key string) map[string]any {
+	return getc(ctx, key, storage.KV.GetStringMap)
+}
+
+func GetConfigStringMapString(ctx context.Context, key string) map[string]string {
+	return getc(ctx, key, storage.KV.GetStringMapString)
+}
+
+func GetConfigStringMapStringSlice(ctx context.Context, key string) map[string][]string {
+	return getc(ctx, key, storage.KV.GetStringMapStringSlice)
+}
+
+func GetConfigStringSlice(ctx context.Context, key string) []string {
+	return getc(ctx, key, storage.KV.GetStringSlice)
+}
+
+func GetConfigTime(ctx context.Context, key string) time.Time {
+	return getc(ctx, key, storage.KV.GetTime)
+}
+
+func GetConfigUint(ctx context.Context, key string) uint {
+	return getc(ctx, key, storage.KV.GetUint)
+}
+
+func GetConfigUint16(ctx context.Context, key string) uint16 {
+	return getc(ctx, key, storage.KV.GetUint16)
+}
+
+func GetConfigUint32(ctx context.Context, key string) uint32 {
+	return getc(ctx, key, storage.KV.GetUint32)
+}
+
+func GetConfigUint64(ctx context.Context, key string) uint64 {
+	return getc(ctx, key, storage.KV.GetUint64)
+}
+
+func Set(ctx context.Context, key string, value any) {
 	pctx := contextFrom(ctx)
 	pctx.changes.Set(key, value)
 }

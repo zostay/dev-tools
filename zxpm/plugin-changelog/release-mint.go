@@ -13,9 +13,6 @@ import (
 type ReleaseStartTask struct {
 	plugin.Boilerplate
 
-	Version string
-	Today   string
-
 	Changelog string
 }
 
@@ -55,7 +52,9 @@ func (s *ReleaseStartTask) FixupChangelog(ctx context.Context) error {
 	for sc.Scan() {
 		line := sc.Text()
 		if line == "WIP" || line == "WIP  TBD" {
-			_, _ = fmt.Fprintf(w, "v%s  %s\n", s.Version, s.Today)
+			version := plugin.GetString(ctx, "release.version")
+			today := plugin.GetString(ctx, "release.date")
+			_, _ = fmt.Fprintf(w, "v%s  %s\n", version, today)
 		} else {
 			_, _ = fmt.Fprintln(w, line)
 		}
