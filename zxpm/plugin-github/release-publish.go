@@ -3,6 +3,7 @@ package plugin_github
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/go-github/v49/github"
 
@@ -58,7 +59,23 @@ func (f *ReleasePublishTask) CheckReadyForMerge(ctx context.Context) error {
 }
 
 func (f *ReleasePublishTask) Check(ctx context.Context) error {
-	return f.CheckReadyForMerge(ctx)
+	const timeout = 15 * time.Minute
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	var err error
+	for {
+		if ctx.Err() != nil {
+			break
+		}
+
+		err = f.CheckReadyForMerge(ctx)
+		if err != nil {
+			<-time.After(30 * time.Second)
+		}
+	}
+
+	return err
 }
 
 // MergePullRequest merges the PR into master.
