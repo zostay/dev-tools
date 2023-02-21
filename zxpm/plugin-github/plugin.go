@@ -1,42 +1,51 @@
 package plugin_github
 
 import (
-	"github.com/zostay/dev-tools/pkg/config"
+	"context"
+
 	"github.com/zostay/dev-tools/zxpm/plugin"
+	plugin_goals "github.com/zostay/dev-tools/zxpm/plugin-goals"
 	"github.com/zostay/dev-tools/zxpm/release"
+	"github.com/zostay/dev-tools/zxpm/storage"
 )
+
+var githubPlugin = plugin.ConfigName(Plugin{})
+
+var _ plugin.TaskInterface = &Plugin{}
 
 type Plugin struct{}
 
-func (p *Plugin) Implements() ([]string, error) {
-	return []string{release.StartTask, release.FinishTask}, nil
+func (p *Plugin) Implements(context.Context) ([]plugin.TaskDescription, error) {
+	release := plugin_goals.DescribeRelease()
+	return []plugin.TaskDescription{
+		release.Task("mint/github", "Create a Github pull request."),
+		release.Task("publish/github", "Publish a release.",
+			release.TaskName("mint")),
+	}, nil
+}
+
+func (p *Plugin) Goal(context.Context, string) (plugin.GoalDescription, error) {
+	return nil, plugin.ErrUnsupportedGoal
 }
 
 func (p *Plugin) Prepare(
+	ctx context.Context,
 	task string,
-	_ *config.Config,
-	taskConfig any,
+	cfg storage.KV,
 ) (plugin.Task, error) {
 	switch task {
 	case release.StartTask:
-		releaseCfg := taskConfig.(*release.Config)
-		return &ReleaseStartTask{
-			Version:      releaseCfg.Version.String(),
-			Owner:        releaseCfg.Owner,
-			Project:      releaseCfg.Project,
-			Branch:       releaseCfg.Branch,
-			TargetBranch: releaseCfg.TargetBranch,
-		}, nil
+		return &ReleaseMintTask{}, nil
 	case release.FinishTask:
-		releaseCfg := taskConfig.(*release.Config)
-		return &ReleaseFinishTask{
-			Version:      releaseCfg.Version.String(),
-			Owner:        releaseCfg.Owner,
-			Project:      releaseCfg.Project,
-			TargetBranch: releaseCfg.TargetBranch,
-			Branch:       releaseCfg.Branch,
-			Tag:          releaseCfg.Tag,
-		}, nil
+		return &ReleasePublishTask{}, nil
 	}
 	return nil, plugin.ErrUnsupportedTask
+}
+
+func (p *Plugin) Cancel(ctx context.Context, task plugin.Task) error {
+	return nil
+}
+
+func (p *Plugin) Complete(ctx context.Context, task plugin.Task) error {
+	return nil
 }

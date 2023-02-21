@@ -132,3 +132,15 @@ func (g *Git) SetupGitRepo(ctx context.Context) error {
 
 	return nil
 }
+
+func (g *Git) Repository() *git.Repository {
+	return g.repo
+}
+
+func (g *Git) Remote() *git.Remote {
+	return g.remote
+}
+
+func (g *Git) Worktree() *git.Worktree {
+	return g.wc
+}
