@@ -12,9 +12,8 @@ import (
 const DefaultChangelog = "Changes.md"
 
 func Changelog(ctx context.Context) string {
-	cfg := plugin.ConfigFor(ctx, changelogPlugin)
-	if cfg.IsSet("changelog") {
-		return cfg.GetString("changelog")
+	if plugin.IsSet(ctx, "changelog") {
+		return plugin.GetString(ctx, "changelog")
 	}
 	return DefaultChangelog
 }

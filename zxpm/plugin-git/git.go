@@ -42,9 +42,8 @@ func ReleaseVersion(ctx context.Context) string {
 }
 
 func TargetBranch(ctx context.Context) string {
-	cfg := plugin.ConfigFor(ctx, gitPlugin)
-	if plugin.IsConfigSet(ctx, gitPlugin+".target_branch") {
-		return cfg.GetString("target_branch")
+	if plugin.IsSet(ctx, "target_branch") {
+		return plugin.GetString(ctx, "target_branch")
 	}
 	return "master"
 }

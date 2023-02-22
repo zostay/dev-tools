@@ -51,12 +51,11 @@ var githubPrefixes = []string{
 func (g *Github) OwnerProject(ctx context.Context) (string, string, error) {
 	var owner, project string
 
-	cfg := plugin.ConfigFor(ctx, githubPlugin)
-	if cfg.IsSet("owner") {
-		owner = cfg.GetString("owner")
+	if plugin.IsSet(ctx, "owner") {
+		owner = plugin.GetString(ctx, "owner")
 	}
-	if cfg.IsSet("project") {
-		project = cfg.GetString("project")
+	if plugin.IsSet(ctx, "project") {
+		project = plugin.GetString(ctx, "project")
 	}
 
 	if owner != "" && project != "" {
@@ -118,9 +117,8 @@ func ReleaseBranch(ctx context.Context) (string, error) {
 }
 
 func TargetBranch(ctx context.Context) string {
-	cfg := plugin.ConfigFor(ctx, gitPlugin)
-	if plugin.IsConfigSet(ctx, gitPlugin+".target_branch") {
-		return cfg.GetString("target_branch")
+	if plugin.IsSet(ctx, "target_branch") {
+		return plugin.GetString(ctx, "target_branch")
 	}
 	return "master"
 }
