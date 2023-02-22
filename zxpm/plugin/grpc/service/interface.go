@@ -18,11 +18,11 @@ type TaskState struct {
 }
 
 type TaskExecution struct {
-	Impl  plugin.TaskInterface
+	Impl  plugin.Interface
 	state map[string]map[string]*TaskState
 }
 
-func NewGRPCTaskInterfaceClient(impl plugin.TaskInterface) *TaskExecution {
+func NewGRPCTaskInterfaceClient(impl plugin.Interface) *TaskExecution {
 	names, err := impl.Implements(context.Background())
 	if err != nil {
 		return nil

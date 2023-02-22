@@ -23,10 +23,10 @@ func (e Error) Error() string {
 }
 
 type TaskInterfaceExecutor struct {
-	iface plugin.TaskInterface
+	iface plugin.Interface
 }
 
-func NewExecutor(iface plugin.TaskInterface) *TaskInterfaceExecutor {
+func NewExecutor(iface plugin.Interface) *TaskInterfaceExecutor {
 	return &TaskInterfaceExecutor{iface}
 }
 

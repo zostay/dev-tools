@@ -3,16 +3,14 @@ package plugin
 import (
 	"context"
 	"fmt"
-
-	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 var (
-	// ErrUnsupportedTask is returned by TaskInterface.Prepare when the named
+	// ErrUnsupportedTask is returned by Interface.Prepare when the named
 	// task is not implemented by the plugin.
 	ErrUnsupportedTask = fmt.Errorf("this plugin does not support that task")
 
-	// ErrUnsupportedGoal is returned by TaskInterface.Goal when the named goal
+	// ErrUnsupportedGoal is returned by Interface.Goal when the named goal
 	// is not defined by the plugin.
 	ErrUnsupportedGoal = fmt.Errorf("this plugin does not support that goal")
 )
@@ -71,8 +69,8 @@ type TaskDescription interface {
 	Requires() []string
 }
 
-// TaskInterface is the base interface that all plugins implement.
-type TaskInterface interface {
+// Interface is the base interface that all plugins implement.
+type Interface interface {
 	// Implements will list the tasks that this plugin implements. It may return
 	// an empty list if no task is implemented.
 	Implements(ctx context.Context) (tasks []TaskDescription, err error)
@@ -102,7 +100,7 @@ type TaskInterface interface {
 	//  }
 	//
 	// Once a task is returned from this method, you must either call Cancel
-	// or Close on the TaskInterface with the given task object or risk leaking
+	// or Close on the Interface with the given task object or risk leaking
 	// resources or having other unfinished working and unexpected results.
 	//
 	// This should return ErrUnsupportedTask if the given taskName does not
@@ -110,7 +108,6 @@ type TaskInterface interface {
 	Prepare(
 		ctx context.Context,
 		taskName string,
-		config storage.KV,
 	) (task Task, err error)
 
 	// Cancel must be called when a task is not going to be completed in full.

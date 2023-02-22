@@ -4,10 +4,9 @@ import (
 	"context"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
-var _ plugin.TaskInterface = &Plugin{}
+var _ plugin.Interface = &Plugin{}
 
 type Plugin struct{}
 
@@ -48,7 +47,6 @@ func (p *Plugin) Goal(
 func (p *Plugin) Prepare(
 	context.Context,
 	string,
-	storage.KV,
 ) (plugin.Task, error) {
 	return nil, plugin.ErrUnsupportedTask
 }

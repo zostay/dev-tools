@@ -11,7 +11,7 @@ import (
 var _ plugin.Task = &Task{}
 
 type taskPair struct {
-	iface plugin.TaskInterface
+	iface plugin.Interface
 	task  plugin.Task
 }
 

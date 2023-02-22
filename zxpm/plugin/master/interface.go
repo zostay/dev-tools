@@ -8,13 +8,13 @@ import (
 	"github.com/zostay/dev-tools/zxpm/plugin"
 )
 
-var _ plugin.TaskInterface = &TaskInterface{}
+var _ plugin.Interface = &TaskInterface{}
 
 type TaskInterface struct {
-	is []plugin.TaskInterface
+	is []plugin.Interface
 }
 
-func New(is []plugin.TaskInterface) *TaskInterface {
+func New(is []plugin.Interface) *TaskInterface {
 	return &TaskInterface{is}
 }
 
@@ -42,7 +42,7 @@ func (ti *TaskInterface) Implements(ctx context.Context) ([]string, error) {
 
 func implements(
 	ctx context.Context,
-	iface plugin.TaskInterface,
+	iface plugin.Interface,
 	taskName string,
 ) (bool, error) {
 	names, err := iface.Implements(ctx)
@@ -63,10 +63,10 @@ func (ti *TaskInterface) Prepare(
 	taskName string,
 	globalCfg *config.Config,
 ) (plugin.Task, error) {
-	results, err := RunTasksAndAccumulate[plugin.TaskInterface, *taskPair](
+	results, err := RunTasksAndAccumulate[plugin.Interface, *taskPair](
 		ctx,
 		ti.is,
-		func(ctx context.Context, iface plugin.TaskInterface) (*taskPair, error) {
+		func(ctx context.Context, iface plugin.Interface) (*taskPair, error) {
 			mayPrepare, err := implements(ctx, iface, taskName)
 			if err != nil {
 				return nil, err

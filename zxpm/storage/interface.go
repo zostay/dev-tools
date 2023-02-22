@@ -3,6 +3,7 @@ package storage
 import "time"
 
 type KV interface {
+	AllKeys() []string
 	AllSettings() map[string]any
 	Get(string) any
 	GetBool(string) bool

@@ -6,39 +6,37 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 type contextKey struct{}
 type Context struct {
-	cleanup      []SimpleTask
-	addFiles     []string
-	globalConfig storage.KV
-	properties   storage.KV
-	changes      storage.KV
+	cleanup    []SimpleTask
+	addFiles   []string
+	properties *storage.KVChanges
 }
 
 type SimpleTask func()
 
 func NewContext(
-	globalConfig storage.KV,
+	cfg *viper.Viper,
 ) *Context {
 	return &Context{
-		cleanup:      make([]SimpleTask, 0, 10),
-		addFiles:     make([]string, 0, 10),
-		globalConfig: globalConfig,
-		properties:   storage.New(),
-		changes:      storage.New(),
+		cleanup:    make([]SimpleTask, 0, 10),
+		addFiles:   make([]string, 0, 10),
+		properties: storage.WithChangeTracking(storage.NewViper(cfg)),
 	}
 }
 
 func (p *Context) UpdateStorage(store map[string]any) {
-	p.properties.Update(store)
+	p.properties.Inner.Update(store)
 }
 
-func (p *Context) StorageChanges() map[string]any {
-	changes := p.changes.AllSettings()
-	p.changes.Clear()
+func (p *Context) StorageChanges() map[string]string {
+	changes := p.properties.ChangesFlattenedToString()
+	p.properties.ClearChanges()
 	return changes
 }
 
@@ -84,107 +82,18 @@ func ListAdded(ctx context.Context) []string {
 	return pctx.addFiles
 }
 
-func getc[T any](ctx context.Context, key string, getter func(storage.KV, string) T) T {
-	pctx := contextFrom(ctx)
-	return getter(pctx.globalConfig, key)
-}
-
-func ConfigFor(ctx context.Context, key string) storage.KV {
-	return getc(ctx, key, storage.KV.Sub)
-}
-
-func GetConfig(ctx context.Context, key string) any {
-	return getc(ctx, key, storage.KV.Get)
-}
-
-func GetConfigBool(ctx context.Context, key string) bool {
-	return getc(ctx, key, storage.KV.GetBool)
-}
-
-func GetConfigDuration(ctx context.Context, key string) time.Duration {
-	return getc(ctx, key, storage.KV.GetDuration)
-}
-
-func GetConfigFloat64(ctx context.Context, key string) float64 {
-	return getc(ctx, key, storage.KV.GetFloat64)
-}
-
-func GetConfigInt(ctx context.Context, key string) int {
-	return getc(ctx, key, storage.KV.GetInt)
-}
-
-func GetConfigInt32(ctx context.Context, key string) int32 {
-	return getc(ctx, key, storage.KV.GetInt32)
-}
-
-func GetConfigInt64(ctx context.Context, key string) int64 {
-	return getc(ctx, key, storage.KV.GetInt64)
-}
-
-func GetConfigIntSlice(ctx context.Context, key string) []int {
-	return getc(ctx, key, storage.KV.GetIntSlice)
-}
-
-func GetConfigString(ctx context.Context, key string) string {
-	return getc(ctx, key, storage.KV.GetString)
-}
-
-func GetConfigStringMap(ctx context.Context, key string) map[string]any {
-	return getc(ctx, key, storage.KV.GetStringMap)
-}
-
-func GetConfigStringMapString(ctx context.Context, key string) map[string]string {
-	return getc(ctx, key, storage.KV.GetStringMapString)
-}
-
-func GetConfigStringMapStringSlice(ctx context.Context, key string) map[string][]string {
-	return getc(ctx, key, storage.KV.GetStringMapStringSlice)
-}
-
-func GetConfigStringSlice(ctx context.Context, key string) []string {
-	return getc(ctx, key, storage.KV.GetStringSlice)
-}
-
-func GetConfigTime(ctx context.Context, key string) time.Time {
-	return getc(ctx, key, storage.KV.GetTime)
-}
-
-func GetConfigUint(ctx context.Context, key string) uint {
-	return getc(ctx, key, storage.KV.GetUint)
-}
-
-func GetConfigUint16(ctx context.Context, key string) uint16 {
-	return getc(ctx, key, storage.KV.GetUint16)
-}
-
-func GetConfigUint32(ctx context.Context, key string) uint32 {
-	return getc(ctx, key, storage.KV.GetUint32)
-}
-
-func GetConfigUint64(ctx context.Context, key string) uint64 {
-	return getc(ctx, key, storage.KV.GetUint64)
-}
-
-func IsConfigSet(ctx context.Context, key string) bool {
-	pctx := contextFrom(ctx)
-	return pctx.globalConfig.IsSet(key)
-}
-
 func IsSet(ctx context.Context, key string) bool {
 	pctx := contextFrom(ctx)
-	return pctx.changes.IsSet(key) || pctx.properties.IsSet(key)
+	return pctx.properties.IsSet(key)
 }
 
 func Set(ctx context.Context, key string, value any) {
 	pctx := contextFrom(ctx)
-	pctx.changes.Set(key, value)
+	pctx.properties.Set(key, value)
 }
 
 func get[T any](ctx context.Context, key string, getter func(storage.KV, string) T) T {
 	pctx := contextFrom(ctx)
-	if pctx.changes.IsSet(key) {
-		return getter(pctx.changes, key)
-	}
 	return getter(pctx.properties, key)
 }
 

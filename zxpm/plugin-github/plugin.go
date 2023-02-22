@@ -6,12 +6,11 @@ import (
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	plugin_goals "github.com/zostay/dev-tools/zxpm/plugin-goals"
 	"github.com/zostay/dev-tools/zxpm/release"
-	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 var githubPlugin = plugin.ConfigName(Plugin{})
 
-var _ plugin.TaskInterface = &Plugin{}
+var _ plugin.Interface = &Plugin{}
 
 type Plugin struct{}
 
@@ -31,7 +30,6 @@ func (p *Plugin) Goal(context.Context, string) (plugin.GoalDescription, error) {
 func (p *Plugin) Prepare(
 	ctx context.Context,
 	task string,
-	cfg storage.KV,
 ) (plugin.Task, error) {
 	switch task {
 	case release.StartTask:

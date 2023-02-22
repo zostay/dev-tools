@@ -3,17 +3,15 @@ package plugin_changelog
 import (
 	"context"
 
-	plugin_goals "github.com/zostay/dev-tools/zxpm/plugin-goals"
-	"github.com/zostay/dev-tools/zxpm/storage"
-
 	"github.com/zostay/dev-tools/zxpm/plugin"
+	plugin_goals "github.com/zostay/dev-tools/zxpm/plugin-goals"
 )
 
 var changelogPlugin = plugin.ConfigName(Plugin{})
 
 type Plugin struct{}
 
-var _ plugin.TaskInterface = &Plugin{}
+var _ plugin.Interface = &Plugin{}
 
 func (p *Plugin) Goal(context.Context, string) (plugin.GoalDescription, error) {
 	return nil, plugin.ErrUnsupportedGoal
@@ -34,7 +32,6 @@ func (p *Plugin) Implements(context.Context) ([]plugin.TaskDescription, error) {
 func (p *Plugin) Prepare(
 	ctx context.Context,
 	task string,
-	cfg storage.KV,
 ) (plugin.Task, error) {
 	switch task {
 	case "/lint/changelog":

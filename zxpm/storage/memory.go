@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"container/list"
 	"sort"
 	"strings"
 	"time"
@@ -100,6 +101,63 @@ func (m *KVMem) set(key string, value any) {
 		}
 	}
 	values[lastKey] = value
+}
+
+func keys[T any](v map[string]T) []string {
+	ks := make([]string, 0, len(v))
+	for k := range v {
+		ks = append(ks, k)
+	}
+	sort.Strings(ks)
+	return ks
+}
+
+func (m *KVMem) AllKeys() []string {
+	type openItem struct {
+		prefix string
+		keys   []string
+		in     map[string]any
+	}
+
+	out := make([]string, 0, len(m.values))
+	openList := list.New()
+	openList.PushFront(&openItem{
+		prefix: "",
+		keys:   keys[any](m.values),
+		in:     m.values,
+	})
+	for openList.Len() > 0 {
+		el := openList.Front()
+		item := el.Value.(*openItem)
+
+		if len(item.keys) == 0 {
+			openList.Remove(el)
+			continue
+		}
+
+		var key string
+		key, item.keys = item.keys[0], item.keys[1:]
+		value := item.in[key]
+
+		if item.prefix != "" {
+			key = item.prefix + "." + key
+		}
+
+		out = append(out, key)
+
+		if nextIn, isStringMap := value.(map[string]any); isStringMap {
+			openList.PushFront(&openItem{
+				prefix: key,
+				keys:   keys[any](nextIn),
+				in:     nextIn,
+			})
+		}
+	}
+
+	out = append(out, keys[string](m.aliases)...)
+	sort.Strings(out)
+
+	return out
 }
 
 func (m *KVMem) AllSettings() map[string]any {
