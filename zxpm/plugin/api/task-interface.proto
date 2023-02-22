@@ -3,7 +3,9 @@ package zxpm.plugin;
 
 option go_package = "./api";
 
-import "config.proto";
+message Config {
+  map<string, string> values = 3;
+}
 
 message Task {
   message Implements {

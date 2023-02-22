@@ -20,6 +20,53 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Config struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Values map[string]string `protobuf:"bytes,3,rep,name=values,proto3" json:"values,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *Config) Reset() {
+	*x = Config{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_task_interface_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Config) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Config) ProtoMessage() {}
+
+func (x *Config) ProtoReflect() protoreflect.Message {
+	mi := &file_task_interface_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Config.ProtoReflect.Descriptor instead.
+func (*Config) Descriptor() ([]byte, []int) {
+	return file_task_interface_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Config) GetValues() map[string]string {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
 type Task struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -29,7 +76,7 @@ type Task struct {
 func (x *Task) Reset() {
 	*x = Task{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[0]
+		mi := &file_task_interface_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -42,7 +89,7 @@ func (x *Task) String() string {
 func (*Task) ProtoMessage() {}
 
 func (x *Task) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[0]
+	mi := &file_task_interface_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +102,7 @@ func (x *Task) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task.ProtoReflect.Descriptor instead.
 func (*Task) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0}
+	return file_task_interface_proto_rawDescGZIP(), []int{1}
 }
 
 type Task_Implements struct {
@@ -67,7 +114,7 @@ type Task_Implements struct {
 func (x *Task_Implements) Reset() {
 	*x = Task_Implements{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[1]
+		mi := &file_task_interface_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -80,7 +127,7 @@ func (x *Task_Implements) String() string {
 func (*Task_Implements) ProtoMessage() {}
 
 func (x *Task_Implements) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[1]
+	mi := &file_task_interface_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -93,7 +140,7 @@ func (x *Task_Implements) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Implements.ProtoReflect.Descriptor instead.
 func (*Task_Implements) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 0}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 0}
 }
 
 type Task_Ref struct {
@@ -108,7 +155,7 @@ type Task_Ref struct {
 func (x *Task_Ref) Reset() {
 	*x = Task_Ref{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[2]
+		mi := &file_task_interface_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -121,7 +168,7 @@ func (x *Task_Ref) String() string {
 func (*Task_Ref) ProtoMessage() {}
 
 func (x *Task_Ref) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[2]
+	mi := &file_task_interface_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -134,7 +181,7 @@ func (x *Task_Ref) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Ref.ProtoReflect.Descriptor instead.
 func (*Task_Ref) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 1}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 1}
 }
 
 func (x *Task_Ref) GetName() string {
@@ -160,7 +207,7 @@ type Task_Prepare struct {
 func (x *Task_Prepare) Reset() {
 	*x = Task_Prepare{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[3]
+		mi := &file_task_interface_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -173,7 +220,7 @@ func (x *Task_Prepare) String() string {
 func (*Task_Prepare) ProtoMessage() {}
 
 func (x *Task_Prepare) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[3]
+	mi := &file_task_interface_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -186,7 +233,7 @@ func (x *Task_Prepare) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Prepare.ProtoReflect.Descriptor instead.
 func (*Task_Prepare) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 2}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 2}
 }
 
 type Task_Cancel struct {
@@ -198,7 +245,7 @@ type Task_Cancel struct {
 func (x *Task_Cancel) Reset() {
 	*x = Task_Cancel{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[4]
+		mi := &file_task_interface_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -211,7 +258,7 @@ func (x *Task_Cancel) String() string {
 func (*Task_Cancel) ProtoMessage() {}
 
 func (x *Task_Cancel) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[4]
+	mi := &file_task_interface_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -224,7 +271,7 @@ func (x *Task_Cancel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Cancel.ProtoReflect.Descriptor instead.
 func (*Task_Cancel) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 3}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 3}
 }
 
 type Task_Complete struct {
@@ -236,7 +283,7 @@ type Task_Complete struct {
 func (x *Task_Complete) Reset() {
 	*x = Task_Complete{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[5]
+		mi := &file_task_interface_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -249,7 +296,7 @@ func (x *Task_Complete) String() string {
 func (*Task_Complete) ProtoMessage() {}
 
 func (x *Task_Complete) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[5]
+	mi := &file_task_interface_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -262,7 +309,7 @@ func (x *Task_Complete) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Complete.ProtoReflect.Descriptor instead.
 func (*Task_Complete) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 4}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 4}
 }
 
 type Task_Operation struct {
@@ -274,7 +321,7 @@ type Task_Operation struct {
 func (x *Task_Operation) Reset() {
 	*x = Task_Operation{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[6]
+		mi := &file_task_interface_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -287,7 +334,7 @@ func (x *Task_Operation) String() string {
 func (*Task_Operation) ProtoMessage() {}
 
 func (x *Task_Operation) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[6]
+	mi := &file_task_interface_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -300,7 +347,7 @@ func (x *Task_Operation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Operation.ProtoReflect.Descriptor instead.
 func (*Task_Operation) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 5}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 5}
 }
 
 type Task_SubStage struct {
@@ -312,7 +359,7 @@ type Task_SubStage struct {
 func (x *Task_SubStage) Reset() {
 	*x = Task_SubStage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[7]
+		mi := &file_task_interface_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -325,7 +372,7 @@ func (x *Task_SubStage) String() string {
 func (*Task_SubStage) ProtoMessage() {}
 
 func (x *Task_SubStage) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[7]
+	mi := &file_task_interface_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -338,7 +385,7 @@ func (x *Task_SubStage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_SubStage.ProtoReflect.Descriptor instead.
 func (*Task_SubStage) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 6}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 6}
 }
 
 type Task_Implements_Response struct {
@@ -352,7 +399,7 @@ type Task_Implements_Response struct {
 func (x *Task_Implements_Response) Reset() {
 	*x = Task_Implements_Response{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[8]
+		mi := &file_task_interface_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -365,7 +412,7 @@ func (x *Task_Implements_Response) String() string {
 func (*Task_Implements_Response) ProtoMessage() {}
 
 func (x *Task_Implements_Response) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[8]
+	mi := &file_task_interface_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -378,7 +425,7 @@ func (x *Task_Implements_Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Implements_Response.ProtoReflect.Descriptor instead.
 func (*Task_Implements_Response) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 0, 0}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 0, 0}
 }
 
 func (x *Task_Implements_Response) GetNames() []string {
@@ -397,7 +444,7 @@ type Task_Implements_Request struct {
 func (x *Task_Implements_Request) Reset() {
 	*x = Task_Implements_Request{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[9]
+		mi := &file_task_interface_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -410,7 +457,7 @@ func (x *Task_Implements_Request) String() string {
 func (*Task_Implements_Request) ProtoMessage() {}
 
 func (x *Task_Implements_Request) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[9]
+	mi := &file_task_interface_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -423,7 +470,7 @@ func (x *Task_Implements_Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Implements_Request.ProtoReflect.Descriptor instead.
 func (*Task_Implements_Request) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 0, 1}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 0, 1}
 }
 
 type Task_Prepare_Request struct {
@@ -438,7 +485,7 @@ type Task_Prepare_Request struct {
 func (x *Task_Prepare_Request) Reset() {
 	*x = Task_Prepare_Request{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[10]
+		mi := &file_task_interface_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -451,7 +498,7 @@ func (x *Task_Prepare_Request) String() string {
 func (*Task_Prepare_Request) ProtoMessage() {}
 
 func (x *Task_Prepare_Request) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[10]
+	mi := &file_task_interface_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -464,7 +511,7 @@ func (x *Task_Prepare_Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Prepare_Request.ProtoReflect.Descriptor instead.
 func (*Task_Prepare_Request) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 2, 0}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 2, 0}
 }
 
 func (x *Task_Prepare_Request) GetName() string {
@@ -493,7 +540,7 @@ type Task_Prepare_Response struct {
 func (x *Task_Prepare_Response) Reset() {
 	*x = Task_Prepare_Response{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[11]
+		mi := &file_task_interface_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -506,7 +553,7 @@ func (x *Task_Prepare_Response) String() string {
 func (*Task_Prepare_Response) ProtoMessage() {}
 
 func (x *Task_Prepare_Response) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[11]
+	mi := &file_task_interface_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -519,7 +566,7 @@ func (x *Task_Prepare_Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Prepare_Response.ProtoReflect.Descriptor instead.
 func (*Task_Prepare_Response) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 2, 1}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 2, 1}
 }
 
 func (x *Task_Prepare_Response) GetTask() *Task_Ref {
@@ -547,7 +594,7 @@ type Task_Cancel_Request struct {
 func (x *Task_Cancel_Request) Reset() {
 	*x = Task_Cancel_Request{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[13]
+		mi := &file_task_interface_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -560,7 +607,7 @@ func (x *Task_Cancel_Request) String() string {
 func (*Task_Cancel_Request) ProtoMessage() {}
 
 func (x *Task_Cancel_Request) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[13]
+	mi := &file_task_interface_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -573,7 +620,7 @@ func (x *Task_Cancel_Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Cancel_Request.ProtoReflect.Descriptor instead.
 func (*Task_Cancel_Request) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 3, 0}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 3, 0}
 }
 
 func (x *Task_Cancel_Request) GetTask() *Task_Ref {
@@ -592,7 +639,7 @@ type Task_Cancel_Response struct {
 func (x *Task_Cancel_Response) Reset() {
 	*x = Task_Cancel_Response{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[14]
+		mi := &file_task_interface_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -605,7 +652,7 @@ func (x *Task_Cancel_Response) String() string {
 func (*Task_Cancel_Response) ProtoMessage() {}
 
 func (x *Task_Cancel_Response) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[14]
+	mi := &file_task_interface_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -618,7 +665,7 @@ func (x *Task_Cancel_Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Cancel_Response.ProtoReflect.Descriptor instead.
 func (*Task_Cancel_Response) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 3, 1}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 3, 1}
 }
 
 type Task_Complete_Request struct {
@@ -632,7 +679,7 @@ type Task_Complete_Request struct {
 func (x *Task_Complete_Request) Reset() {
 	*x = Task_Complete_Request{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[15]
+		mi := &file_task_interface_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -645,7 +692,7 @@ func (x *Task_Complete_Request) String() string {
 func (*Task_Complete_Request) ProtoMessage() {}
 
 func (x *Task_Complete_Request) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[15]
+	mi := &file_task_interface_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -658,7 +705,7 @@ func (x *Task_Complete_Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Complete_Request.ProtoReflect.Descriptor instead.
 func (*Task_Complete_Request) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 4, 0}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 4, 0}
 }
 
 func (x *Task_Complete_Request) GetTask() *Task_Ref {
@@ -677,7 +724,7 @@ type Task_Complete_Response struct {
 func (x *Task_Complete_Response) Reset() {
 	*x = Task_Complete_Response{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[16]
+		mi := &file_task_interface_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -690,7 +737,7 @@ func (x *Task_Complete_Response) String() string {
 func (*Task_Complete_Response) ProtoMessage() {}
 
 func (x *Task_Complete_Response) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[16]
+	mi := &file_task_interface_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -703,7 +750,7 @@ func (x *Task_Complete_Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Complete_Response.ProtoReflect.Descriptor instead.
 func (*Task_Complete_Response) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 4, 1}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 4, 1}
 }
 
 type Task_Operation_Request struct {
@@ -718,7 +765,7 @@ type Task_Operation_Request struct {
 func (x *Task_Operation_Request) Reset() {
 	*x = Task_Operation_Request{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[17]
+		mi := &file_task_interface_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -731,7 +778,7 @@ func (x *Task_Operation_Request) String() string {
 func (*Task_Operation_Request) ProtoMessage() {}
 
 func (x *Task_Operation_Request) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[17]
+	mi := &file_task_interface_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -744,7 +791,7 @@ func (x *Task_Operation_Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Operation_Request.ProtoReflect.Descriptor instead.
 func (*Task_Operation_Request) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 5, 0}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 5, 0}
 }
 
 func (x *Task_Operation_Request) GetTask() *Task_Ref {
@@ -772,7 +819,7 @@ type Task_Operation_Response struct {
 func (x *Task_Operation_Response) Reset() {
 	*x = Task_Operation_Response{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[18]
+		mi := &file_task_interface_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -785,7 +832,7 @@ func (x *Task_Operation_Response) String() string {
 func (*Task_Operation_Response) ProtoMessage() {}
 
 func (x *Task_Operation_Response) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[18]
+	mi := &file_task_interface_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -798,7 +845,7 @@ func (x *Task_Operation_Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_Operation_Response.ProtoReflect.Descriptor instead.
 func (*Task_Operation_Response) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 5, 1}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 5, 1}
 }
 
 func (x *Task_Operation_Response) GetStorageUpdate() map[string]string {
@@ -819,7 +866,7 @@ type Task_SubStage_Response struct {
 func (x *Task_SubStage_Response) Reset() {
 	*x = Task_SubStage_Response{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[21]
+		mi := &file_task_interface_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -832,7 +879,7 @@ func (x *Task_SubStage_Response) String() string {
 func (*Task_SubStage_Response) ProtoMessage() {}
 
 func (x *Task_SubStage_Response) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[21]
+	mi := &file_task_interface_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -845,7 +892,7 @@ func (x *Task_SubStage_Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_SubStage_Response.ProtoReflect.Descriptor instead.
 func (*Task_SubStage_Response) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 6, 0}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 6, 0}
 }
 
 func (x *Task_SubStage_Response) GetProvidedOrders() []int32 {
@@ -867,7 +914,7 @@ type Task_SubStage_Request struct {
 func (x *Task_SubStage_Request) Reset() {
 	*x = Task_SubStage_Request{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_task_interface_proto_msgTypes[22]
+		mi := &file_task_interface_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -880,7 +927,7 @@ func (x *Task_SubStage_Request) String() string {
 func (*Task_SubStage_Request) ProtoMessage() {}
 
 func (x *Task_SubStage_Request) ProtoReflect() protoreflect.Message {
-	mi := &file_task_interface_proto_msgTypes[22]
+	mi := &file_task_interface_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -893,7 +940,7 @@ func (x *Task_SubStage_Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task_SubStage_Request.ProtoReflect.Descriptor instead.
 func (*Task_SubStage_Request) Descriptor() ([]byte, []int) {
-	return file_task_interface_proto_rawDescGZIP(), []int{0, 6, 1}
+	return file_task_interface_proto_rawDescGZIP(), []int{1, 6, 1}
 }
 
 func (x *Task_SubStage_Request) GetRequest() *Task_Operation_Request {
@@ -915,8 +962,15 @@ var File_task_interface_proto protoreflect.FileDescriptor
 var file_task_interface_proto_rawDesc = []byte{
 	0x0a, 0x14, 0x74, 0x61, 0x73, 0x6b, 0x2d, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x66, 0x61, 0x63, 0x65,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0b, 0x7a, 0x78, 0x70, 0x6d, 0x2e, 0x70, 0x6c, 0x75,
-	0x67, 0x69, 0x6e, 0x1a, 0x0c, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x22, 0xda, 0x08, 0x0a, 0x04, 0x54, 0x61, 0x73, 0x6b, 0x1a, 0x39, 0x0a, 0x0a, 0x49, 0x6d,
+	0x67, 0x69, 0x6e, 0x22, 0x7c, 0x0a, 0x06, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x37, 0x0a,
+	0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e,
+	0x7a, 0x78, 0x70, 0x6d, 0x2e, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x2e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x06,
+	0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x1a, 0x39, 0x0a, 0x0b, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73,
+	0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38,
+	0x01, 0x22, 0xda, 0x08, 0x0a, 0x04, 0x54, 0x61, 0x73, 0x6b, 0x1a, 0x39, 0x0a, 0x0a, 0x49, 0x6d,
 	0x70, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x1a, 0x20, 0x0a, 0x08, 0x52, 0x65, 0x73, 0x70,
 	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x18, 0x01, 0x20,
 	0x03, 0x28, 0x09, 0x52, 0x05, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x1a, 0x09, 0x0a, 0x07, 0x52, 0x65,
@@ -1067,72 +1121,74 @@ func file_task_interface_proto_rawDescGZIP() []byte {
 	return file_task_interface_proto_rawDescData
 }
 
-var file_task_interface_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_task_interface_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_task_interface_proto_goTypes = []interface{}{
-	(*Task)(nil),                     // 0: zxpm.plugin.Task
-	(*Task_Implements)(nil),          // 1: zxpm.plugin.Task.Implements
-	(*Task_Ref)(nil),                 // 2: zxpm.plugin.Task.Ref
-	(*Task_Prepare)(nil),             // 3: zxpm.plugin.Task.Prepare
-	(*Task_Cancel)(nil),              // 4: zxpm.plugin.Task.Cancel
-	(*Task_Complete)(nil),            // 5: zxpm.plugin.Task.Complete
-	(*Task_Operation)(nil),           // 6: zxpm.plugin.Task.Operation
-	(*Task_SubStage)(nil),            // 7: zxpm.plugin.Task.SubStage
-	(*Task_Implements_Response)(nil), // 8: zxpm.plugin.Task.Implements.Response
-	(*Task_Implements_Request)(nil),  // 9: zxpm.plugin.Task.Implements.Request
-	(*Task_Prepare_Request)(nil),     // 10: zxpm.plugin.Task.Prepare.Request
-	(*Task_Prepare_Response)(nil),    // 11: zxpm.plugin.Task.Prepare.Response
-	nil,                              // 12: zxpm.plugin.Task.Prepare.Response.StorageEntry
-	(*Task_Cancel_Request)(nil),      // 13: zxpm.plugin.Task.Cancel.Request
-	(*Task_Cancel_Response)(nil),     // 14: zxpm.plugin.Task.Cancel.Response
-	(*Task_Complete_Request)(nil),    // 15: zxpm.plugin.Task.Complete.Request
-	(*Task_Complete_Response)(nil),   // 16: zxpm.plugin.Task.Complete.Response
-	(*Task_Operation_Request)(nil),   // 17: zxpm.plugin.Task.Operation.Request
-	(*Task_Operation_Response)(nil),  // 18: zxpm.plugin.Task.Operation.Response
-	nil,                              // 19: zxpm.plugin.Task.Operation.Request.StorageEntry
-	nil,                              // 20: zxpm.plugin.Task.Operation.Response.StorageUpdateEntry
-	(*Task_SubStage_Response)(nil),   // 21: zxpm.plugin.Task.SubStage.Response
-	(*Task_SubStage_Request)(nil),    // 22: zxpm.plugin.Task.SubStage.Request
-	(*Config)(nil),                   // 23: zxpm.plugin.Config
+	(*Config)(nil),                   // 0: zxpm.plugin.Config
+	(*Task)(nil),                     // 1: zxpm.plugin.Task
+	nil,                              // 2: zxpm.plugin.Config.ValuesEntry
+	(*Task_Implements)(nil),          // 3: zxpm.plugin.Task.Implements
+	(*Task_Ref)(nil),                 // 4: zxpm.plugin.Task.Ref
+	(*Task_Prepare)(nil),             // 5: zxpm.plugin.Task.Prepare
+	(*Task_Cancel)(nil),              // 6: zxpm.plugin.Task.Cancel
+	(*Task_Complete)(nil),            // 7: zxpm.plugin.Task.Complete
+	(*Task_Operation)(nil),           // 8: zxpm.plugin.Task.Operation
+	(*Task_SubStage)(nil),            // 9: zxpm.plugin.Task.SubStage
+	(*Task_Implements_Response)(nil), // 10: zxpm.plugin.Task.Implements.Response
+	(*Task_Implements_Request)(nil),  // 11: zxpm.plugin.Task.Implements.Request
+	(*Task_Prepare_Request)(nil),     // 12: zxpm.plugin.Task.Prepare.Request
+	(*Task_Prepare_Response)(nil),    // 13: zxpm.plugin.Task.Prepare.Response
+	nil,                              // 14: zxpm.plugin.Task.Prepare.Response.StorageEntry
+	(*Task_Cancel_Request)(nil),      // 15: zxpm.plugin.Task.Cancel.Request
+	(*Task_Cancel_Response)(nil),     // 16: zxpm.plugin.Task.Cancel.Response
+	(*Task_Complete_Request)(nil),    // 17: zxpm.plugin.Task.Complete.Request
+	(*Task_Complete_Response)(nil),   // 18: zxpm.plugin.Task.Complete.Response
+	(*Task_Operation_Request)(nil),   // 19: zxpm.plugin.Task.Operation.Request
+	(*Task_Operation_Response)(nil),  // 20: zxpm.plugin.Task.Operation.Response
+	nil,                              // 21: zxpm.plugin.Task.Operation.Request.StorageEntry
+	nil,                              // 22: zxpm.plugin.Task.Operation.Response.StorageUpdateEntry
+	(*Task_SubStage_Response)(nil),   // 23: zxpm.plugin.Task.SubStage.Response
+	(*Task_SubStage_Request)(nil),    // 24: zxpm.plugin.Task.SubStage.Request
 }
 var file_task_interface_proto_depIdxs = []int32{
-	23, // 0: zxpm.plugin.Task.Prepare.Request.global_config:type_name -> zxpm.plugin.Config
-	2,  // 1: zxpm.plugin.Task.Prepare.Response.task:type_name -> zxpm.plugin.Task.Ref
-	12, // 2: zxpm.plugin.Task.Prepare.Response.storage:type_name -> zxpm.plugin.Task.Prepare.Response.StorageEntry
-	2,  // 3: zxpm.plugin.Task.Cancel.Request.task:type_name -> zxpm.plugin.Task.Ref
-	2,  // 4: zxpm.plugin.Task.Complete.Request.task:type_name -> zxpm.plugin.Task.Ref
-	2,  // 5: zxpm.plugin.Task.Operation.Request.task:type_name -> zxpm.plugin.Task.Ref
-	19, // 6: zxpm.plugin.Task.Operation.Request.storage:type_name -> zxpm.plugin.Task.Operation.Request.StorageEntry
-	20, // 7: zxpm.plugin.Task.Operation.Response.storage_update:type_name -> zxpm.plugin.Task.Operation.Response.StorageUpdateEntry
-	17, // 8: zxpm.plugin.Task.SubStage.Request.request:type_name -> zxpm.plugin.Task.Operation.Request
-	9,  // 9: zxpm.plugin.TaskExecution.Implements:input_type -> zxpm.plugin.Task.Implements.Request
-	10, // 10: zxpm.plugin.TaskExecution.Prepare:input_type -> zxpm.plugin.Task.Prepare.Request
-	13, // 11: zxpm.plugin.TaskExecution.Cancel:input_type -> zxpm.plugin.Task.Cancel.Request
-	15, // 12: zxpm.plugin.TaskExecution.Complete:input_type -> zxpm.plugin.Task.Complete.Request
-	17, // 13: zxpm.plugin.TaskExecution.ExecuteCheck:input_type -> zxpm.plugin.Task.Operation.Request
-	2,  // 14: zxpm.plugin.TaskExecution.PrepareBegin:input_type -> zxpm.plugin.Task.Ref
-	22, // 15: zxpm.plugin.TaskExecution.ExecuteBegin:input_type -> zxpm.plugin.Task.SubStage.Request
-	2,  // 16: zxpm.plugin.TaskExecution.PrepareRun:input_type -> zxpm.plugin.Task.Ref
-	22, // 17: zxpm.plugin.TaskExecution.ExecuteRun:input_type -> zxpm.plugin.Task.SubStage.Request
-	2,  // 18: zxpm.plugin.TaskExecution.PrepareEnd:input_type -> zxpm.plugin.Task.Ref
-	22, // 19: zxpm.plugin.TaskExecution.ExecuteEnd:input_type -> zxpm.plugin.Task.SubStage.Request
-	17, // 20: zxpm.plugin.TaskExecution.ExecuteFinish:input_type -> zxpm.plugin.Task.Operation.Request
-	8,  // 21: zxpm.plugin.TaskExecution.Implements:output_type -> zxpm.plugin.Task.Implements.Response
-	11, // 22: zxpm.plugin.TaskExecution.Prepare:output_type -> zxpm.plugin.Task.Prepare.Response
-	14, // 23: zxpm.plugin.TaskExecution.Cancel:output_type -> zxpm.plugin.Task.Cancel.Response
-	16, // 24: zxpm.plugin.TaskExecution.Complete:output_type -> zxpm.plugin.Task.Complete.Response
-	18, // 25: zxpm.plugin.TaskExecution.ExecuteCheck:output_type -> zxpm.plugin.Task.Operation.Response
-	21, // 26: zxpm.plugin.TaskExecution.PrepareBegin:output_type -> zxpm.plugin.Task.SubStage.Response
-	18, // 27: zxpm.plugin.TaskExecution.ExecuteBegin:output_type -> zxpm.plugin.Task.Operation.Response
-	21, // 28: zxpm.plugin.TaskExecution.PrepareRun:output_type -> zxpm.plugin.Task.SubStage.Response
-	18, // 29: zxpm.plugin.TaskExecution.ExecuteRun:output_type -> zxpm.plugin.Task.Operation.Response
-	21, // 30: zxpm.plugin.TaskExecution.PrepareEnd:output_type -> zxpm.plugin.Task.SubStage.Response
-	18, // 31: zxpm.plugin.TaskExecution.ExecuteEnd:output_type -> zxpm.plugin.Task.Operation.Response
-	18, // 32: zxpm.plugin.TaskExecution.ExecuteFinish:output_type -> zxpm.plugin.Task.Operation.Response
-	21, // [21:33] is the sub-list for method output_type
-	9,  // [9:21] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	2,  // 0: zxpm.plugin.Config.values:type_name -> zxpm.plugin.Config.ValuesEntry
+	0,  // 1: zxpm.plugin.Task.Prepare.Request.global_config:type_name -> zxpm.plugin.Config
+	4,  // 2: zxpm.plugin.Task.Prepare.Response.task:type_name -> zxpm.plugin.Task.Ref
+	14, // 3: zxpm.plugin.Task.Prepare.Response.storage:type_name -> zxpm.plugin.Task.Prepare.Response.StorageEntry
+	4,  // 4: zxpm.plugin.Task.Cancel.Request.task:type_name -> zxpm.plugin.Task.Ref
+	4,  // 5: zxpm.plugin.Task.Complete.Request.task:type_name -> zxpm.plugin.Task.Ref
+	4,  // 6: zxpm.plugin.Task.Operation.Request.task:type_name -> zxpm.plugin.Task.Ref
+	21, // 7: zxpm.plugin.Task.Operation.Request.storage:type_name -> zxpm.plugin.Task.Operation.Request.StorageEntry
+	22, // 8: zxpm.plugin.Task.Operation.Response.storage_update:type_name -> zxpm.plugin.Task.Operation.Response.StorageUpdateEntry
+	19, // 9: zxpm.plugin.Task.SubStage.Request.request:type_name -> zxpm.plugin.Task.Operation.Request
+	11, // 10: zxpm.plugin.TaskExecution.Implements:input_type -> zxpm.plugin.Task.Implements.Request
+	12, // 11: zxpm.plugin.TaskExecution.Prepare:input_type -> zxpm.plugin.Task.Prepare.Request
+	15, // 12: zxpm.plugin.TaskExecution.Cancel:input_type -> zxpm.plugin.Task.Cancel.Request
+	17, // 13: zxpm.plugin.TaskExecution.Complete:input_type -> zxpm.plugin.Task.Complete.Request
+	19, // 14: zxpm.plugin.TaskExecution.ExecuteCheck:input_type -> zxpm.plugin.Task.Operation.Request
+	4,  // 15: zxpm.plugin.TaskExecution.PrepareBegin:input_type -> zxpm.plugin.Task.Ref
+	24, // 16: zxpm.plugin.TaskExecution.ExecuteBegin:input_type -> zxpm.plugin.Task.SubStage.Request
+	4,  // 17: zxpm.plugin.TaskExecution.PrepareRun:input_type -> zxpm.plugin.Task.Ref
+	24, // 18: zxpm.plugin.TaskExecution.ExecuteRun:input_type -> zxpm.plugin.Task.SubStage.Request
+	4,  // 19: zxpm.plugin.TaskExecution.PrepareEnd:input_type -> zxpm.plugin.Task.Ref
+	24, // 20: zxpm.plugin.TaskExecution.ExecuteEnd:input_type -> zxpm.plugin.Task.SubStage.Request
+	19, // 21: zxpm.plugin.TaskExecution.ExecuteFinish:input_type -> zxpm.plugin.Task.Operation.Request
+	10, // 22: zxpm.plugin.TaskExecution.Implements:output_type -> zxpm.plugin.Task.Implements.Response
+	13, // 23: zxpm.plugin.TaskExecution.Prepare:output_type -> zxpm.plugin.Task.Prepare.Response
+	16, // 24: zxpm.plugin.TaskExecution.Cancel:output_type -> zxpm.plugin.Task.Cancel.Response
+	18, // 25: zxpm.plugin.TaskExecution.Complete:output_type -> zxpm.plugin.Task.Complete.Response
+	20, // 26: zxpm.plugin.TaskExecution.ExecuteCheck:output_type -> zxpm.plugin.Task.Operation.Response
+	23, // 27: zxpm.plugin.TaskExecution.PrepareBegin:output_type -> zxpm.plugin.Task.SubStage.Response
+	20, // 28: zxpm.plugin.TaskExecution.ExecuteBegin:output_type -> zxpm.plugin.Task.Operation.Response
+	23, // 29: zxpm.plugin.TaskExecution.PrepareRun:output_type -> zxpm.plugin.Task.SubStage.Response
+	20, // 30: zxpm.plugin.TaskExecution.ExecuteRun:output_type -> zxpm.plugin.Task.Operation.Response
+	23, // 31: zxpm.plugin.TaskExecution.PrepareEnd:output_type -> zxpm.plugin.Task.SubStage.Response
+	20, // 32: zxpm.plugin.TaskExecution.ExecuteEnd:output_type -> zxpm.plugin.Task.Operation.Response
+	20, // 33: zxpm.plugin.TaskExecution.ExecuteFinish:output_type -> zxpm.plugin.Task.Operation.Response
+	22, // [22:34] is the sub-list for method output_type
+	10, // [10:22] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_task_interface_proto_init() }
@@ -1140,10 +1196,9 @@ func file_task_interface_proto_init() {
 	if File_task_interface_proto != nil {
 		return
 	}
-	file_config_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_task_interface_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task); i {
+			switch v := v.(*Config); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1155,19 +1210,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Implements); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_task_interface_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Ref); i {
+			switch v := v.(*Task); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1179,7 +1222,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Prepare); i {
+			switch v := v.(*Task_Implements); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1191,7 +1234,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Cancel); i {
+			switch v := v.(*Task_Ref); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1203,7 +1246,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Complete); i {
+			switch v := v.(*Task_Prepare); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1215,7 +1258,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Operation); i {
+			switch v := v.(*Task_Cancel); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1227,7 +1270,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_SubStage); i {
+			switch v := v.(*Task_Complete); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1239,7 +1282,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Implements_Response); i {
+			switch v := v.(*Task_Operation); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1251,7 +1294,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Implements_Request); i {
+			switch v := v.(*Task_SubStage); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1263,7 +1306,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Prepare_Request); i {
+			switch v := v.(*Task_Implements_Response); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1275,7 +1318,19 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Prepare_Response); i {
+			switch v := v.(*Task_Implements_Request); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_task_interface_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Task_Prepare_Request); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1287,19 +1342,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Cancel_Request); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_task_interface_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Cancel_Response); i {
+			switch v := v.(*Task_Prepare_Response); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1311,7 +1354,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Complete_Request); i {
+			switch v := v.(*Task_Cancel_Request); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1323,7 +1366,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Complete_Response); i {
+			switch v := v.(*Task_Cancel_Response); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1335,7 +1378,7 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Task_Operation_Request); i {
+			switch v := v.(*Task_Complete_Request); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1347,6 +1390,30 @@ func file_task_interface_proto_init() {
 			}
 		}
 		file_task_interface_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Task_Complete_Response); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_task_interface_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Task_Operation_Request); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_task_interface_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Task_Operation_Response); i {
 			case 0:
 				return &v.state
@@ -1358,7 +1425,7 @@ func file_task_interface_proto_init() {
 				return nil
 			}
 		}
-		file_task_interface_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+		file_task_interface_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Task_SubStage_Response); i {
 			case 0:
 				return &v.state
@@ -1370,7 +1437,7 @@ func file_task_interface_proto_init() {
 				return nil
 			}
 		}
-		file_task_interface_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+		file_task_interface_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Task_SubStage_Request); i {
 			case 0:
 				return &v.state
@@ -1389,7 +1456,7 @@ func file_task_interface_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_task_interface_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   23,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

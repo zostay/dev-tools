@@ -1,9 +1,0 @@
-syntax = "proto3";
-package zxpm.plugin;
-
-option go_package = "./api";
-
-message Config {
-  map<string, Config> sub_sections = 2;
-  map<string, string> values = 3;
-}
