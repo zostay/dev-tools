@@ -1,6 +1,10 @@
-package goalsImpl
+package goals
 
-var _ pluginFullName.TaskDescription = &TaskDescription{}
+import (
+	"github.com/zostay/dev-tools/zxpm/plugin"
+)
+
+var _ plugin.TaskDescription = &TaskDescription{}
 
 type TaskDescription struct {
 	plugin   string

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin-changelog/changelogImpl"
+	"github.com/zostay/dev-tools/zxpm/plugin/metal"
 )
 
 func main() {
-	plugin.RunPlugin(&changelogImpl.Plugin{})
+	metal.RunPlugin(&changelogImpl.Plugin{})
 }

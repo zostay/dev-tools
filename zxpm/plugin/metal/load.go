@@ -1,27 +1,28 @@
-package plugin
+package metal
 
 import (
 	"fmt"
 	"os/exec"
 
-	"github.com/hashicorp/go-plugin"
+	goPlugin "github.com/hashicorp/go-plugin"
 
 	"github.com/zostay/dev-tools/zxpm/config"
+	"github.com/zostay/dev-tools/zxpm/plugin"
 )
 
-type Clients map[string]*plugin.Client
+type Clients map[string]*goPlugin.Client
 
 func LoadPlugins(cfg *config.Config) Clients {
 	clients := make(Clients, len(cfg.Plugins))
 	for i := range cfg.Plugins {
 		pcfg := &cfg.Plugins[i]
-		client := plugin.NewClient(&plugin.ClientConfig{
+		client := goPlugin.NewClient(&goPlugin.ClientConfig{
 			HandshakeConfig: Handshake,
-			Plugins: map[string]plugin.Plugin{
+			Plugins: map[string]goPlugin.Plugin{
 				"task-interface": &InterfaceGRPCPlugin{},
 			},
 			Cmd:              exec.Command("sh", "-c", pcfg.Command),
-			AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
+			AllowedProtocols: []goPlugin.Protocol{goPlugin.ProtocolGRPC},
 		})
 
 		clients[pcfg.Name] = client
@@ -29,7 +30,7 @@ func LoadPlugins(cfg *config.Config) Clients {
 	return clients
 }
 
-func Dispense(clients Clients, name string) (Interface, error) {
+func Dispense(clients Clients, name string) (plugin.Interface, error) {
 	client, err := clients[name].Client()
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to plugin %q: %w", name, err)
@@ -40,12 +41,12 @@ func Dispense(clients Clients, name string) (Interface, error) {
 		return nil, fmt.Errorf("error dispensing plugin %q: %w", name, err)
 	}
 
-	iface := raw.(Interface)
+	iface := raw.(plugin.Interface)
 	return iface, nil
 }
 
-func DispenseAll(clients Clients) (map[string]Interface, error) {
-	ifaces := make(map[string]Interface, len(clients))
+func DispenseAll(clients Clients) (map[string]plugin.Interface, error) {
+	ifaces := make(map[string]plugin.Interface, len(clients))
 	for name := range clients {
 		iface, err := Dispense(clients, name)
 		if err != nil {

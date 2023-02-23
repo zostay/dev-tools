@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	plugin_goals "github.com/zostay/dev-tools/zxpm/plugin-goals"
+	"github.com/zostay/dev-tools/zxpm/plugin-goals/pkg/goals"
 )
 
 var changelogPlugin = plugin.ConfigName(Plugin{})
@@ -18,8 +18,8 @@ func (p *Plugin) Goal(context.Context, string) (plugin.GoalDescription, error) {
 }
 
 func (p *Plugin) Implements(context.Context) ([]plugin.TaskDescription, error) {
-	lint := plugin_goals.DescribeLint()
-	release := plugin_goals.DescribeRelease()
+	lint := goals.DescribeLint()
+	release := goals.DescribeRelease()
 	return []plugin.TaskDescription{
 		lint.Task("changelog", "Check changelog for correctness."),
 		lint.Task("changelog", "Extract the changes for a version."),

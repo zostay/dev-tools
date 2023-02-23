@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	plugin_goals "github.com/zostay/dev-tools/zxpm/plugin-goals"
+	"github.com/zostay/dev-tools/zxpm/plugin-goals/pkg/goals"
 	"github.com/zostay/dev-tools/zxpm/release"
 )
 
@@ -15,7 +15,7 @@ var _ plugin.Interface = &Plugin{}
 type Plugin struct{}
 
 func (p *Plugin) Implements(context.Context) ([]plugin.TaskDescription, error) {
-	release := plugin_goals.DescribeRelease()
+	release := goals.DescribeRelease()
 	return []plugin.TaskDescription{
 		release.Task("mint/github", "Create a Github pull request."),
 		release.Task("publish/github", "Publish a release.",

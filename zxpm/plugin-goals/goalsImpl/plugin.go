@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
+	"github.com/zostay/dev-tools/zxpm/plugin-goals/pkg/goals"
 )
 
 var _ plugin.Interface = &Plugin{}
@@ -19,26 +20,26 @@ func (p *Plugin) Goal(
 	name string,
 ) (plugin.GoalDescription, error) {
 	switch name {
-	case goalBuild:
-		return DescribeBuild(), nil
-	case goalDeploy:
-		return DescribeDeploy(), nil
-	case goalGenerate:
-		return DescribeGenerate(), nil
-	case goalInfo:
-		return DescribeInfo(), nil
-	case goalInit:
-		return DescribeInit(), nil
-	case goalInstall:
-		return DescribeInstall(), nil
-	case goalLint:
-		return DescribeLint(), nil
-	case goalRelease:
-		return DescribeRelease(), nil
-	case goalRequest:
-		return DescribeRequest(), nil
-	case goalTest:
-		return DescribeTest(), nil
+	case goals.goalBuild:
+		return goals.DescribeBuild(), nil
+	case goals.goalDeploy:
+		return goals.DescribeDeploy(), nil
+	case goals.goalGenerate:
+		return goals.DescribeGenerate(), nil
+	case goals.goalInfo:
+		return goals.DescribeInfo(), nil
+	case goals.goalInit:
+		return goals.DescribeInit(), nil
+	case goals.goalInstall:
+		return goals.DescribeInstall(), nil
+	case goals.goalLint:
+		return goals.DescribeLint(), nil
+	case goals.goalRelease:
+		return goals.DescribeRelease(), nil
+	case goals.goalRequest:
+		return goals.DescribeRequest(), nil
+	case goals.goalTest:
+		return goals.DescribeTest(), nil
 	default:
 		return nil, plugin.ErrUnsupportedGoal
 	}

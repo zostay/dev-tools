@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin-goals/goalsImpl"
+	"github.com/zostay/dev-tools/zxpm/plugin/metal"
 )
 
 func main() {
-	plugin.RunPlugin(&goalsImpl.Plugin{})
+	metal.RunPlugin(&goalsImpl.Plugin{})
 }

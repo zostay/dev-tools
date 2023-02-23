@@ -1,4 +1,4 @@
-package goalsImpl
+package goals
 
 import (
 	"path"
