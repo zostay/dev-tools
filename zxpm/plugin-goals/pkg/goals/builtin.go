@@ -5,21 +5,21 @@ type here struct{}
 const pluginFullName = "zxpm-plugin-goals"
 
 const (
-	goalBuild    = "build"
-	goalDeploy   = "deploy"
-	goalGenerate = "generate"
-	goalInfo     = "info"
-	goalInit     = "init"
-	goalInstall  = "install"
-	goalLint     = "lint"
-	goalRelease  = "release"
-	goalRequest  = "request"
-	goalTest     = "test"
+	NameBuild    = "build"
+	NameDeploy   = "deploy"
+	NameGenerate = "generate"
+	NameInfo     = "info"
+	NameInit     = "init"
+	NameInstall  = "install"
+	NameLint     = "lint"
+	NameRelease  = "release"
+	NameRequest  = "request"
+	NameTest     = "test"
 )
 
 func DescribeBuild() *GoalDescription {
 	return &GoalDescription{
-		name:   goalBuild,
+		name:   NameBuild,
 		plugin: pluginFullName,
 		short:  "Syntax check and prepare for development.",
 	}
@@ -27,7 +27,7 @@ func DescribeBuild() *GoalDescription {
 
 func DescribeDeploy() *GoalDescription {
 	return &GoalDescription{
-		name:   goalDeploy,
+		name:   NameDeploy,
 		plugin: pluginFullName,
 		short:  "Deploy software to a remote server.",
 	}
@@ -35,7 +35,7 @@ func DescribeDeploy() *GoalDescription {
 
 func DescribeGenerate() *GoalDescription {
 	return &GoalDescription{
-		name:   goalGenerate,
+		name:   NameGenerate,
 		plugin: pluginFullName,
 		short:  "Perform code generation tasks.",
 	}
@@ -43,7 +43,7 @@ func DescribeGenerate() *GoalDescription {
 
 func DescribeInfo() *GoalDescription {
 	return &GoalDescription{
-		name:   goalInfo,
+		name:   NameInfo,
 		plugin: pluginFullName,
 		short:  "Describe information about the project.",
 	}
@@ -51,7 +51,7 @@ func DescribeInfo() *GoalDescription {
 
 func DescribeInit() *GoalDescription {
 	return &GoalDescription{
-		name:   goalInit,
+		name:   NameInit,
 		plugin: pluginFullName,
 		short:  "Initialize a new project directory.",
 	}
@@ -59,7 +59,7 @@ func DescribeInit() *GoalDescription {
 
 func DescribeInstall() *GoalDescription {
 	return &GoalDescription{
-		name:   goalInstall,
+		name:   NameInstall,
 		plugin: pluginFullName,
 		short:  "Install software and assets locally.",
 	}
@@ -67,25 +67,25 @@ func DescribeInstall() *GoalDescription {
 
 func DescribeLint() *GoalDescription {
 	return &GoalDescription{
-		name:   goalLint,
-		plugin: pluginFullName,
-		short:  "Check files and data for errors and anti-patterns.",
-		alias:  []string{"analyze"},
+		name:    NameLint,
+		plugin:  pluginFullName,
+		short:   "Check files and data for errors and anti-patterns.",
+		aliases: []string{"analyze"},
 	}
 }
 
 func DescribeRequest() *GoalDescription {
 	return &GoalDescription{
-		name:   goalRequest,
-		plugin: pluginFullName,
-		short:  "Request the merger of a code patch.",
-		alias:  []string{"pull-request", "pr", "merge-request", "mr"},
+		name:    NameRequest,
+		plugin:  pluginFullName,
+		short:   "Request the merger of a code patch.",
+		aliases: []string{"pull-request", "pr", "merge-request", "mr"},
 	}
 }
 
 func DescribeRelease() *GoalDescription {
 	return &GoalDescription{
-		name:   goalRelease,
+		name:   NameRelease,
 		plugin: pluginFullName,
 		short:  "Mint and publish a release.",
 	}
@@ -93,7 +93,7 @@ func DescribeRelease() *GoalDescription {
 
 func DescribeTest() *GoalDescription {
 	return &GoalDescription{
-		name:   goalTest,
+		name:   NameTest,
 		plugin: pluginFullName,
 		short:  "Run tests.",
 	}

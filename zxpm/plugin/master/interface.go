@@ -2,9 +2,8 @@ package master
 
 import (
 	"context"
-	"sort"
+	"errors"
 
-	"github.com/zostay/dev-tools/pkg/config"
 	"github.com/zostay/dev-tools/zxpm/plugin"
 )
 
@@ -18,26 +17,17 @@ func New(is []plugin.Interface) *TaskInterface {
 	return &TaskInterface{is}
 }
 
-func (ti *TaskInterface) Implements(ctx context.Context) ([]string, error) {
-	names := make(map[string]struct{}, 20)
+func (ti *TaskInterface) Implements(ctx context.Context) ([]plugin.TaskDescription, error) {
+	taskDescs := make([]plugin.TaskDescription, 0, 100)
 	for _, iface := range ti.is {
-		ins, err := iface.Implements(ctx)
+		tds, err := iface.Implements(ctx)
 		if err != nil {
 			return nil, err
 		}
-		for _, name := range ins {
-			names[name] = struct{}{}
-		}
+		taskDescs = append(taskDescs, tds...)
 	}
 
-	out := make([]string, 0, len(names))
-	for name := range names {
-		out = append(out, name)
-	}
-
-	sort.Strings(out)
-
-	return out, nil
+	return taskDescs, nil
 }
 
 func implements(
@@ -45,23 +35,39 @@ func implements(
 	iface plugin.Interface,
 	taskName string,
 ) (bool, error) {
-	names, err := iface.Implements(ctx)
+	taskDescs, err := iface.Implements(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	for _, name := range names {
-		if name == taskName {
+	for _, taskDesc := range taskDescs {
+		if taskDesc.Name() == taskName {
 			return true, nil
 		}
 	}
 	return false, nil
 }
 
+func (ti *TaskInterface) Goal(
+	ctx context.Context,
+	name string,
+) (plugin.GoalDescription, error) {
+	for _, iface := range ti.is {
+		goalDesc, err := iface.Goal(ctx, name)
+		if errors.Is(err, plugin.ErrUnsupportedGoal) {
+			continue
+		} else if err != nil {
+			return nil, err
+		}
+
+		return goalDesc, nil
+	}
+	return nil, plugin.ErrUnsupportedGoal
+}
+
 func (ti *TaskInterface) Prepare(
 	ctx context.Context,
 	taskName string,
-	globalCfg *config.Config,
 ) (plugin.Task, error) {
 	results, err := RunTasksAndAccumulate[plugin.Interface, *taskPair](
 		ctx,
@@ -73,7 +79,7 @@ func (ti *TaskInterface) Prepare(
 			}
 
 			if mayPrepare {
-				t, err := iface.Prepare(ctx, taskName, globalCfg)
+				t, err := iface.Prepare(ctx, taskName)
 				if err != nil {
 					if t != nil {
 						return &taskPair{iface, t}, err
@@ -86,6 +92,15 @@ func (ti *TaskInterface) Prepare(
 			return nil, nil
 		},
 	)
+
+	filteredResults := make([]*taskPair, 0, len(results))
+	for _, result := range results {
+		if result == nil {
+			continue
+		}
+		filteredResults = append(filteredResults, result)
+	}
+	results = filteredResults
 
 	if len(results) > 0 {
 		return &Task{taskPairs: results}, err

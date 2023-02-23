@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/zostay/dev-tools/zxpm/config"
-	"github.com/zostay/dev-tools/zxpm/plugin/api"
-	"github.com/zostay/dev-tools/zxpm/plugin/translate"
 	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
@@ -38,12 +36,6 @@ func NewConfigContext(
 	cfg *config.Config,
 ) *Context {
 	return NewContext(cfg.ToKV(taskName, targetName, pluginName))
-}
-
-func NewGRPCContext(
-	cfg *api.Config,
-) *Context {
-	return NewContext(translate.APIConfigToKV(cfg))
 }
 
 func (p *Context) UpdateStorage(store map[string]any) {
@@ -183,4 +175,9 @@ func GetUint32(ctx context.Context, key string) uint32 {
 
 func GetUint64(ctx context.Context, key string) uint64 {
 	return get(ctx, key, storage.KV.GetUint64)
+}
+
+func KV(ctx context.Context) storage.KV {
+	pctx := contextFrom(ctx)
+	return pctx.properties
 }

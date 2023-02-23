@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TaskExecutionClient interface {
 	Implements(ctx context.Context, in *Task_Implements_Request, opts ...grpc.CallOption) (*Task_Implements_Response, error)
+	Goal(ctx context.Context, in *Task_Goal_Request, opts ...grpc.CallOption) (*Task_Goal_Response, error)
 	Prepare(ctx context.Context, in *Task_Prepare_Request, opts ...grpc.CallOption) (*Task_Prepare_Response, error)
 	Cancel(ctx context.Context, in *Task_Cancel_Request, opts ...grpc.CallOption) (*Task_Cancel_Response, error)
 	Complete(ctx context.Context, in *Task_Complete_Request, opts ...grpc.CallOption) (*Task_Complete_Response, error)
@@ -47,6 +48,15 @@ func NewTaskExecutionClient(cc grpc.ClientConnInterface) TaskExecutionClient {
 func (c *taskExecutionClient) Implements(ctx context.Context, in *Task_Implements_Request, opts ...grpc.CallOption) (*Task_Implements_Response, error) {
 	out := new(Task_Implements_Response)
 	err := c.cc.Invoke(ctx, "/zxpm.plugin.TaskExecution/Implements", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taskExecutionClient) Goal(ctx context.Context, in *Task_Goal_Request, opts ...grpc.CallOption) (*Task_Goal_Response, error) {
+	out := new(Task_Goal_Response)
+	err := c.cc.Invoke(ctx, "/zxpm.plugin.TaskExecution/Goal", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +167,7 @@ func (c *taskExecutionClient) ExecuteFinish(ctx context.Context, in *Task_Operat
 // for forward compatibility
 type TaskExecutionServer interface {
 	Implements(context.Context, *Task_Implements_Request) (*Task_Implements_Response, error)
+	Goal(context.Context, *Task_Goal_Request) (*Task_Goal_Response, error)
 	Prepare(context.Context, *Task_Prepare_Request) (*Task_Prepare_Response, error)
 	Cancel(context.Context, *Task_Cancel_Request) (*Task_Cancel_Response, error)
 	Complete(context.Context, *Task_Complete_Request) (*Task_Complete_Response, error)
@@ -177,6 +188,9 @@ type UnimplementedTaskExecutionServer struct {
 
 func (UnimplementedTaskExecutionServer) Implements(context.Context, *Task_Implements_Request) (*Task_Implements_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Implements not implemented")
+}
+func (UnimplementedTaskExecutionServer) Goal(context.Context, *Task_Goal_Request) (*Task_Goal_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Goal not implemented")
 }
 func (UnimplementedTaskExecutionServer) Prepare(context.Context, *Task_Prepare_Request) (*Task_Prepare_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Prepare not implemented")
@@ -238,6 +252,24 @@ func _TaskExecution_Implements_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TaskExecutionServer).Implements(ctx, req.(*Task_Implements_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaskExecution_Goal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Task_Goal_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskExecutionServer).Goal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/zxpm.plugin.TaskExecution/Goal",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskExecutionServer).Goal(ctx, req.(*Task_Goal_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -450,6 +482,10 @@ var TaskExecution_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Implements",
 			Handler:    _TaskExecution_Implements_Handler,
+		},
+		{
+			MethodName: "Goal",
+			Handler:    _TaskExecution_Goal_Handler,
 		},
 		{
 			MethodName: "Prepare",

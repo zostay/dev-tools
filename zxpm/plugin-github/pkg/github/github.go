@@ -1,4 +1,4 @@
-package githubImpl
+package github
 
 import (
 	"context"
@@ -10,16 +10,20 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	plugin_git "github.com/zostay/dev-tools/zxpm/plugin-git"
+	"github.com/zostay/dev-tools/zxpm/plugin-git/pkg/git"
 )
 
 type Github struct {
-	plugin_git.Git
+	git.Git
 	gh *github.Client
 }
 
 func ReleaseVersion(ctx context.Context) string {
 	return plugin.GetString(ctx, "release.version")
+}
+
+func (g *Github) Client() *github.Client {
+	return g.gh
 }
 
 func (g *Github) SetupGithubClient(ctx context.Context) error {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/zostay/dev-tools/zxpm/config"
 	"github.com/zostay/dev-tools/zxpm/plugin"
+	"github.com/zostay/dev-tools/zxpm/plugin/metal"
 )
 
 type loadedGoalsSet map[string]*cobra.Command
@@ -61,10 +62,10 @@ func getGoal(
 
 func configureTasks(
 	cfg *config.Config,
-	plugins plugin.Clients,
+	plugins metal.Clients,
 	cmd *cobra.Command,
 ) error {
-	ifaces, err := plugin.DispenseAll(plugins)
+	ifaces, err := metal.DispenseAll(plugins)
 	if err != nil {
 		return err
 	}

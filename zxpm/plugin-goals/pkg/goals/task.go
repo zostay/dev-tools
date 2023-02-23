@@ -13,6 +13,10 @@ type TaskDescription struct {
 	requires []string
 }
 
+func NewTaskDescription(plugin, name, short string, requires []string) *TaskDescription {
+	return &TaskDescription{plugin, name, short, requires}
+}
+
 func (t *TaskDescription) Plugin() string {
 	return t.plugin
 }

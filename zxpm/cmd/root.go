@@ -7,9 +7,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/zostay/dev-tools/zxpm/cmd/config"
-	"github.com/zostay/dev-tools/zxpm/cmd/release"
 	config2 "github.com/zostay/dev-tools/zxpm/config"
-	"github.com/zostay/dev-tools/zxpm/plugin"
+	"github.com/zostay/dev-tools/zxpm/plugin/metal"
 )
 
 var (
@@ -20,24 +19,26 @@ var (
 )
 
 func init() {
-	rootCmd.AddCommand(changelog.Cmd)
 	rootCmd.AddCommand(config.Cmd)
-	rootCmd.AddCommand(release.Cmd)
 	rootCmd.AddCommand(templateFileCmd)
 }
 
 func Execute() {
 	cfg, err := config2.LocateAndLoad()
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "zxpm failed to load: %v", err)
+		_, _ = fmt.Fprintf(os.Stderr, "zxpm failed to load: %v\n", err)
 		os.Exit(1)
 	}
 
-	plugins := plugin.LoadPlugins(cfg)
-	defer plugin.KillPlugins(plugins)
+	plugins := metal.LoadPlugins(cfg)
+	defer metal.KillPlugins(plugins)
 
-	configureTasks(cfg, plugins, rootCmd)
+	err = configureTasks(cfg, plugins, rootCmd)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "zxpm failed to configure goals: %v\n", err)
+		os.Exit(1)
+	}
 
-	err := rootCmd.Execute()
+	err = rootCmd.Execute()
 	cobra.CheckErr(err)
 }

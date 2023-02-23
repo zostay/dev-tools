@@ -9,6 +9,7 @@ import (
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin/api"
+	"github.com/zostay/dev-tools/zxpm/plugin/translate"
 )
 
 var _ api.TaskExecutionServer = &TaskExecution{}
@@ -50,12 +51,12 @@ func (s *TaskExecution) Implements(
 	ctx context.Context,
 	_ *api.Task_Implements_Request,
 ) (*api.Task_Implements_Response, error) {
-	names, err := s.Impl.Implements(ctx)
+	taskDescs, err := s.Impl.Implements(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return &api.Task_Implements_Response{
-		Names: names,
+		Tasks: translate.PluginTaskDescriptionsToAPITaskDescriptors(taskDescs),
 	}, nil
 }
 
@@ -65,10 +66,11 @@ func (s *TaskExecution) Prepare(
 ) (*api.Task_Prepare_Response, error) {
 	globalConfig := request.GetGlobalConfig()
 
-	pctx := plugin.NewGRPCContext(globalConfig)
+	kv := translate.APIConfigToKV(globalConfig)
+	pctx := plugin.NewContext(kv)
 	ctx = plugin.InitializeContext(ctx, pctx)
 
-	task, err := s.Impl.Prepare(ctx, request.GetName(), globalConfig)
+	task, err := s.Impl.Prepare(ctx, request.GetName())
 	if err != nil {
 		return nil, err
 	}

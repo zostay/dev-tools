@@ -8,11 +8,12 @@ import (
 	"github.com/google/go-github/v49/github"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
+	zxGithub "github.com/zostay/dev-tools/zxpm/plugin-github/pkg/github"
 )
 
 type ReleasePublishTask struct {
 	plugin.Boilerplate
-	Github
+	zxGithub.Github
 }
 
 // CheckReadyForMerge ensures that all the required tests are passing.
@@ -22,12 +23,12 @@ func (f *ReleasePublishTask) CheckReadyForMerge(ctx context.Context) error {
 		return fmt.Errorf("failed getting owner/project information: %w", err)
 	}
 
-	branch, err := ReleaseBranch(ctx)
+	branch, err := zxGithub.ReleaseBranch(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get release branch name: %w", err)
 	}
 
-	bp, _, err := f.gh.Repositories.GetBranchProtection(ctx, owner, project, TargetBranch(ctx))
+	bp, _, err := f.Client().Repositories.GetBranchProtection(ctx, owner, project, zxGithub.TargetBranch(ctx))
 	if err != nil {
 		return fmt.Errorf("unable to get branches %s: %w", branch, err)
 	}
@@ -38,7 +39,7 @@ func (f *ReleasePublishTask) CheckReadyForMerge(ctx context.Context) error {
 		passage[check.Context] = false
 	}
 
-	crs, _, err := f.gh.Checks.ListCheckRunsForRef(ctx, owner, project, branch, &github.ListCheckRunsOptions{})
+	crs, _, err := f.Client().Checks.ListCheckRunsForRef(ctx, owner, project, branch, &github.ListCheckRunsOptions{})
 	if err != nil {
 		return fmt.Errorf("unable to list check runs for branch %s: %w", branch, err)
 	}
@@ -85,12 +86,12 @@ func (f *ReleasePublishTask) MergePullRequest(ctx context.Context) error {
 		return fmt.Errorf("failed getting owner/project information: %w", err)
 	}
 
-	prs, _, err := f.gh.PullRequests.List(ctx, owner, project, &github.PullRequestListOptions{})
+	prs, _, err := f.Client().PullRequests.List(ctx, owner, project, &github.PullRequestListOptions{})
 	if err != nil {
 		return fmt.Errorf("unable to list pull requests: %w", err)
 	}
 
-	branch, err := ReleaseBranch(ctx)
+	branch, err := zxGithub.ReleaseBranch(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get release branch name: %w", err)
 	}
@@ -107,7 +108,7 @@ func (f *ReleasePublishTask) MergePullRequest(ctx context.Context) error {
 		return fmt.Errorf("cannot find pull request for branch %s", branch)
 	}
 
-	m, _, err := f.gh.PullRequests.Merge(ctx, owner, project, prId, "Merging release branch.", &github.PullRequestOptions{})
+	m, _, err := f.Client().PullRequests.Merge(ctx, owner, project, prId, "Merging release branch.", &github.PullRequestOptions{})
 	if err != nil {
 		return fmt.Errorf("unable to merge pull request %d: %w", prId, err)
 	}
@@ -126,14 +127,14 @@ func (f *ReleasePublishTask) CreateRelease(ctx context.Context) error {
 		return fmt.Errorf("failed getting owner/project information: %w", err)
 	}
 
-	tag, err := ReleaseTag(ctx)
+	tag, err := zxGithub.ReleaseTag(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get release tag name: %w", err)
 	}
 
-	changesInfo := ReleaseDescription(ctx)
-	releaseName := fmt.Sprintf("Release v%s", ReleaseVersion(ctx))
-	_, _, err = f.gh.Repositories.CreateRelease(ctx, owner, project,
+	changesInfo := zxGithub.ReleaseDescription(ctx)
+	releaseName := fmt.Sprintf("Release v%s", zxGithub.ReleaseVersion(ctx))
+	_, _, err = f.Client().Repositories.CreateRelease(ctx, owner, project,
 		&github.RepositoryRelease{
 			TagName:              github.String(tag),
 			Name:                 github.String(releaseName),

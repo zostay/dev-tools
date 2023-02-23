@@ -20,25 +20,25 @@ func (p *Plugin) Goal(
 	name string,
 ) (plugin.GoalDescription, error) {
 	switch name {
-	case goals.goalBuild:
+	case goals.NameBuild:
 		return goals.DescribeBuild(), nil
-	case goals.goalDeploy:
+	case goals.NameDeploy:
 		return goals.DescribeDeploy(), nil
-	case goals.goalGenerate:
+	case goals.NameGenerate:
 		return goals.DescribeGenerate(), nil
-	case goals.goalInfo:
+	case goals.NameInfo:
 		return goals.DescribeInfo(), nil
-	case goals.goalInit:
+	case goals.NameInit:
 		return goals.DescribeInit(), nil
-	case goals.goalInstall:
+	case goals.NameInstall:
 		return goals.DescribeInstall(), nil
-	case goals.goalLint:
+	case goals.NameLint:
 		return goals.DescribeLint(), nil
-	case goals.goalRelease:
+	case goals.NameRelease:
 		return goals.DescribeRelease(), nil
-	case goals.goalRequest:
+	case goals.NameRequest:
 		return goals.DescribeRequest(), nil
-	case goals.goalTest:
+	case goals.NameTest:
 		return goals.DescribeTest(), nil
 	default:
 		return nil, plugin.ErrUnsupportedGoal

@@ -28,9 +28,7 @@ func RunTasksAndAccumulate[In, Out any](
 			if err != nil {
 				errChan <- err
 			}
-			if output != nil {
-				resChan <- output
-			}
+			resChan <- output
 		}()
 	}
 

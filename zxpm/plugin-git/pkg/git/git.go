@@ -1,4 +1,4 @@
-package gitImpl
+package git
 
 import (
 	"context"
@@ -18,7 +18,7 @@ const (
 	defaultReleaseTagPrefix    = "v"
 )
 
-var ignoreStatus = map[string]struct{}{
+var IgnoreStatus = map[string]struct{}{
 	".session.vim": {},
 }
 

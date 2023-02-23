@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/zostay/dev-tools/pkg/config"
 	"github.com/zostay/dev-tools/zxpm/plugin"
+	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 type Error []error
@@ -58,10 +58,9 @@ func (e *TaskInterfaceExecutor) logFail(
 
 func (e *TaskInterfaceExecutor) prepare(
 	ctx context.Context,
-	cfg *config.Config,
 	taskName string,
 ) (plugin.Task, error) {
-	task, err := e.iface.Prepare(ctx, taskName, cfg)
+	task, err := e.iface.Prepare(ctx, taskName)
 	if err != nil {
 		if task != nil {
 			e.tryCancel(ctx, taskName, task, "Prepare")
@@ -190,13 +189,13 @@ func (e *TaskInterfaceExecutor) complete(
 
 func (e *TaskInterfaceExecutor) Execute(
 	ctx context.Context,
-	cfg *config.Config,
+	cfg storage.KV,
 	taskName string,
 ) error {
 	pctx := plugin.NewContext(cfg)
 	ctx = plugin.InitializeContext(ctx, pctx)
 
-	task, err := e.prepare(ctx, cfg, taskName)
+	task, err := e.prepare(ctx, taskName)
 	if err != nil {
 		return err
 	}
