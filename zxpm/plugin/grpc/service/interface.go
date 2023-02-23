@@ -74,7 +74,7 @@ func (s *TaskExecution) Goal(
 	}
 
 	return &api.Task_Goal_Response{
-		Definition: translate.PluginGoalDescriptionToAPIGoalDescriptor(goalDesc)
+		Definition: translate.PluginGoalDescriptionToAPIGoalDescriptor(goalDesc),
 	}, nil
 }
 
