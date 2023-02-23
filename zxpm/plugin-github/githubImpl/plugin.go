@@ -1,32 +1,30 @@
-package plugin_changelog
+package githubImpl
 
 import (
 	"context"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	plugin_goals "github.com/zostay/dev-tools/zxpm/plugin-goals"
+	"github.com/zostay/dev-tools/zxpm/release"
 )
 
-var changelogPlugin = plugin.ConfigName(Plugin{})
-
-type Plugin struct{}
+var githubPlugin = plugin.ConfigName(Plugin{})
 
 var _ plugin.Interface = &Plugin{}
 
-func (p *Plugin) Goal(context.Context, string) (plugin.GoalDescription, error) {
-	return nil, plugin.ErrUnsupportedGoal
-}
+type Plugin struct{}
 
 func (p *Plugin) Implements(context.Context) ([]plugin.TaskDescription, error) {
-	lint := plugin_goals.DescribeLint()
 	release := plugin_goals.DescribeRelease()
 	return []plugin.TaskDescription{
-		lint.Task("changelog", "Check changelog for correctness."),
-		lint.Task("changelog", "Extract the changes for a version."),
-		release.Task("mint/changelog", "Check and prepare changelog for release."),
-		release.Task("publish/changelog", "Capture changelog data to prepare for release.",
+		release.Task("mint/github", "Create a Github pull request."),
+		release.Task("publish/github", "Publish a release.",
 			release.TaskName("mint")),
 	}, nil
+}
+
+func (p *Plugin) Goal(context.Context, string) (plugin.GoalDescription, error) {
+	return nil, plugin.ErrUnsupportedGoal
 }
 
 func (p *Plugin) Prepare(
@@ -34,13 +32,9 @@ func (p *Plugin) Prepare(
 	task string,
 ) (plugin.Task, error) {
 	switch task {
-	case "/lint/changelog":
-		return &LintChangelogTask{}, nil
-	case "/info/extract-changelog":
-		return &InfoChangelogTask{}, nil
-	case "/release/mint/changelog":
+	case release.StartTask:
 		return &ReleaseMintTask{}, nil
-	case "/release/publish/changelog":
+	case release.FinishTask:
 		return &ReleasePublishTask{}, nil
 	}
 	return nil, plugin.ErrUnsupportedTask

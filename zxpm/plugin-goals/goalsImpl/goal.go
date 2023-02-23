@@ -1,4 +1,4 @@
-package plugin_goals
+package goalsImpl
 
 import (
 	"path"

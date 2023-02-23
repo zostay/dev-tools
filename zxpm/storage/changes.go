@@ -51,7 +51,7 @@ func (c *KVChanges) AllSettings() map[string]any {
 	return out
 }
 
-func get[T any](c *KVChanges, key string, getter func(KV, string) T) T {
+func getc[T any](c *KVChanges, key string, getter func(KV, string) T) T {
 	if c.changes.IsSet(key) {
 		return getter(c.changes, key)
 	}
@@ -59,75 +59,75 @@ func get[T any](c *KVChanges, key string, getter func(KV, string) T) T {
 }
 
 func (c *KVChanges) Get(key string) any {
-	return get[any](c, key, KV.Get)
+	return getc[any](c, key, KV.Get)
 }
 
 func (c *KVChanges) GetBool(key string) bool {
-	return get[bool](c, key, KV.GetBool)
+	return getc[bool](c, key, KV.GetBool)
 }
 
 func (c *KVChanges) GetDuration(key string) time.Duration {
-	return get[time.Duration](c, key, KV.GetDuration)
+	return getc[time.Duration](c, key, KV.GetDuration)
 }
 
 func (c *KVChanges) GetFloat64(key string) float64 {
-	return get[float64](c, key, KV.GetFloat64)
+	return getc[float64](c, key, KV.GetFloat64)
 }
 
 func (c *KVChanges) GetInt(key string) int {
-	return get[int](c, key, KV.GetInt)
+	return getc[int](c, key, KV.GetInt)
 }
 
 func (c *KVChanges) GetInt32(key string) int32 {
-	return get[int32](c, key, KV.GetInt32)
+	return getc[int32](c, key, KV.GetInt32)
 }
 
 func (c *KVChanges) GetInt64(key string) int64 {
-	return get[int64](c, key, KV.GetInt64)
+	return getc[int64](c, key, KV.GetInt64)
 }
 
 func (c *KVChanges) GetIntSlice(key string) []int {
-	return get[[]int](c, key, KV.GetIntSlice)
+	return getc[[]int](c, key, KV.GetIntSlice)
 }
 
 func (c *KVChanges) GetString(key string) string {
-	return get[string](c, key, KV.GetString)
+	return getc[string](c, key, KV.GetString)
 }
 
 func (c *KVChanges) GetStringMap(key string) map[string]any {
-	return get[map[string]any](c, key, KV.GetStringMap)
+	return getc[map[string]any](c, key, KV.GetStringMap)
 }
 
 func (c *KVChanges) GetStringMapString(key string) map[string]string {
-	return get[map[string]string](c, key, KV.GetStringMapString)
+	return getc[map[string]string](c, key, KV.GetStringMapString)
 }
 
 func (c *KVChanges) GetStringMapStringSlice(key string) map[string][]string {
-	return get[map[string][]string](c, key, KV.GetStringMapStringSlice)
+	return getc[map[string][]string](c, key, KV.GetStringMapStringSlice)
 }
 
 func (c *KVChanges) GetStringSlice(key string) []string {
-	return get[[]string](c, key, KV.GetStringSlice)
+	return getc[[]string](c, key, KV.GetStringSlice)
 }
 
 func (c *KVChanges) GetTime(key string) time.Time {
-	return get[time.Time](c, key, KV.GetTime)
+	return getc[time.Time](c, key, KV.GetTime)
 }
 
 func (c *KVChanges) GetUint(key string) uint {
-	return get[uint](c, key, KV.GetUint)
+	return getc[uint](c, key, KV.GetUint)
 }
 
 func (c *KVChanges) GetUint16(key string) uint16 {
-	return get[uint16](c, key, KV.GetUint16)
+	return getc[uint16](c, key, KV.GetUint16)
 }
 
 func (c *KVChanges) GetUint32(key string) uint32 {
-	return get[uint32](c, key, KV.GetUint32)
+	return getc[uint32](c, key, KV.GetUint32)
 }
 
 func (c *KVChanges) GetUint64(key string) uint64 {
-	return get[uint64](c, key, KV.GetUint64)
+	return getc[uint64](c, key, KV.GetUint64)
 }
 
 func (c *KVChanges) Sub(key string) KV {

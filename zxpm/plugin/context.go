@@ -6,8 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/viper"
-
+	"github.com/zostay/dev-tools/zxpm/config"
+	"github.com/zostay/dev-tools/zxpm/plugin/api"
+	"github.com/zostay/dev-tools/zxpm/plugin/translate"
 	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
@@ -21,13 +22,28 @@ type Context struct {
 type SimpleTask func()
 
 func NewContext(
-	cfg *viper.Viper,
+	properties storage.KV,
 ) *Context {
 	return &Context{
 		cleanup:    make([]SimpleTask, 0, 10),
 		addFiles:   make([]string, 0, 10),
-		properties: storage.WithChangeTracking(storage.NewViper(cfg)),
+		properties: storage.WithChangeTracking(properties),
 	}
+}
+
+func NewConfigContext(
+	taskName string,
+	targetName string,
+	pluginName string,
+	cfg *config.Config,
+) *Context {
+	return NewContext(cfg.ToKV(taskName, targetName, pluginName))
+}
+
+func NewGRPCContext(
+	cfg *api.Config,
+) *Context {
+	return NewContext(translate.APIConfigToKV(cfg))
 }
 
 func (p *Context) UpdateStorage(store map[string]any) {

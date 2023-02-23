@@ -1,4 +1,4 @@
-package plugin_goals
+package goalsImpl
 
 var _ pluginFullName.TaskDescription = &TaskDescription{}
 

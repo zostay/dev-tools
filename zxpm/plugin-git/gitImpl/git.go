@@ -1,4 +1,4 @@
-package plugin_git
+package gitImpl
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package plugin_changelog
+package changelogImpl
 
 import (
 	"context"

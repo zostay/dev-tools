@@ -9,8 +9,9 @@ import (
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin/api"
-	"github.com/zostay/dev-tools/zxpm/plugin/translate"
 )
+
+var _ api.TaskExecutionServer = &TaskExecution{}
 
 type TaskState struct {
 	Task    plugin.Task
@@ -18,19 +19,21 @@ type TaskState struct {
 }
 
 type TaskExecution struct {
+	api.UnimplementedTaskExecutionServer
+
 	Impl  plugin.Interface
 	state map[string]map[string]*TaskState
 }
 
-func NewGRPCTaskInterfaceClient(impl plugin.Interface) *TaskExecution {
-	names, err := impl.Implements(context.Background())
+func NewGRPCTaskExecution(impl plugin.Interface) *TaskExecution {
+	taskDescs, err := impl.Implements(context.Background())
 	if err != nil {
 		return nil
 	}
 
-	state := make(map[string]map[string]*TaskState, len(names))
-	for _, name := range names {
-		state[name] = make(map[string]*TaskState, 1)
+	state := make(map[string]map[string]*TaskState, len(taskDescs))
+	for _, taskDesc := range taskDescs {
+		state[taskDesc.Name()] = make(map[string]*TaskState, 1)
 	}
 
 	return &TaskExecution{
@@ -60,9 +63,9 @@ func (s *TaskExecution) Prepare(
 	ctx context.Context,
 	request *api.Task_Prepare_Request,
 ) (*api.Task_Prepare_Response, error) {
-	globalConfig := translate.APIConfigToConfig(request.GetGlobalConfig())
+	globalConfig := request.GetGlobalConfig()
 
-	pctx := plugin.NewContext(globalConfig)
+	pctx := plugin.NewGRPCContext(globalConfig)
 	ctx = plugin.InitializeContext(ctx, pctx)
 
 	task, err := s.Impl.Prepare(ctx, request.GetName(), globalConfig)

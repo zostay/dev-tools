@@ -13,6 +13,10 @@ type TaskInterface struct {
 	client api.TaskExecutionClient
 }
 
+func NewGRPCTaskInterface(client api.TaskExecutionClient) *TaskInterface {
+	return &TaskInterface{client}
+}
+
 func (c *TaskInterface) Implements() ([]string, error) {
 	res, err := c.client.Implements(context.Background(), &api.Task_Implements_Request{})
 	if err != nil {
