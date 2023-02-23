@@ -39,5 +39,5 @@ func (p *InterfaceGRPCPlugin) GRPCClient(
 	_ *plugin.GRPCBroker,
 	c *grpc.ClientConn,
 ) (any, error) {
-	return client.NewGRPCTaskInterface(c), nil
+	return client.NewGRPCTaskInterface(api.NewTaskExecutionClient(c)), nil
 }
