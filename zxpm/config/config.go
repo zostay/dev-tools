@@ -31,11 +31,9 @@ type GoalConfig struct {
 
 type PluginConfig struct {
 	Name    string
-	Package string
+	Command string
 
 	Properties storage.KV
-
-	Goals []GoalConfig
 }
 
 type TaskConfig struct {
@@ -75,7 +73,7 @@ func Load(filename string, in io.Reader) (*Config, error) {
 	return decodeRawConfig(&raw)
 }
 
-func (c *Config) GoalAndTaskNames(taskPath string) (string, []string) {
+func GoalAndTaskNames(taskPath string) (string, []string) {
 	taskPath = path.Clean(taskPath)
 	if taskPath == "" || taskPath == "/" {
 		return "", nil
@@ -94,12 +92,12 @@ func (c *Config) GoalAndTaskNames(taskPath string) (string, []string) {
 }
 
 func (c *Config) GetGoalFromPath(taskPath string) *GoalConfig {
-	goalName, _ := c.GoalAndTaskNames(taskPath)
+	goalName, _ := GoalAndTaskNames(taskPath)
 	return c.GetGoal(goalName)
 }
 
 func (c *Config) GetGoalAndTasks(taskPath string) (*GoalConfig, []*TaskConfig) {
-	goalName, taskNames := c.GoalAndTaskNames(taskPath)
+	goalName, taskNames := GoalAndTaskNames(taskPath)
 	goal := c.GetGoal(goalName)
 	tasks := make([]*TaskConfig, 0, len(taskNames))
 	taskList := goal.Tasks
@@ -129,6 +127,15 @@ func (c *Config) GetGoal(goalName string) *GoalConfig {
 func (c *Config) GetPlugin(pluginName string) *PluginConfig {
 	for i := range c.Plugins {
 		if c.Plugins[i].Name == pluginName {
+			return &c.Plugins[i]
+		}
+	}
+	return nil
+}
+
+func (c *Config) GetPluginByCommand(pluginCommand string) *PluginConfig {
+	for i := range c.Plugins {
+		if c.Plugins[i].Command == pluginCommand {
 			return &c.Plugins[i]
 		}
 	}

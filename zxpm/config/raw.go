@@ -29,11 +29,9 @@ type RawGoalConfig struct {
 
 type RawPluginConfig struct {
 	Name    string `hcl:"name,label"`
-	Package string `hcl:"package,label"`
+	Command string `hcl:"command,label"`
 
 	Properties cty.Value `hcl:"properties,optional"`
-
-	Goals []RawGoalConfig `hcl:"goal,block"`
 }
 
 type RawTaskConfig struct {
@@ -171,16 +169,10 @@ func decodeRawPlugin(prefix string, in *RawPluginConfig) (*PluginConfig, error) 
 		return nil, err
 	}
 
-	goals, err := decodeRawList[RawGoalConfig, GoalConfig](pn, in.Goals, decodeRawGoal)
-	if err != nil {
-		return nil, err
-	}
-
 	return &PluginConfig{
 		Name:       in.Name,
-		Package:    in.Package,
+		Command:    in.Command,
 		Properties: props,
-		Goals:      goals,
 	}, nil
 }
 

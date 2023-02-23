@@ -1,12 +1,8 @@
 package goalsImpl
 
-import (
-	"reflect"
-)
-
 type here struct{}
 
-var pluginFullName = reflect.TypeOf(here{}).PkgPath()
+const pluginFullName = "zxpm-plugin-goals"
 
 const (
 	goalBuild    = "build"
