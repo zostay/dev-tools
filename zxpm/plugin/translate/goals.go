@@ -47,3 +47,11 @@ func APIGoalDescriptorToPluginGoalDescription(in *api.Descriptor_Goal) *goals.Go
 		in.GetAliases()...,
 	)
 }
+
+func PluginGoalDescriptionToAPIGoalDescriptor(in plugin.GoalDescription) *api.Descriptor_Goal {
+	return &api.Descriptor_Goal{
+		Name:    in.Name(),
+		Short:   in.Short(),
+		Aliases: in.Aliases(),
+	}
+}

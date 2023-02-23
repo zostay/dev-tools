@@ -10,6 +10,7 @@ import (
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin/api"
 	"github.com/zostay/dev-tools/zxpm/plugin/translate"
+	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 var _ api.TaskExecutionServer = &TaskExecution{}
@@ -57,6 +58,23 @@ func (s *TaskExecution) Implements(
 	}
 	return &api.Task_Implements_Response{
 		Tasks: translate.PluginTaskDescriptionsToAPITaskDescriptors(taskDescs),
+	}, nil
+}
+
+func (s *TaskExecution) Goal(
+	ctx context.Context,
+	request *api.Task_Goal_Request,
+) (*api.Task_Goal_Response, error) {
+	pctx := plugin.NewContext(storage.New())
+	ctx = plugin.InitializeContext(ctx, pctx)
+
+	goalDesc, err := s.Impl.Goal(ctx, request.GetName())
+	if err != nil {
+		return nil, err
+	}
+
+	return &api.Task_Goal_Response{
+		Definition: translate.PluginGoalDescriptionToAPIGoalDescriptor(goalDesc)
 	}, nil
 }
 
