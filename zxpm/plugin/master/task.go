@@ -102,7 +102,9 @@ func executeOperationFuncs(
 	ctx context.Context,
 	opfs []plugin.OperationFunc,
 ) error {
-	return RunTasksAndAccumulateErrors[plugin.OperationFunc](ctx, opfs,
+	return RunTasksAndAccumulateErrors[int, plugin.OperationFunc](
+		ctx,
+		NewSliceIterator[plugin.OperationFunc](opfs),
 		func(ctx context.Context, opf plugin.OperationFunc) error {
 			return opf.Call(ctx)
 		})

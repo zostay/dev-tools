@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"strings"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin/api"
@@ -36,6 +37,9 @@ func (c *TaskInterface) Goal(
 		Name: goalName,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), plugin.ErrUnsupportedGoal.Error()) {
+			return nil, plugin.ErrUnsupportedGoal
+		}
 		return nil, err
 	}
 	return translate.APIGoalDescriptorToPluginGoalDescription(res.GetDefinition()), nil
@@ -52,6 +56,9 @@ func (c *TaskInterface) Prepare(
 		},
 	)
 	if err != nil {
+		if strings.Contains(err.Error(), plugin.ErrUnsupportedTask.Error()) {
+			return nil, plugin.ErrUnsupportedTask
+		}
 		return nil, err
 	}
 

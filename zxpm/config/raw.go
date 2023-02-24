@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/zclconf/go-cty/cty"
+	"github.com/zclconf/go-cty/cty/gocty"
 
 	"github.com/zostay/dev-tools/zxpm/storage"
 )
@@ -88,7 +89,21 @@ func decodeRawProperties(prefix string, in cty.Value) (storage.KV, error) {
 			out.Set(k, ev)
 		}
 
-		out.Set(k, v.AsString())
+		if v.Type() == cty.Bool {
+			var val bool
+			_ = gocty.FromCtyValue(v, &val)
+			out.Set(k, val)
+		} else if v.Type() == cty.Number {
+			var val float64
+			_ = gocty.FromCtyValue(v, &val)
+			out.Set(k, val)
+		} else if v.Type() == cty.String {
+			var val string
+			_ = gocty.FromCtyValue(v, &val)
+			out.Set(k, val)
+		} else {
+			return nil, fmt.Errorf("unknown value type for key %q", k)
+		}
 	}
 
 	return out, nil

@@ -9,6 +9,7 @@ import (
 
 	"github.com/zostay/dev-tools/zxpm/config"
 	"github.com/zostay/dev-tools/zxpm/plugin"
+	"github.com/zostay/dev-tools/zxpm/plugin/master"
 	"github.com/zostay/dev-tools/zxpm/plugin/metal"
 )
 
@@ -43,18 +44,14 @@ func getTasks(
 }
 
 func getGoal(
-	cfg *config.Config,
-	name string,
-	iface plugin.Interface,
+	m plugin.Interface,
 	goalName string,
 ) (plugin.GoalDescription, error) {
 	ctx := context.Background()
-	pctx := plugin.NewContext(cfg.ToKV("", "", name))
-	ctx = plugin.InitializeContext(ctx, pctx)
 
-	goal, err := iface.Goal(ctx, goalName)
+	goal, err := m.Goal(ctx, goalName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch goal name %q from plugin %q: %w", goalName, name, err)
+		return nil, fmt.Errorf("failed to fetch goal name %q: %w", goalName, err)
 	}
 
 	return goal, nil
@@ -70,6 +67,8 @@ func configureTasks(
 		return err
 	}
 
+	m := master.New(ifaces)
+
 	loadedGoals := make(loadedGoalsSet, 10)
 	for name, iface := range ifaces {
 		tasks, err := getTasks(cfg, name, iface)
@@ -78,7 +77,7 @@ func configureTasks(
 		}
 
 		for _, task := range tasks {
-			goalCmd, err := configureGoalCommand(loadedGoals, cfg, ifaces, task)
+			goalCmd, err := configureGoalCommand(loadedGoals, cfg, name, m, task)
 			if err != nil {
 				return err
 			}
@@ -100,11 +99,10 @@ func configureTasks(
 					Use:   taskName,
 					Short: task.Short(),
 					// TODO Implement RunTask and set it on the cobra.Command
-					// RunE:  RunTask(taskPath),
+					// RunE:  RunTask(m, taskPath),
 				}
 
-				taskCmd.Flags().StringP("target", "t", "default", "the target configuration to use")
-				taskCmd.Flags().StringSliceP("define", "d", nil, "define a variable in a=b format")
+				parentCmd.AddCommand(taskCmd)
 
 				parentCmd = taskCmd
 			}
@@ -117,7 +115,8 @@ func configureTasks(
 func configureGoalCommand(
 	loadedGoals loadedGoalsSet,
 	cfg *config.Config,
-	ifaces map[string]plugin.Interface,
+	name string,
+	m *master.Interface,
 	task plugin.TaskDescription,
 ) (*cobra.Command, error) {
 	goalName, _ := config.GoalAndTaskNames(task.Name())
@@ -125,12 +124,12 @@ func configureGoalCommand(
 		return loadedGoals.get(task.Plugin(), goalName), nil
 	}
 
-	pcfg := cfg.GetPluginByCommand(task.Plugin())
-	if pcfg == nil {
-		return nil, fmt.Errorf("plugin %q defines task %q which required plugin %q, which is not loaded", task.Plugin(), task.Name(), task.Plugin())
-	}
+	// pcfg := cfg.GetPluginByCommand(task.Plugin())
+	// if pcfg == nil {
+	// 	return nil, fmt.Errorf("plugin %q defines task %q which requires plugin %q, which is not loaded", task.Plugin(), task.Name(), task.Plugin())
+	// }
 
-	goalDesc, err := getGoal(cfg, pcfg.Name, ifaces[pcfg.Name], goalName)
+	goalDesc, err := getGoal(m, goalName)
 	if err != nil {
 		return nil, err
 	}
@@ -140,11 +139,10 @@ func configureGoalCommand(
 		Short:   goalDesc.Short(),
 		Aliases: goalDesc.Aliases(),
 		// TODO Implement RunGoal and set it on the cobra.Command
-		// RunE:    RunGoal(goalDesc),
+		// RunE:    RunGoal(m, goalDesc),
 	}
 
-	goalCmd.Flags().StringP("target", "t", "default", "the target configuration to use")
-	goalCmd.Flags().StringSliceP("define", "d", nil, "define a variable in a=b format")
+	runCmd.AddCommand(goalCmd)
 
 	loadedGoals.mark(task.Plugin(), goalName, goalCmd)
 

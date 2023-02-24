@@ -21,6 +21,7 @@ var (
 func init() {
 	rootCmd.AddCommand(config.Cmd)
 	rootCmd.AddCommand(templateFileCmd)
+	rootCmd.AddCommand(runCmd)
 }
 
 func Execute() {
@@ -30,7 +31,10 @@ func Execute() {
 		os.Exit(1)
 	}
 
-	plugins := metal.LoadPlugins(cfg)
+	plugins, err := metal.LoadPlugins(cfg)
+	if err != nil {
+		panic(err) // TODO Fix this panic, it's temporary
+	}
 	defer metal.KillPlugins(plugins)
 
 	err = configureTasks(cfg, plugins, rootCmd)

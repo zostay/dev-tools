@@ -11,7 +11,9 @@ type OperationHandler struct {
 }
 
 func (h *OperationHandler) Call(ctx context.Context) error {
-	return RunTasksAndAccumulateErrors[plugin.Operation](ctx, h.ops,
+	return RunTasksAndAccumulateErrors[int, plugin.Operation](
+		ctx,
+		NewSliceIterator[plugin.Operation](h.ops),
 		func(ctx context.Context, op plugin.Operation) error {
 			return op.Action.Call(ctx)
 		})

@@ -16,7 +16,7 @@ func APITaskDescriptorToPluginTaskDescription(in *api.Descriptor_Task) *goals.Ta
 }
 
 func APITaskDescriptorsToPluginTaskDescriptions(ins []*api.Descriptor_Task) []plugin.TaskDescription {
-	outs := make([]plugin.TaskDescription, 0, len(ins))
+	outs := make([]plugin.TaskDescription, len(ins))
 	for i, in := range ins {
 		outs[i] = APITaskDescriptorToPluginTaskDescription(in)
 	}
@@ -33,7 +33,7 @@ func PluginTaskDescriptionToAPITaskDescriptor(in plugin.TaskDescription) *api.De
 }
 
 func PluginTaskDescriptionsToAPITaskDescriptors(ins []plugin.TaskDescription) []*api.Descriptor_Task {
-	outs := make([]*api.Descriptor_Task, 0, len(ins))
+	outs := make([]*api.Descriptor_Task, len(ins))
 	for i, in := range ins {
 		outs[i] = PluginTaskDescriptionToAPITaskDescriptor(in)
 	}

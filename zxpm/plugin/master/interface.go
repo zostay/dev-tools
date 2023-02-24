@@ -7,17 +7,21 @@ import (
 	"github.com/zostay/dev-tools/zxpm/plugin"
 )
 
-var _ plugin.Interface = &TaskInterface{}
+var _ plugin.Interface = &Interface{}
 
-type TaskInterface struct {
-	is []plugin.Interface
+type Interface struct {
+	is map[string]plugin.Interface
 }
 
-func New(is []plugin.Interface) *TaskInterface {
-	return &TaskInterface{is}
+func New(is map[string]plugin.Interface) *Interface {
+	return &Interface{is}
 }
 
-func (ti *TaskInterface) Implements(ctx context.Context) ([]plugin.TaskDescription, error) {
+func (ti *Interface) GetInterface(name string) plugin.Interface {
+	return ti.is[name]
+}
+
+func (ti *Interface) Implements(ctx context.Context) ([]plugin.TaskDescription, error) {
 	taskDescs := make([]plugin.TaskDescription, 0, 100)
 	for _, iface := range ti.is {
 		tds, err := iface.Implements(ctx)
@@ -48,30 +52,44 @@ func implements(
 	return false, nil
 }
 
-func (ti *TaskInterface) Goal(
+func (ti *Interface) Goal(
 	ctx context.Context,
 	name string,
 ) (plugin.GoalDescription, error) {
-	for _, iface := range ti.is {
-		goalDesc, err := iface.Goal(ctx, name)
-		if errors.Is(err, plugin.ErrUnsupportedGoal) {
-			continue
-		} else if err != nil {
-			return nil, err
-		}
+	results, err := RunTasksAndAccumulate[string, plugin.Interface, plugin.GoalDescription](
+		ctx,
+		NewMapIterator[string, plugin.Interface](ti.is),
+		func(ctx context.Context, p plugin.Interface) (plugin.GoalDescription, error) {
+			goalDesc, err := p.Goal(ctx, name)
+			if errors.Is(err, plugin.ErrUnsupportedGoal) {
+				return nil, nil
+			} else if err != nil {
+				return nil, err
+			}
+			return goalDesc, nil
+		},
+	)
 
-		return goalDesc, nil
+	if err != nil {
+		return nil, err
 	}
+
+	for _, result := range results {
+		if result != nil {
+			return result, nil
+		}
+	}
+
 	return nil, plugin.ErrUnsupportedGoal
 }
 
-func (ti *TaskInterface) Prepare(
+func (ti *Interface) Prepare(
 	ctx context.Context,
 	taskName string,
 ) (plugin.Task, error) {
-	results, err := RunTasksAndAccumulate[plugin.Interface, *taskPair](
+	results, err := RunTasksAndAccumulate[string, plugin.Interface, *taskPair](
 		ctx,
-		ti.is,
+		NewMapIterator[string, plugin.Interface](ti.is),
 		func(ctx context.Context, iface plugin.Interface) (*taskPair, error) {
 			mayPrepare, err := implements(ctx, iface, taskName)
 			if err != nil {
@@ -113,17 +131,21 @@ func (ti *TaskInterface) Prepare(
 	return nil, plugin.ErrUnsupportedTask
 }
 
-func (ti *TaskInterface) Cancel(ctx context.Context, pluginTask plugin.Task) error {
+func (ti *Interface) Cancel(ctx context.Context, pluginTask plugin.Task) error {
 	task := pluginTask.(*Task)
-	return RunTasksAndAccumulateErrors[*taskPair](ctx, task.taskPairs,
+	return RunTasksAndAccumulateErrors[int, *taskPair](
+		ctx,
+		NewSliceIterator[*taskPair](task.taskPairs),
 		func(ctx context.Context, p *taskPair) error {
 			return p.iface.Cancel(ctx, p.task)
 		})
 }
 
-func (ti *TaskInterface) Complete(ctx context.Context, pluginTask plugin.Task) error {
+func (ti *Interface) Complete(ctx context.Context, pluginTask plugin.Task) error {
 	task := pluginTask.(*Task)
-	return RunTasksAndAccumulateErrors[*taskPair](ctx, task.taskPairs,
+	return RunTasksAndAccumulateErrors[int, *taskPair](
+		ctx,
+		NewSliceIterator[*taskPair](task.taskPairs),
 		func(ctx context.Context, p *taskPair) error {
 			return p.iface.Complete(ctx, p.task)
 		})

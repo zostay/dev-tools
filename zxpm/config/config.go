@@ -1,11 +1,14 @@
 package config
 
 import (
+	"fmt"
 	"io"
 	"path"
 	"strings"
 
-	"github.com/hashicorp/hcl/v2/hclsimple"
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/gohcl"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 
 	"github.com/zostay/dev-tools/zxpm/storage"
 )
@@ -65,9 +68,14 @@ func Load(filename string, in io.Reader) (*Config, error) {
 		return nil, err
 	}
 
-	err = hclsimple.Decode(filename, fileBytes, nil, &raw)
-	if err != nil {
-		return nil, err
+	file, diags := hclsyntax.ParseConfig(fileBytes, filename, hcl.Pos{Line: 1, Column: 1})
+	if diags.HasErrors() {
+		return nil, diags
+	}
+
+	diags = gohcl.DecodeBody(file.Body, nil, &raw)
+	if diags.HasErrors() {
+		return nil, diags
 	}
 
 	return decodeRawConfig(&raw)
@@ -98,9 +106,15 @@ func (c *Config) GetGoalFromPath(taskPath string) *GoalConfig {
 
 func (c *Config) GetGoalAndTasks(taskPath string) (*GoalConfig, []*TaskConfig) {
 	goalName, taskNames := GoalAndTaskNames(taskPath)
+
 	goal := c.GetGoal(goalName)
+	if goal == nil {
+		panic(fmt.Sprintf("did not find goal %q", goalName))
+	}
+
 	tasks := make([]*TaskConfig, 0, len(taskNames))
 	taskList := goal.Tasks
+
 TaskLoop:
 	for _, taskName := range taskNames {
 		for j := range taskList {
@@ -142,9 +156,19 @@ func (c *Config) GetPluginByCommand(pluginCommand string) *PluginConfig {
 	return nil
 }
 
-func (c *Config) ToKV(taskPath, targetName, pluginName string) *storage.KVLayer {
-	goal, tasks := c.GetGoalAndTasks(taskPath)
-	plugin := c.GetPlugin(pluginName)
+func (c *Config) ToKV(taskPath, targetName, pluginName string) storage.KV {
+	var (
+		goal   *GoalConfig
+		tasks  []*TaskConfig
+		plugin *PluginConfig
+	)
+
+	if taskPath != "" {
+		goal, tasks = c.GetGoalAndTasks(taskPath)
+	}
+	if pluginName != "" {
+		plugin = c.GetPlugin(pluginName)
+	}
 
 	layers := make([]storage.KV, 0, (len(tasks)+2)*2)
 	layers = append(layers, c.Properties)
@@ -155,7 +179,11 @@ func (c *Config) ToKV(taskPath, targetName, pluginName string) *storage.KVLayer 
 	if goal != nil {
 		layers = append(layers, goal.Properties)
 
-		target := goal.GetTarget(targetName)
+		var target *TargetConfig
+		if targetName != "" {
+			target = goal.GetTarget(targetName)
+		}
+
 		if target != nil {
 			layers = append(layers, target.Properties)
 		}
@@ -164,10 +192,18 @@ func (c *Config) ToKV(taskPath, targetName, pluginName string) *storage.KVLayer 
 	for _, task := range tasks {
 		layers = append(layers, task.Properties)
 
-		target := task.GetTarget(targetName)
+		var target *TargetConfig
+		if targetName != "" {
+			target = task.GetTarget(targetName)
+		}
+
 		if target != nil {
 			layers = append(layers, target.Properties)
 		}
+	}
+
+	if len(layers) == 0 {
+		return storage.New()
 	}
 
 	return storage.Layers(layers...)

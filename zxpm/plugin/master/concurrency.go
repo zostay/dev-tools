@@ -5,13 +5,13 @@ import (
 	"sync"
 )
 
-func RunTasksAndAccumulate[In, Out any](
+func RunTasksAndAccumulate[Idx comparable, In, Out any](
 	ctx context.Context,
-	inputs []In,
+	inputs Iterable[Idx, In],
 	task func(context.Context, In) (Out, error),
 ) ([]Out, error) {
-	results := make([]Out, 0, len(inputs))
-	accErr := make(Error, 0, len(inputs))
+	results := make([]Out, 0, inputs.Len())
+	accErr := make(Error, 0, inputs.Len())
 
 	resChan := make(chan Out)
 	errChan := make(chan error)
@@ -19,8 +19,8 @@ func RunTasksAndAccumulate[In, Out any](
 	wg := &sync.WaitGroup{}
 	done := make(chan bool)
 
-	for i := range inputs {
-		input := inputs[i]
+	for inputs.Next() {
+		input := inputs.Value()
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -53,17 +53,17 @@ WaitLoop:
 	}
 
 	if len(accErr) == 0 {
-		accErr = nil
+		return results, nil
 	}
 	return results, accErr
 }
 
-func RunTasksAndAccumulateErrors[In any](
+func RunTasksAndAccumulateErrors[Idx comparable, In any](
 	ctx context.Context,
-	inputs []In,
+	inputs Iterable[Idx, In],
 	task func(context.Context, In) error,
 ) error {
-	_, err := RunTasksAndAccumulate[In, struct{}](ctx, inputs,
+	_, err := RunTasksAndAccumulate[Idx, In, struct{}](ctx, inputs,
 		func(ctx context.Context, input In) (struct{}, error) {
 			return struct{}{}, task(ctx, input)
 		})
