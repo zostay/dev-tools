@@ -10,13 +10,12 @@ var _ plugin.GoalDescription = &GoalDescription{}
 
 type GoalDescription struct {
 	name    string
-	plugin  string
 	short   string
 	aliases []string
 }
 
 func NewGoalDescription(name, short string, aliases ...string) *GoalDescription {
-	return &GoalDescription{name, "", short, aliases}
+	return &GoalDescription{name, short, aliases}
 }
 
 func (g *GoalDescription) Task(name, short string, requires ...string) *TaskDescription {
