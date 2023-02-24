@@ -35,11 +35,6 @@ type GoalDescription interface {
 
 // TaskDescription describes a sub-task.
 type TaskDescription interface {
-	// Plugin names the plugin responsible for providing the TaskDescription for
-	// the top-level task to which this sub-task belongs. An empty string here
-	// will imply you are implementing a sub-task related to a built-in task.
-	Plugin() string
-
 	// Name is a path starting with a leading slash naming the sub-task. The
 	// first element of this path must match a TaskDescription defined by the
 	// given Plugin (or a built-in task). The remaining path elements define a

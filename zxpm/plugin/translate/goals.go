@@ -8,7 +8,6 @@ import (
 
 func APITaskDescriptorToPluginTaskDescription(in *api.Descriptor_Task) *goals.TaskDescription {
 	return goals.NewTaskDescription(
-		in.GetPlugin(),
 		in.GetName(),
 		in.GetShort(),
 		in.GetRequires(),
@@ -25,7 +24,6 @@ func APITaskDescriptorsToPluginTaskDescriptions(ins []*api.Descriptor_Task) []pl
 
 func PluginTaskDescriptionToAPITaskDescriptor(in plugin.TaskDescription) *api.Descriptor_Task {
 	return &api.Descriptor_Task{
-		Plugin:   in.Plugin(),
 		Name:     in.Name(),
 		Short:    in.Short(),
 		Requires: in.Requires(),

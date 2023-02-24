@@ -19,17 +19,12 @@ func NewGoalDescription(name, short string, aliases ...string) *GoalDescription 
 	return &GoalDescription{name, "", short, aliases}
 }
 
-func NewGoalDescriptionForPlugin(name, plugin, short string, aliases ...string) *GoalDescription {
-	return &GoalDescription{name, plugin, short, aliases}
-}
-
 func (g *GoalDescription) Task(name, short string, requires ...string) *TaskDescription {
 	if g.plugin == "" {
 		panic("cannot create task without plugin setting")
 	}
 
 	return &TaskDescription{
-		plugin:   g.plugin,
 		name:     g.TaskName(name),
 		short:    short,
 		requires: requires,

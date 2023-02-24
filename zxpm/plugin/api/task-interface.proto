@@ -15,7 +15,6 @@ message Descriptor {
   }
 
   message Task {
-    string plugin = 1;
     string name = 2;
     string short = 3;
     repeated string requires = 4;

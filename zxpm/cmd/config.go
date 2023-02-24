@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -15,15 +14,15 @@ import (
 
 type loadedGoalsSet map[string]*cobra.Command
 
-func (l loadedGoalsSet) mark(plugin, goalName string, goal *cobra.Command) {
-	l[strings.Join([]string{plugin, goalName}, ":")] = goal
+func (l loadedGoalsSet) mark(goalName string, goal *cobra.Command) {
+	l[goalName] = goal
 }
-func (l loadedGoalsSet) is(plugin, goal string) bool {
-	_, exists := l[strings.Join([]string{plugin, goal}, ":")]
+func (l loadedGoalsSet) is(goal string) bool {
+	_, exists := l[goal]
 	return exists
 }
-func (l loadedGoalsSet) get(plugin, goal string) *cobra.Command {
-	return l[strings.Join([]string{plugin, goal}, ":")]
+func (l loadedGoalsSet) get(goal string) *cobra.Command {
+	return l[goal]
 }
 
 func getTasks(
@@ -120,14 +119,9 @@ func configureGoalCommand(
 	task plugin.TaskDescription,
 ) (*cobra.Command, error) {
 	goalName, _ := config.GoalAndTaskNames(task.Name())
-	if loadedGoals.is(task.Plugin(), goalName) {
-		return loadedGoals.get(task.Plugin(), goalName), nil
+	if loadedGoals.is(goalName) {
+		return loadedGoals.get(goalName), nil
 	}
-
-	// pcfg := cfg.GetPluginByCommand(task.Plugin())
-	// if pcfg == nil {
-	// 	return nil, fmt.Errorf("plugin %q defines task %q which requires plugin %q, which is not loaded", task.Plugin(), task.Name(), task.Plugin())
-	// }
 
 	goalDesc, err := getGoal(m, goalName)
 	if err != nil {
@@ -144,7 +138,7 @@ func configureGoalCommand(
 
 	runCmd.AddCommand(goalCmd)
 
-	loadedGoals.mark(task.Plugin(), goalName, goalCmd)
+	loadedGoals.mark(goalName, goalCmd)
 
 	return goalCmd, nil
 }
