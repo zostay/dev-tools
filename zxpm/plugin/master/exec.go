@@ -194,6 +194,37 @@ func (e *InterfaceExecutor) complete(
 	return err
 }
 
+func (e *InterfaceExecutor) ExecuteAllStages(
+	ctx context.Context,
+	group *TaskGroup,
+) error {
+	stages, err := group.ExecutionGroups()
+	if err != nil {
+		return err
+	}
+
+	for _, stage := range stages {
+		err := e.ExecuteStage(ctx, stage)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (e *InterfaceExecutor) ExecuteStage(
+	ctx context.Context,
+	stage []plugin.TaskDescription,
+) error {
+	return RunTasksAndAccumulateErrors[int, plugin.TaskDescription](ctx,
+		NewSliceIterator[plugin.TaskDescription](stage),
+		func(ctx context.Context, _ int, task plugin.TaskDescription) error {
+			return e.Execute(ctx, task.Name())
+		},
+	)
+}
+
 func (e *InterfaceExecutor) Execute(
 	ctx context.Context,
 	taskName string,

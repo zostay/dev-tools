@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"context"
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 
 	"github.com/zostay/dev-tools/zxpm/plugin/master"
@@ -21,7 +25,7 @@ func RunGoal(
 	group *master.TaskGroup,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		// ctx := context.Background()
+		ctx := context.Background()
 
 		target, _ := cmd.Flags().GetString("target")
 		e.SetTargetName(target)
@@ -29,13 +33,11 @@ func RunGoal(
 		values, _ := cmd.Flags().GetStringToString("define")
 		e.Define(values)
 
-		// TODO Execute task phases here...
-		// err := e.Execute(ctx, group)
-		//
-		// if err != nil {
-		// 	_, _ = fmt.Fprintf(os.Stderr, "failed to execute tasks: %v\n", err)
-		// 	os.Exit(1)
-		// }
+		err := e.ExecuteAllStages(ctx, group)
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "failed to execute tasks: %v\n", err)
+			os.Exit(1)
+		}
 
 		return nil
 	}
