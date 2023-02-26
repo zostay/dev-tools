@@ -79,6 +79,13 @@ func (f *ReleasePublishTask) TagRelease(ctx context.Context) error {
 		})
 	})
 
+	plugin.Logger(ctx,
+		"headRef", headRef,
+		"tag", tag,
+		"head", head,
+		"tagRefSpec", tagRefSpec,
+	).Infof("Creating release tag %q and pushing to remote.", tag)
+
 	return nil
 }
 

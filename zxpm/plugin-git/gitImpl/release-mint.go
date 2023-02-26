@@ -79,6 +79,12 @@ func (s *ReleaseMintTask) CheckGitCleanliness(ctx context.Context) error {
 		return fmt.Errorf("your working copy is dirty")
 	}
 
+	plugin.Logger(ctx,
+		"operaiton", "CheckGitCleanliness",
+		"headRef", headRef,
+		"masterRef", masterRef,
+	).Infow("Git working tree is clean for release.")
+
 	return nil
 }
 
@@ -116,6 +122,13 @@ func (s *ReleaseMintTask) MakeReleaseBranch(ctx context.Context) error {
 			Branch: zxGit.TargetBranchRefName(ctx),
 		})
 	})
+
+	plugin.Logger(ctx,
+		"operation", "MakeReleaseBranch",
+		"headRef", headRef,
+		"branchRefName", branchRefName,
+		"branch", branch,
+	).Infof("Created git branch %q for managing the release.", branch)
 
 	return nil
 }
@@ -155,6 +168,10 @@ func (s *ReleaseMintTask) AddAndCommit(ctx context.Context) error {
 		return fmt.Errorf("error committing changes to git: %w", err)
 	}
 
+	plugin.Logger(ctx,
+		"version", version,
+	).Infof("Adding and committing %d changed files to git.", len(addedFiles))
+
 	return nil
 }
 
@@ -180,6 +197,10 @@ func (s *ReleaseMintTask) PushReleaseBranch(ctx context.Context) error {
 			Prune:      true,
 		})
 	})
+
+	plugin.Logger(ctx,
+		"branchRefSpec", branchRefSpec,
+	).Info("Pushed release branch to remote repository.")
 
 	return nil
 }
