@@ -56,6 +56,13 @@ func (f *ReleasePublishTask) CheckReadyForMerge(ctx context.Context) error {
 		}
 	}
 
+	plugin.Logger(ctx,
+		"operation", "CheckReadyForMerge",
+		"owner", owner,
+		"project", project,
+		"branch", branch,
+	).Infof("All Github required checks appear to be passing")
+
 	return nil
 }
 
@@ -117,6 +124,14 @@ func (f *ReleasePublishTask) MergePullRequest(ctx context.Context) error {
 		return fmt.Errorf("failed to merge pull request %d", prId)
 	}
 
+	plugin.Logger(ctx,
+		"operation", "MergePullRequest",
+		"owner", owner,
+		"project", project,
+		"branch", branch,
+		"pullRequestID", prId,
+	).Infof("Marged the pull request into the target branch.")
+
 	return nil
 }
 
@@ -149,6 +164,13 @@ func (f *ReleasePublishTask) CreateRelease(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to create release %q: %w", releaseName, err)
 	}
+
+	plugin.Logger(ctx,
+		"owner", owner,
+		"project", project,
+		"tag", tag,
+		"releaseName", releaseName,
+	).Infof("Created a release named %q", releaseName)
 
 	return nil
 }

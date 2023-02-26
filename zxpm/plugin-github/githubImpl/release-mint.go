@@ -7,12 +7,12 @@ import (
 	"github.com/google/go-github/v49/github"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	github2 "github.com/zostay/dev-tools/zxpm/plugin-github/pkg/github"
+	zxGithub "github.com/zostay/dev-tools/zxpm/plugin-github/pkg/github"
 )
 
 type ReleaseMintTask struct {
 	plugin.Boilerplate
-	github2.Github
+	zxGithub.Github
 }
 
 // CreateGithubPullRequest creates the PR on github for monitoring the test
@@ -24,21 +24,30 @@ func (s *ReleaseMintTask) CreateGithubPullRequest(ctx context.Context) error {
 		return fmt.Errorf("failed getting owner/project information: %w", err)
 	}
 
-	branch, err := github2.ReleaseBranch(ctx)
+	branch, err := zxGithub.ReleaseBranch(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get release branch name: %w", err)
 	}
 
+	prName := "Release v" + zxGithub.ReleaseVersion(ctx)
 	_, _, err = s.Client().PullRequests.Create(ctx, owner, project, &github.NewPullRequest{
-		Title: github.String("Release v" + github2.ReleaseVersion(ctx)),
+		Title: github.String(prName),
 		Head:  github.String(branch),
-		Base:  github.String(github2.TargetBranch(ctx)),
-		Body:  github.String(fmt.Sprintf("Pull request to release v%s of go-email.", github2.ReleaseVersion(ctx))),
+		Base:  github.String(zxGithub.TargetBranch(ctx)),
+		Body:  github.String(fmt.Sprintf("Pull request to release v%s of go-email.", zxGithub.ReleaseVersion(ctx))),
 	})
 
 	if err != nil {
 		return fmt.Errorf("unable to create pull request: %w", err)
 	}
+
+	plugin.Logger(ctx,
+		"operation", "CreateGithubPullRequest",
+		"owner", owner,
+		"project", project,
+		"branch", branch,
+		"pullRequestName", prName,
+	).Infof("Created Github pull request %q", prName)
 
 	return nil
 }

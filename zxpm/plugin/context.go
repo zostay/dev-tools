@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/spf13/cast"
+	"go.uber.org/zap"
 
 	"github.com/zostay/dev-tools/zxpm/config"
 	"github.com/zostay/dev-tools/zxpm/storage"
@@ -14,6 +15,7 @@ import (
 
 type contextKey struct{}
 type Context struct {
+	logger     *zap.SugaredLogger
 	cleanup    []SimpleTask
 	addFiles   []string
 	properties *storage.KVChanges
@@ -25,6 +27,7 @@ func NewContext(
 	properties storage.KV,
 ) *Context {
 	return &Context{
+		logger:     zap.L().Sugar(),
 		cleanup:    make([]SimpleTask, 0, 10),
 		addFiles:   make([]string, 0, 10),
 		properties: storage.WithChangeTracking(properties),
@@ -62,6 +65,15 @@ func contextFrom(ctx context.Context) *Context {
 		panic("context is missing plugin configuration")
 	}
 	return pctx
+}
+
+func Logger(ctx context.Context, withArgs ...interface{}) *zap.SugaredLogger {
+	pctx := contextFrom(ctx)
+	if len(withArgs) > 0 {
+		return pctx.logger.With(withArgs...)
+	} else {
+		return pctx.logger
+	}
 }
 
 func ConfigName(o any) string {

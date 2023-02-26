@@ -18,6 +18,8 @@ var runCmd = &cobra.Command{
 func init() {
 	runCmd.Flags().StringP("target", "t", "default", "the target configuration to use")
 	runCmd.Flags().StringToStringP("define", "d", nil, "define a variable in a=b format")
+	// TODO Figure out a contract that we can use when defining plugins to enforce dry-run that we can be relatively sure will always work...
+	// runCmd.Flags().Bool("dry-run", false, "describe what would happen if the command run without doing it")
 }
 
 func RunGoal(
