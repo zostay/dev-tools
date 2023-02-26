@@ -8,7 +8,7 @@ import (
 func RunTasksAndAccumulate[Idx comparable, In, Out any](
 	ctx context.Context,
 	inputs Iterable[Idx, In],
-	task func(context.Context, In) (Out, error),
+	task func(context.Context, Idx, In) (Out, error),
 ) ([]Out, error) {
 	results := make([]Out, 0, inputs.Len())
 	accErr := make(Error, 0, inputs.Len())
@@ -21,10 +21,11 @@ func RunTasksAndAccumulate[Idx comparable, In, Out any](
 
 	for inputs.Next() {
 		input := inputs.Value()
+		idx := inputs.Id()
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			output, err := task(ctx, input)
+			output, err := task(ctx, idx, input)
 			if err != nil {
 				errChan <- err
 			}
@@ -61,11 +62,11 @@ WaitLoop:
 func RunTasksAndAccumulateErrors[Idx comparable, In any](
 	ctx context.Context,
 	inputs Iterable[Idx, In],
-	task func(context.Context, In) error,
+	task func(context.Context, Idx, In) error,
 ) error {
 	_, err := RunTasksAndAccumulate[Idx, In, struct{}](ctx, inputs,
-		func(ctx context.Context, input In) (struct{}, error) {
-			return struct{}{}, task(ctx, input)
+		func(ctx context.Context, idx Idx, input In) (struct{}, error) {
+			return struct{}{}, task(ctx, idx, input)
 		})
 	return err
 }

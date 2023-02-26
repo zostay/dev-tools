@@ -3,6 +3,7 @@ package plugin
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 var (
@@ -13,6 +14,9 @@ var (
 	// ErrUnsupportedGoal is returned by Interface.Goal when the named goal
 	// is not defined by the plugin.
 	ErrUnsupportedGoal = fmt.Errorf("this plugin does not support that goal")
+
+	// ErrBadTaskName is returned when a badly formatted task name is detected.
+	ErrBadTaskName = fmt.Errorf("the task name is badly formatted")
 )
 
 // GoalDescription describes a top-level goal.
@@ -62,6 +66,22 @@ type TaskDescription interface {
 	// task will not be executed until after both /release/wait and
 	// /release/mint have been executed.
 	Requires() []string
+}
+
+func GoalName(task TaskDescription) (string, error) {
+	name := task.Name()
+	if name[0] != '/' {
+		return "", fmt.Errorf("%s: %w", task.Name(), ErrBadTaskName)
+	}
+
+	name = name[1:]
+
+	idx := strings.IndexRune(name, '/')
+	if idx < 0 {
+		return "", fmt.Errorf("%s: %w", task.Name(), ErrBadTaskName)
+	}
+
+	return name[:idx], nil
 }
 
 // Interface is the base interface that all plugins implement.

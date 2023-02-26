@@ -37,7 +37,7 @@ func Execute() {
 	}
 	defer metal.KillPlugins(plugins)
 
-	err = configureTasks(cfg, plugins, rootCmd)
+	err = configureTasks(cfg, plugins, runCmd)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "zxpm failed to configure goals: %v\n", err)
 		os.Exit(1)

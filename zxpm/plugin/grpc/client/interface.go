@@ -62,10 +62,12 @@ func (c *TaskInterface) Prepare(
 		return nil, err
 	}
 
+	chgs := res.GetStorage()
+	plugin.UpdateKV(ctx, chgs)
+
 	return &Task{
-		client:  c.client,
-		ref:     res.GetTask(),
-		storage: res.GetStorage(),
+		client: c.client,
+		ref:    res.GetTask(),
 	}, nil
 }
 

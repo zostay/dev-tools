@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 type Error []error
@@ -22,22 +21,30 @@ func (e Error) Error() string {
 	return strings.Join(msgs, "; ")
 }
 
-type TaskInterfaceExecutor struct {
-	iface plugin.Interface
+type InterfaceExecutor struct {
+	m *Interface
 }
 
-func NewExecutor(iface plugin.Interface) *TaskInterfaceExecutor {
-	return &TaskInterfaceExecutor{iface}
+func NewExecutor(m *Interface) *InterfaceExecutor {
+	return &InterfaceExecutor{m}
 }
 
-func (e *TaskInterfaceExecutor) tryCancel(
+func (e *InterfaceExecutor) SetTargetName(name string) {
+	e.m.SetTargetName(name)
+}
+
+func (e *InterfaceExecutor) Define(values map[string]string) {
+	e.m.Define(values)
+}
+
+func (e *InterfaceExecutor) tryCancel(
 	ctx context.Context,
 	taskName string,
 	task plugin.Task,
 	stage string,
 ) {
 	logger := hclog.FromContext(ctx)
-	cancelErr := e.iface.Cancel(ctx, task)
+	cancelErr := e.m.Cancel(ctx, task)
 	if cancelErr != nil {
 		logger.Error("failed while canceling task due to error",
 			"stage", stage,
@@ -46,7 +53,7 @@ func (e *TaskInterfaceExecutor) tryCancel(
 	}
 }
 
-func (e *TaskInterfaceExecutor) logFail(
+func (e *InterfaceExecutor) logFail(
 	ctx context.Context,
 	taskName string,
 	stage string,
@@ -56,11 +63,11 @@ func (e *TaskInterfaceExecutor) logFail(
 	logger.Error("task failed", "stage", stage, "task", taskName, "error", err)
 }
 
-func (e *TaskInterfaceExecutor) prepare(
+func (e *InterfaceExecutor) prepare(
 	ctx context.Context,
 	taskName string,
 ) (plugin.Task, error) {
-	task, err := e.iface.Prepare(ctx, taskName)
+	task, err := e.m.Prepare(ctx, taskName)
 	if err != nil {
 		if task != nil {
 			e.tryCancel(ctx, taskName, task, "Prepare")
@@ -71,7 +78,7 @@ func (e *TaskInterfaceExecutor) prepare(
 	return task, nil
 }
 
-func (e *TaskInterfaceExecutor) taskOperation(
+func (e *InterfaceExecutor) taskOperation(
 	ctx context.Context,
 	taskName string,
 	stage string,
@@ -87,7 +94,7 @@ func (e *TaskInterfaceExecutor) taskOperation(
 	return nil
 }
 
-func (e *TaskInterfaceExecutor) setup(
+func (e *InterfaceExecutor) setup(
 	ctx context.Context,
 	taskName string,
 	task plugin.Task,
@@ -95,7 +102,7 @@ func (e *TaskInterfaceExecutor) setup(
 	return e.taskOperation(ctx, taskName, "Setup", task, task.Setup)
 }
 
-func (e *TaskInterfaceExecutor) check(
+func (e *InterfaceExecutor) check(
 	ctx context.Context,
 	taskName string,
 	task plugin.Task,
@@ -103,7 +110,7 @@ func (e *TaskInterfaceExecutor) check(
 	return e.taskOperation(ctx, taskName, "Check", task, task.Check)
 }
 
-func (e *TaskInterfaceExecutor) taskPriorityOperation(
+func (e *InterfaceExecutor) taskPriorityOperation(
 	ctx context.Context,
 	taskName string,
 	stage string,
@@ -131,7 +138,7 @@ func (e *TaskInterfaceExecutor) taskPriorityOperation(
 	return nil
 }
 
-func (e *TaskInterfaceExecutor) begin(
+func (e *InterfaceExecutor) begin(
 	ctx context.Context,
 	taskName string,
 	task plugin.Task,
@@ -139,7 +146,7 @@ func (e *TaskInterfaceExecutor) begin(
 	return e.taskPriorityOperation(ctx, taskName, "Begin", task, task.Begin)
 }
 
-func (e *TaskInterfaceExecutor) run(
+func (e *InterfaceExecutor) run(
 	ctx context.Context,
 	taskName string,
 	task plugin.Task,
@@ -147,7 +154,7 @@ func (e *TaskInterfaceExecutor) run(
 	return e.taskPriorityOperation(ctx, taskName, "Run", task, task.Run)
 }
 
-func (e *TaskInterfaceExecutor) end(
+func (e *InterfaceExecutor) end(
 	ctx context.Context,
 	taskName string,
 	task plugin.Task,
@@ -155,7 +162,7 @@ func (e *TaskInterfaceExecutor) end(
 	return e.taskPriorityOperation(ctx, taskName, "End", task, task.End)
 }
 
-func (e *TaskInterfaceExecutor) finish(
+func (e *InterfaceExecutor) finish(
 	ctx context.Context,
 	taskName string,
 	task plugin.Task,
@@ -163,7 +170,7 @@ func (e *TaskInterfaceExecutor) finish(
 	return e.taskOperation(ctx, taskName, "Finish", task, task.Finish)
 }
 
-func (e *TaskInterfaceExecutor) teardown(
+func (e *InterfaceExecutor) teardown(
 	ctx context.Context,
 	taskName string,
 	task plugin.Task,
@@ -171,12 +178,12 @@ func (e *TaskInterfaceExecutor) teardown(
 	return e.taskOperation(ctx, taskName, "Teardown", task, task.Teardown)
 }
 
-func (e *TaskInterfaceExecutor) complete(
+func (e *InterfaceExecutor) complete(
 	ctx context.Context,
 	taskName string,
 	task plugin.Task,
 ) error {
-	err := e.iface.Complete(ctx, task)
+	err := e.m.Complete(ctx, task)
 	if err != nil {
 		logger := hclog.FromContext(ctx)
 		logger.Error("failed while completing task due to error",
@@ -187,14 +194,10 @@ func (e *TaskInterfaceExecutor) complete(
 	return err
 }
 
-func (e *TaskInterfaceExecutor) Execute(
+func (e *InterfaceExecutor) Execute(
 	ctx context.Context,
-	cfg storage.KV,
 	taskName string,
 ) error {
-	pctx := plugin.NewContext(cfg)
-	ctx = plugin.InitializeContext(ctx, pctx)
-
 	task, err := e.prepare(ctx, taskName)
 	if err != nil {
 		return err
@@ -219,4 +222,55 @@ func (e *TaskInterfaceExecutor) Execute(
 	}
 
 	return nil
+}
+
+func (e *InterfaceExecutor) TaskGroups(
+	ctx context.Context,
+) ([]*TaskGroup, error) {
+	tasks, err := e.m.Implements(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	taskGroupMap := make(map[string]*TaskGroup, len(tasks))
+
+	for _, task := range tasks {
+		goalName, err := plugin.GoalName(task)
+		if err != nil {
+			return nil, err
+		}
+
+		if group, groupExists := taskGroupMap[goalName]; groupExists {
+			group.Tasks = append(group.Tasks, task)
+			continue
+		}
+
+		goal, err := e.m.Goal(ctx, goalName)
+		if err != nil {
+			return nil, err
+		}
+
+		taskGroupMap[goalName] = &TaskGroup{
+			Tree:  "/" + goal.Name(),
+			Goal:  goal,
+			Tasks: []plugin.TaskDescription{task},
+		}
+	}
+
+	out := make([]*TaskGroup, 0, len(tasks))
+	for _, group := range taskGroupMap {
+		out = append(out, group)
+	}
+
+	for _, group := range out {
+		sort.Slice(group.Tasks, func(i, j int) bool {
+			return group.Tasks[i].Name() < group.Tasks[j].Name()
+		})
+	}
+
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Goal.Name() < out[j].Goal.Name()
+	})
+
+	return out, nil
 }

@@ -5,7 +5,9 @@ import (
 
 	"google.golang.org/grpc"
 
+	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin/api"
+	"github.com/zostay/dev-tools/zxpm/plugin/translate"
 )
 
 type Operation struct {
@@ -18,7 +20,7 @@ func (o *Operation) Call(ctx context.Context) error {
 	res, err := o.call(ctx, &api.Task_SubStage_Request{
 		Request: &api.Task_Operation_Request{
 			Task:    o.parent.ref,
-			Storage: o.parent.storage,
+			Storage: translate.KVToStringMapString(plugin.KV(ctx)),
 		},
 		SubStage: o.order,
 	})
@@ -27,7 +29,7 @@ func (o *Operation) Call(ctx context.Context) error {
 		return err
 	}
 
-	o.parent.applyStorageUpdate(res.GetStorageUpdate())
+	plugin.UpdateKV(ctx, res.GetStorageUpdate())
 
 	return nil
 }

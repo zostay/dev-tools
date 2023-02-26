@@ -105,7 +105,7 @@ func executeOperationFuncs(
 	return RunTasksAndAccumulateErrors[int, plugin.OperationFunc](
 		ctx,
 		NewSliceIterator[plugin.OperationFunc](opfs),
-		func(ctx context.Context, opf plugin.OperationFunc) error {
+		func(ctx context.Context, _ int, opf plugin.OperationFunc) error {
 			return opf.Call(ctx)
 		})
 }

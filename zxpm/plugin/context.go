@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/cast"
+
 	"github.com/zostay/dev-tools/zxpm/config"
 	"github.com/zostay/dev-tools/zxpm/storage"
 )
@@ -30,12 +32,13 @@ func NewContext(
 }
 
 func NewConfigContext(
+	runtime storage.KV,
 	taskName string,
 	targetName string,
 	pluginName string,
 	cfg *config.Config,
 ) *Context {
-	return NewContext(cfg.ToKV(taskName, targetName, pluginName))
+	return NewContext(cfg.ToKV(runtime, taskName, targetName, pluginName))
 }
 
 func (p *Context) UpdateStorage(store map[string]any) {
@@ -180,4 +183,9 @@ func GetUint64(ctx context.Context, key string) uint64 {
 func KV(ctx context.Context) storage.KV {
 	pctx := contextFrom(ctx)
 	return pctx.properties
+}
+
+func UpdateKV(ctx context.Context, changes map[string]string) {
+	pctx := contextFrom(ctx)
+	pctx.properties.Update(cast.ToStringMap(changes))
 }

@@ -156,7 +156,12 @@ func (c *Config) GetPluginByCommand(pluginCommand string) *PluginConfig {
 	return nil
 }
 
-func (c *Config) ToKV(taskPath, targetName, pluginName string) storage.KV {
+func (c *Config) ToKV(
+	properties storage.KV,
+	taskPath,
+	targetName,
+	pluginName string,
+) *storage.KVLayer {
 	var (
 		goal   *GoalConfig
 		tasks  []*TaskConfig
@@ -170,7 +175,10 @@ func (c *Config) ToKV(taskPath, targetName, pluginName string) storage.KV {
 		plugin = c.GetPlugin(pluginName)
 	}
 
-	layers := make([]storage.KV, 0, (len(tasks)+2)*2)
+	// topmost layer is for runtime properties
+	layers := make([]storage.KV, 0, (len(tasks)+2)*2+1)
+	layers = append(layers, properties)
+
 	layers = append(layers, c.Properties)
 	if plugin != nil {
 		layers = append(layers, plugin.Properties)
@@ -200,10 +208,6 @@ func (c *Config) ToKV(taskPath, targetName, pluginName string) storage.KV {
 		if target != nil {
 			layers = append(layers, target.Properties)
 		}
-	}
-
-	if len(layers) == 0 {
-		return storage.New()
 	}
 
 	return storage.Layers(layers...)

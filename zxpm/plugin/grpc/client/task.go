@@ -8,12 +8,12 @@ import (
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin/api"
+	"github.com/zostay/dev-tools/zxpm/plugin/translate"
 )
 
 type Task struct {
-	client  api.TaskExecutionClient
-	ref     *api.Task_Ref
-	storage map[string]string
+	client api.TaskExecutionClient
+	ref    *api.Task_Ref
 }
 
 func (t *Task) Setup(
@@ -22,26 +22,20 @@ func (t *Task) Setup(
 	return nil
 }
 
-func (t *Task) applyStorageUpdate(changes map[string]string) {
-	for k, v := range changes {
-		t.storage[k] = v
-	}
-}
-
 func (t *Task) operation(
 	ctx context.Context,
 	op func(context.Context, *api.Task_Operation_Request, ...grpc.CallOption) (*api.Task_Operation_Response, error),
 ) error {
 	res, err := op(ctx, &api.Task_Operation_Request{
 		Task:    t.ref,
-		Storage: t.storage,
+		Storage: translate.KVToStringMapString(plugin.KV(ctx)),
 	})
 
 	if err != nil {
 		return err
 	}
 
-	t.applyStorageUpdate(res.GetStorageUpdate())
+	plugin.UpdateKV(ctx, res.GetStorageUpdate())
 
 	return nil
 }

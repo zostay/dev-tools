@@ -16,12 +16,15 @@ func APIConfigToKV(in *api.Config) *storage.KVMem {
 }
 
 func KVToAPIConfig(in storage.KV) *api.Config {
+	return &api.Config{Values: KVToStringMapString(in)}
+}
+
+func KVToStringMapString(in storage.KV) map[string]string {
 	keys := in.AllKeys()
 	out := make(map[string]string, len(keys))
 
 	for _, k := range keys {
 		out[k] = in.GetString(k)
 	}
-
-	return &api.Config{Values: out}
+	return out
 }

@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"path"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -10,6 +12,7 @@ import (
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin/master"
 	"github.com/zostay/dev-tools/zxpm/plugin/metal"
+	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 type loadedGoalsSet map[string]*cobra.Command
@@ -31,7 +34,8 @@ func getTasks(
 	iface plugin.Interface,
 ) ([]plugin.TaskDescription, error) {
 	ctx := context.Background()
-	pctx := plugin.NewContext(cfg.ToKV("", "", name))
+	rtStore := storage.New()
+	pctx := plugin.NewConfigContext(rtStore, "", "", name, cfg)
 	ctx = plugin.InitializeContext(ctx, pctx)
 
 	tasks, err := iface.Implements(ctx)
@@ -59,95 +63,63 @@ func getGoal(
 func configureTasks(
 	cfg *config.Config,
 	plugins metal.Clients,
-	cmd *cobra.Command,
+	attachCmd *cobra.Command,
 ) error {
 	ifaces, err := metal.DispenseAll(plugins)
 	if err != nil {
 		return err
 	}
 
-	m := master.New(ifaces)
+	m := master.NewInterface(cfg, ifaces)
+	e := master.NewExecutor(m)
 
-	loadedGoals := make(loadedGoalsSet, 10)
-	for name, iface := range ifaces {
-		tasks, err := getTasks(cfg, name, iface)
-		if err != nil {
-			return err
-		}
+	ctx := context.Background()
+	groups, err := e.TaskGroups(ctx)
+	if err != nil {
+		return err
+	}
 
-		for _, task := range tasks {
-			goalCmd, err := configureGoalCommand(loadedGoals, cfg, name, m, task)
-			if err != nil {
-				return err
-			}
+	cmds := make(map[string]*cobra.Command, len(groups))
+	for _, group := range groups {
+		cmd := configureGoalCommand(group, e)
+		attachCmd.AddCommand(cmd)
+		cmds[group.Tree] = cmd
 
-			goal, taskNames := config.GoalAndTaskNames(task.Name())
-
-			parentCmd := goalCmd
-			taskPath := "/" + goal
-			for _, taskName := range taskNames {
-				taskPath += "/" + taskName
-				taskCmd := getSubcommand(parentCmd, taskName)
-				if taskCmd != nil {
-					taskCmd.Short += " " + task.Short()
-					parentCmd = taskCmd
-					continue
-				}
-
-				taskCmd = &cobra.Command{
-					Use:   taskName,
-					Short: task.Short(),
-					// TODO Implement RunTask and set it on the cobra.Command
-					// RunE:  RunTask(m, taskPath),
-				}
-
-				parentCmd.AddCommand(taskCmd)
-
-				parentCmd = taskCmd
-			}
+		for _, sub := range group.SubTasks() {
+			cmd := configureTaskCommand(sub, e)
+			parent := path.Dir(sub.Tree)
+			cmds[parent].AddCommand(cmd)
+			cmds[sub.Tree] = cmd
 		}
 	}
 
 	return nil
+}
+
+func configureTaskCommand(
+	group *master.TaskGroup,
+	e *master.InterfaceExecutor,
+) *cobra.Command {
+	shorts := make([]string, len(group.Tasks))
+	for i, task := range group.Tasks {
+		shorts[i] = task.Short()
+	}
+
+	return &cobra.Command{
+		Use:   path.Base(group.Tree),
+		Short: strings.Join(shorts, " "),
+		RunE:  RunGoal(e, group),
+	}
 }
 
 func configureGoalCommand(
-	loadedGoals loadedGoalsSet,
-	cfg *config.Config,
-	name string,
-	m *master.Interface,
-	task plugin.TaskDescription,
-) (*cobra.Command, error) {
-	goalName, _ := config.GoalAndTaskNames(task.Name())
-	if loadedGoals.is(goalName) {
-		return loadedGoals.get(goalName), nil
+	group *master.TaskGroup,
+	e *master.InterfaceExecutor,
+) *cobra.Command {
+	return &cobra.Command{
+		Use:     group.Goal.Name(),
+		Short:   group.Goal.Short(),
+		Aliases: group.Goal.Aliases(),
+		RunE:    RunGoal(e, group),
 	}
-
-	goalDesc, err := getGoal(m, goalName)
-	if err != nil {
-		return nil, err
-	}
-
-	goalCmd := &cobra.Command{
-		Use:     goalDesc.Name(),
-		Short:   goalDesc.Short(),
-		Aliases: goalDesc.Aliases(),
-		// TODO Implement RunGoal and set it on the cobra.Command
-		// RunE:    RunGoal(m, goalDesc),
-	}
-
-	runCmd.AddCommand(goalCmd)
-
-	loadedGoals.mark(goalName, goalCmd)
-
-	return goalCmd, nil
-}
-
-func getSubcommand(parentCmd *cobra.Command, name string) *cobra.Command {
-	for _, cmd := range parentCmd.Commands() {
-		if cmd.Name() == name {
-			return cmd
-		}
-	}
-	return nil
 }
