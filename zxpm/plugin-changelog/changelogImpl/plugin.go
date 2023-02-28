@@ -38,7 +38,7 @@ func (p *Plugin) Prepare(
 	switch task {
 	case "/lint/changelog":
 		return &LintChangelogTask{}, nil
-	case "/info/extract-changelog":
+	case "/info/release/description":
 		return &InfoChangelogTask{}, nil
 	case "/release/mint/changelog":
 		return &ReleaseMintTask{}, nil

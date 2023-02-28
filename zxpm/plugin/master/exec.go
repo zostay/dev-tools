@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 
+	"github.com/zostay/dev-tools/zxpm/format"
 	"github.com/zostay/dev-tools/zxpm/plugin"
 )
 
@@ -200,13 +201,17 @@ func (e *InterfaceExecutor) ExecuteAllStages(
 ) error {
 	stages, err := group.ExecutionGroups()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to break down goal %q into stages: %v", group.Goal.Name(), err)
 	}
 
 	for _, stage := range stages {
 		err := e.ExecuteStage(ctx, stage)
 		if err != nil {
-			return err
+			stageNames := make([]string, len(stage))
+			for i, task := range stage {
+				stageNames[i] = task.Name()
+			}
+			return fmt.Errorf("failed to execute stage (%s): %v", format.And(stageNames...), err)
 		}
 	}
 
@@ -231,24 +236,27 @@ func (e *InterfaceExecutor) Execute(
 ) error {
 	task, err := e.prepare(ctx, taskName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to prepare task %q: %v", taskName, err)
 	}
 
-	stdOps := []func(context.Context, string, plugin.Task) error{
-		e.setup,
-		e.check,
-		e.begin,
-		e.run,
-		e.end,
-		e.finish,
-		e.teardown,
-		e.complete,
+	stdOps := []struct {
+		name     string
+		function func(context.Context, string, plugin.Task) error
+	}{
+		{"setup", e.setup},
+		{"check", e.check},
+		{"begin", e.begin},
+		{"run", e.run},
+		{"end", e.end},
+		{"finish", e.finish},
+		{"teardown", e.teardown},
+		{"complete", e.complete},
 	}
 
 	for _, stdOp := range stdOps {
-		err = stdOp(ctx, taskName, task)
+		err = stdOp.function(ctx, taskName, task)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to execute operation %s: %v", stdOp.name, err)
 		}
 	}
 

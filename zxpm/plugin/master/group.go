@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/zostay/dev-tools/zxpm/format"
 	"github.com/zostay/dev-tools/zxpm/plugin"
 )
 
@@ -20,6 +21,15 @@ type TaskGroup struct {
 func (g *TaskGroup) ExecutionGroups() ([][]plugin.TaskDescription, error) {
 	tree := NewDepsTree(g.Goal.Name(), g.Tasks)
 	return tree.GroupOrder()
+}
+
+// TaskNames is a comma-separated list of all tasks in the group.
+func (g *TaskGroup) TaskNames() string {
+	names := make([]string, len(g.Tasks))
+	for i, task := range g.Tasks {
+		names[i] = task.Name()
+	}
+	return format.And(names...)
 }
 
 // SubTasks returns a complete list of sub-tasks for the given task group. This

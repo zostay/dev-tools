@@ -3,6 +3,7 @@ package master
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/spf13/cast"
 
@@ -122,7 +123,7 @@ func (ti *Interface) Prepare(
 			ctx = ti.ctxFor(ctx, taskName, pluginName)
 			mayPrepare, err := ti.implements(ctx, iface, taskName)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("plugin %q failed implements check for task %q: %w", pluginName, taskName, err)
 			}
 
 			if mayPrepare {
@@ -131,7 +132,7 @@ func (ti *Interface) Prepare(
 					if t != nil {
 						return &taskPair{iface, t}, err
 					}
-					return nil, err
+					return nil, fmt.Errorf("plugin %q failed to run task %q: %w", pluginName, taskName, err)
 				}
 				return &taskPair{iface, t}, nil
 			}

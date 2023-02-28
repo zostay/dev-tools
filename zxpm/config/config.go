@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"io"
 	"path"
 	"strings"
@@ -104,12 +103,18 @@ func (c *Config) GetGoalFromPath(taskPath string) *GoalConfig {
 	return c.GetGoal(goalName)
 }
 
+func syntheticGoal(name string) *GoalConfig {
+	return &GoalConfig{
+		Name: name,
+	}
+}
+
 func (c *Config) GetGoalAndTasks(taskPath string) (*GoalConfig, []*TaskConfig) {
 	goalName, taskNames := GoalAndTaskNames(taskPath)
 
 	goal := c.GetGoal(goalName)
 	if goal == nil {
-		panic(fmt.Sprintf("did not find goal %q", goalName))
+		goal = syntheticGoal(goalName)
 	}
 
 	tasks := make([]*TaskConfig, 0, len(taskNames))

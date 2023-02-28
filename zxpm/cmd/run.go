@@ -37,7 +37,7 @@ func RunGoal(
 
 		err := e.ExecuteAllStages(ctx, group)
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "failed to execute tasks: %v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "failed to execute tasks (%s): %v\n", group.TaskNames(), err)
 			os.Exit(1)
 		}
 

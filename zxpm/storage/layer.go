@@ -13,13 +13,20 @@ func Layers(layers ...KV) *KVLayer {
 	if len(layers) == 0 {
 		panic("there must be at least one layer in layered storage")
 	}
-	return &KVLayer{layers}
+	nonNilLayers := make([]KV, 0, len(layers))
+	for _, layer := range layers {
+		if layer == nil {
+			continue
+		}
+		nonNilLayers = append(nonNilLayers, layer)
+	}
+	return &KVLayer{nonNilLayers}
 }
 
 func (l *KVLayer) AllKeys() []string {
 	set := make(map[string]struct{}, len(l.Layers[0].AllKeys()))
-	for _, l := range l.Layers {
-		for _, k := range l.AllKeys() {
+	for _, layer := range l.Layers {
+		for _, k := range layer.AllKeys() {
 			set[k] = struct{}{}
 		}
 	}
