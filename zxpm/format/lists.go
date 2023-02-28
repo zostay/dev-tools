@@ -9,8 +9,7 @@ func And(values ...string) string {
 	if len(values) == 0 {
 		return ""
 	} else if len(values) == 1 {
-		x := fmt.Sprintf("%s", values[0])
-		return x
+		return values[0]
 	} else if len(values) == 2 {
 		return fmt.Sprintf("%s and %s", values[0], values[1])
 	}

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -27,8 +26,7 @@ func init() {
 func Execute() {
 	cfg, err := config2.LocateAndLoad()
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "zxpm failed to load: %v\n", err)
-		os.Exit(1)
+		panic(fmt.Sprintf("zxpm failed to load: %v\n", err))
 	}
 
 	plugins, err := metal.LoadPlugins(cfg)
@@ -39,8 +37,7 @@ func Execute() {
 
 	err = configureTasks(cfg, plugins, runCmd)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "zxpm failed to configure goals: %v\n", err)
-		os.Exit(1)
+		panic(fmt.Sprintf("zxpm failed to configure goals: %v\n", err))
 	}
 
 	err = rootCmd.Execute()

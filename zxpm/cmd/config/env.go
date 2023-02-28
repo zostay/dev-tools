@@ -146,7 +146,6 @@ func expandPath(p string) string {
 
 	if ap, err := filepath.Abs(p); err == nil {
 		return ap
-	} else {
-		return p
 	}
+	return p
 }

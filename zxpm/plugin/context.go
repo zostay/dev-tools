@@ -71,9 +71,8 @@ func Logger(ctx context.Context, withArgs ...interface{}) *zap.SugaredLogger {
 	pctx := contextFrom(ctx)
 	if len(withArgs) > 0 {
 		return pctx.logger.With(withArgs...)
-	} else {
-		return pctx.logger
 	}
+	return pctx.logger
 }
 
 func ConfigName(o any) string {
