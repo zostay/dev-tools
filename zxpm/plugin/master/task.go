@@ -87,7 +87,7 @@ func executeTaskOperation(
 	ts plugin.Tasks,
 	op func(context.Context, plugin.Task) error,
 ) error {
-	opfs := make([]plugin.OperationFunc, len(ts))
+	opfs := make([]plugin.OperationFunc, 0, len(ts))
 	for i := range ts {
 		t := ts[i]
 		opfs = append(opfs, func(ctx context.Context) error {
