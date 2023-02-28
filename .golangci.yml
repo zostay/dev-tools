@@ -1,0 +1,46 @@
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - depguard
+    - errcheck
+    - errname
+    - errorlint
+    - exhaustive
+    - exportloopref
+    - gocritic
+    - godot
+    - gofmt
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - nolintlint
+    - paralleltest
+    - prealloc
+    - predeclared
+    - revive
+    - rowserrcheck
+    - staticcheck
+    - tparallel
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+
+  fast: false
+
+linters-settings:
+  gocritic:
+    disabled-checks:
+      # I don't like switches as much as this check does.
+      - ifElseChain
+  nolintlint:
+    # Sometimes nolintlint claims it's unused when it isn't?
+    allow-unused: true
+    allow-leading-space: false
+    require-explanation: true
