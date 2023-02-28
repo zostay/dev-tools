@@ -18,9 +18,11 @@ func (p *Plugin) Goal(context.Context, string) (plugin.GoalDescription, error) {
 }
 
 func (p *Plugin) Implements(context.Context) ([]plugin.TaskDescription, error) {
+	info := goals.DescribeInfo()
 	lint := goals.DescribeLint()
 	release := goals.DescribeRelease()
 	return []plugin.TaskDescription{
+		info.Task("release/description", "Explain the changes made for a release."),
 		lint.Task("changelog", "Check changelog for correctness."),
 		lint.Task("changelog", "Extract the changes for a version."),
 		release.Task("mint/changelog", "Check and prepare changelog for release."),

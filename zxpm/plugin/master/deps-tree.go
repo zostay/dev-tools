@@ -69,6 +69,8 @@ func NewDepsTree(goal string, tasks []plugin.TaskDescription) *DepsTree {
 	edges := make(map[string][]string, len(tasks))
 	goalPath := "/" + goal
 
+	nodes[goalPath] = &DepNode{goalPath, tasks}
+
 	establishNode := func(tree string) *DepNode {
 		result := nodes[tree]
 		if result == nil {
@@ -130,7 +132,7 @@ func (d *DepsTree) GroupOrder() ([][]plugin.TaskDescription, error) {
 
 		// this would mean there's a cycle in the dependency graph
 		if len(foundNodes) == 0 {
-			return nil, fmt.Errorf("tasks contain a dependency graph, cannot run this goal")
+			return nil, fmt.Errorf("tasks contain a dependency cycle, cannot run this goal")
 		}
 
 		// once used, we can remove these from the list

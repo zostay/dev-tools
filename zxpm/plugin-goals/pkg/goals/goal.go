@@ -27,7 +27,7 @@ func (g *GoalDescription) Task(name, short string, requires ...string) *TaskDesc
 }
 
 func (g *GoalDescription) TaskName(name string) string {
-	return path.Join(g.name, name)
+	return path.Join("/"+g.name, name)
 }
 
 func (g *GoalDescription) Name() string {

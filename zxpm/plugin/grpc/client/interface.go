@@ -9,17 +9,17 @@ import (
 	"github.com/zostay/dev-tools/zxpm/plugin/translate"
 )
 
-var _ plugin.Interface = &TaskInterface{}
+var _ plugin.Interface = &Interface{}
 
-type TaskInterface struct {
+type Interface struct {
 	client api.TaskExecutionClient
 }
 
-func NewGRPCTaskInterface(client api.TaskExecutionClient) *TaskInterface {
-	return &TaskInterface{client}
+func NewGRPCTaskInterface(client api.TaskExecutionClient) *Interface {
+	return &Interface{client}
 }
 
-func (c *TaskInterface) Implements(
+func (c *Interface) Implements(
 	ctx context.Context,
 ) ([]plugin.TaskDescription, error) {
 	res, err := c.client.Implements(ctx, &api.Task_Implements_Request{})
@@ -29,7 +29,7 @@ func (c *TaskInterface) Implements(
 	return translate.APITaskDescriptorsToPluginTaskDescriptions(res.GetTasks()), nil
 }
 
-func (c *TaskInterface) Goal(
+func (c *Interface) Goal(
 	ctx context.Context,
 	goalName string,
 ) (plugin.GoalDescription, error) {
@@ -45,7 +45,7 @@ func (c *TaskInterface) Goal(
 	return translate.APIGoalDescriptorToPluginGoalDescription(res.GetDefinition()), nil
 }
 
-func (c *TaskInterface) Prepare(
+func (c *Interface) Prepare(
 	ctx context.Context,
 	taskName string,
 ) (plugin.Task, error) {
@@ -71,7 +71,7 @@ func (c *TaskInterface) Prepare(
 	}, nil
 }
 
-func (c *TaskInterface) Cancel(
+func (c *Interface) Cancel(
 	ctx context.Context,
 	task plugin.Task,
 ) error {
@@ -82,7 +82,7 @@ func (c *TaskInterface) Cancel(
 	return err
 }
 
-func (c *TaskInterface) Complete(
+func (c *Interface) Complete(
 	ctx context.Context,
 	task plugin.Task,
 ) error {

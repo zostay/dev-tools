@@ -64,11 +64,9 @@ func (ti *Interface) Implements(ctx context.Context) ([]plugin.TaskDescription, 
 
 func (ti *Interface) implements(
 	ctx context.Context,
-	pluginName string,
 	iface plugin.Interface,
 	taskName string,
 ) (bool, error) {
-	ctx = ti.ctxFor(ctx, "", pluginName)
 	taskDescs, err := iface.Implements(ctx)
 	if err != nil {
 		return false, err
@@ -121,7 +119,8 @@ func (ti *Interface) Prepare(
 		ctx,
 		NewMapIterator[string, plugin.Interface](ti.is),
 		func(ctx context.Context, pluginName string, iface plugin.Interface) (*taskPair, error) {
-			mayPrepare, err := ti.implements(ctx, pluginName, iface, taskName)
+			ctx = ti.ctxFor(ctx, taskName, pluginName)
+			mayPrepare, err := ti.implements(ctx, iface, taskName)
 			if err != nil {
 				return nil, err
 			}
