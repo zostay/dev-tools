@@ -116,10 +116,10 @@ func (ti *Interface) Prepare(
 	ctx context.Context,
 	taskName string,
 ) (plugin.Task, error) {
-	results, err := RunTasksAndAccumulate[string, plugin.Interface, *taskPair](
+	results, err := RunTasksAndAccumulate[string, plugin.Interface, *taskInfo](
 		ctx,
 		NewMapIterator[string, plugin.Interface](ti.is),
-		func(ctx context.Context, pluginName string, iface plugin.Interface) (*taskPair, error) {
+		func(ctx context.Context, pluginName string, iface plugin.Interface) (*taskInfo, error) {
 			ctx = ti.ctxFor(ctx, taskName, pluginName)
 			mayPrepare, err := ti.implements(ctx, iface, taskName)
 			if err != nil {
@@ -130,18 +130,18 @@ func (ti *Interface) Prepare(
 				t, err := iface.Prepare(ctx, taskName)
 				if err != nil {
 					if t != nil {
-						return &taskPair{iface, t}, err
+						return newTaskInfo(pluginName, iface, t), err
 					}
 					return nil, fmt.Errorf("plugin %q failed to run task %q: %w", pluginName, taskName, err)
 				}
-				return &taskPair{iface, t}, nil
+				return newTaskInfo(pluginName, iface, t), nil
 			}
 
 			return nil, nil
 		},
 	)
 
-	filteredResults := make([]*taskPair, 0, len(results))
+	filteredResults := make([]*taskInfo, 0, len(results))
 	for _, result := range results {
 		if result == nil {
 			continue
@@ -151,7 +151,7 @@ func (ti *Interface) Prepare(
 	results = filteredResults
 
 	if len(results) > 0 {
-		return &Task{taskPairs: results}, err
+		return newTask(taskName, ti, results), err
 	}
 
 	if err != nil {
@@ -163,20 +163,20 @@ func (ti *Interface) Prepare(
 
 func (ti *Interface) Cancel(ctx context.Context, pluginTask plugin.Task) error {
 	task := pluginTask.(*Task)
-	return RunTasksAndAccumulateErrors[int, *taskPair](
+	return RunTasksAndAccumulateErrors[int, *taskInfo](
 		ctx,
-		NewSliceIterator[*taskPair](task.taskPairs),
-		func(ctx context.Context, _ int, p *taskPair) error {
+		NewSliceIterator[*taskInfo](task.taskInfo),
+		func(ctx context.Context, _ int, p *taskInfo) error {
 			return p.iface.Cancel(ctx, p.task)
 		})
 }
 
 func (ti *Interface) Complete(ctx context.Context, pluginTask plugin.Task) error {
 	task := pluginTask.(*Task)
-	return RunTasksAndAccumulateErrors[int, *taskPair](
+	return RunTasksAndAccumulateErrors[int, *taskInfo](
 		ctx,
-		NewSliceIterator[*taskPair](task.taskPairs),
-		func(ctx context.Context, _ int, p *taskPair) error {
+		NewSliceIterator[*taskInfo](task.taskInfo),
+		func(ctx context.Context, _ int, p *taskInfo) error {
 			return p.iface.Complete(ctx, p.task)
 		})
 }

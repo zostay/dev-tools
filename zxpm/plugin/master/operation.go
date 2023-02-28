@@ -6,15 +6,45 @@ import (
 	"github.com/zostay/dev-tools/zxpm/plugin"
 )
 
+type operationInfo struct {
+	pluginName string
+	op         plugin.Operation
+}
+
+func newOperationInfo(pluginName string, op plugin.Operation) *operationInfo {
+	return &operationInfo{pluginName, op}
+}
+
+func operationInfoLess(opInfo []*operationInfo) func(i, j int) bool {
+	return func(i, j int) bool {
+		return opInfo[i].op.Order < opInfo[j].op.Order
+	}
+}
+
 type OperationHandler struct {
-	ops plugin.Operations
+	taskName string
+	ti       *Interface
+	opInfo   []*operationInfo
+}
+
+func newOperationHandler(
+	taskName string,
+	ti *Interface,
+	opInfo []*operationInfo,
+) *OperationHandler {
+	return &OperationHandler{
+		taskName: taskName,
+		ti:       ti,
+		opInfo:   opInfo,
+	}
 }
 
 func (h *OperationHandler) Call(ctx context.Context) error {
-	return RunTasksAndAccumulateErrors[int, plugin.Operation](
+	return RunTasksAndAccumulateErrors[int, *operationInfo](
 		ctx,
-		NewSliceIterator[plugin.Operation](h.ops),
-		func(ctx context.Context, _ int, op plugin.Operation) error {
-			return op.Action.Call(ctx)
+		NewSliceIterator[*operationInfo](h.opInfo),
+		func(ctx context.Context, _ int, info *operationInfo) error {
+			ctx = h.ti.ctxFor(ctx, h.taskName, info.pluginName)
+			return info.op.Action.Call(ctx)
 		})
 }
