@@ -15,11 +15,11 @@ var _ plugin.Interface = &Plugin{}
 type Plugin struct{}
 
 func (p *Plugin) Implements(context.Context) ([]plugin.TaskDescription, error) {
-	release := goals.DescribeRelease()
+	rel := goals.DescribeRelease()
 	return []plugin.TaskDescription{
-		release.Task("mint/github", "Create a Github pull request."),
-		release.Task("publish/github", "Publish a release.",
-			release.TaskName("mint")),
+		rel.Task("mint/github", "Create a Github pull request."),
+		rel.Task("publish/github", "Publish a release.",
+			rel.TaskName("mint")),
 	}, nil
 }
 

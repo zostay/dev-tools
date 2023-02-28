@@ -36,7 +36,7 @@ type RawPluginConfig struct {
 }
 
 type RawTaskConfig struct {
-	Name    string `hcl:"name,label""`
+	Name    string `hcl:"name,label"`
 	SubTask string `hcl:"subtask,label"`
 
 	EnabledPlugins  []string `hcl:"enabled,optional"`
