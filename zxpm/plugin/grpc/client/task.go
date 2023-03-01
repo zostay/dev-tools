@@ -49,6 +49,7 @@ func (t *Task) Check(
 func (t *Task) operations(
 	ctx context.Context,
 	prepare func(context.Context, *api.Task_Ref, ...grpc.CallOption) (*api.Task_SubStage_Response, error),
+	execute func(context.Context, *api.Task_SubStage_Request, ...grpc.CallOption) (*api.Task_Operation_Response, error),
 ) (plugin.Operations, error) {
 	res, err := prepare(ctx, t.ref)
 	if err != nil {
@@ -64,7 +65,7 @@ func (t *Task) operations(
 			Order: plugin.Ordering(order),
 			Action: &Operation{
 				parent: t,
-				call:   t.client.ExecuteBegin,
+				call:   execute,
 				order:  order,
 			},
 		}
@@ -74,15 +75,15 @@ func (t *Task) operations(
 }
 
 func (t *Task) Begin(ctx context.Context) (plugin.Operations, error) {
-	return t.operations(ctx, t.client.PrepareBegin)
+	return t.operations(ctx, t.client.PrepareBegin, t.client.ExecuteBegin)
 }
 
 func (t *Task) Run(ctx context.Context) (plugin.Operations, error) {
-	return t.operations(ctx, t.client.PrepareRun)
+	return t.operations(ctx, t.client.PrepareRun, t.client.ExecuteRun)
 }
 
 func (t *Task) End(ctx context.Context) (plugin.Operations, error) {
-	return t.operations(ctx, t.client.PrepareEnd)
+	return t.operations(ctx, t.client.PrepareEnd, t.client.ExecuteEnd)
 }
 
 func (t *Task) Finish(
