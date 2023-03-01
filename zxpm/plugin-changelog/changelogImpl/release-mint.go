@@ -10,7 +10,7 @@ import (
 )
 
 type ReleaseMintTask struct {
-	plugin.Boilerplate
+	plugin.TaskBoilerplate
 }
 
 // FixupChangelog alters the changelog to prepare it for release.

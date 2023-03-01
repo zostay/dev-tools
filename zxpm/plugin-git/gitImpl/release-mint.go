@@ -13,7 +13,7 @@ import (
 )
 
 type ReleaseMintTask struct {
-	plugin.Boilerplate
+	plugin.TaskBoilerplate
 	zxGit.Git
 }
 

@@ -12,7 +12,7 @@ import (
 )
 
 type ReleasePublishTask struct {
-	plugin.Boilerplate
+	plugin.TaskBoilerplate
 	git2.Git
 }
 

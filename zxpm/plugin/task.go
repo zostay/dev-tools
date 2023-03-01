@@ -27,12 +27,12 @@ type Task interface {
 
 type Tasks []Task
 
-type Boilerplate struct{}
+type TaskBoilerplate struct{}
 
-func (Boilerplate) Setup(context.Context) error               { return nil }
-func (Boilerplate) Check(context.Context) error               { return nil }
-func (Boilerplate) Begin(context.Context) (Operations, error) { return nil, nil }
-func (Boilerplate) Run(context.Context) (Operations, error)   { return nil, nil }
-func (Boilerplate) End(context.Context) (Operations, error)   { return nil, nil }
-func (Boilerplate) Finish(context.Context) error              { return nil }
-func (Boilerplate) Teardown(context.Context) error            { return nil }
+func (TaskBoilerplate) Setup(context.Context) error               { return nil }
+func (TaskBoilerplate) Check(context.Context) error               { return nil }
+func (TaskBoilerplate) Begin(context.Context) (Operations, error) { return nil, nil }
+func (TaskBoilerplate) Run(context.Context) (Operations, error)   { return nil, nil }
+func (TaskBoilerplate) End(context.Context) (Operations, error)   { return nil, nil }
+func (TaskBoilerplate) Finish(context.Context) error              { return nil }
+func (TaskBoilerplate) Teardown(context.Context) error            { return nil }

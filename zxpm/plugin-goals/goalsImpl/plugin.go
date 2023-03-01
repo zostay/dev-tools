@@ -13,7 +13,7 @@ var _ plugin.Interface = &Plugin{}
 type Plugin struct{}
 
 type InfoDisplayTask struct {
-	plugin.Boilerplate
+	plugin.TaskBoilerplate
 }
 
 func (p *Plugin) Implements(context.Context) ([]plugin.TaskDescription, error) {

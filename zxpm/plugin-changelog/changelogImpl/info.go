@@ -10,7 +10,7 @@ import (
 )
 
 type InfoChangelogTask struct {
-	plugin.Boilerplate
+	plugin.TaskBoilerplate
 }
 
 func (t *InfoChangelogTask) ExtractChangelog(ctx context.Context) error {

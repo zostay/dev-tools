@@ -11,7 +11,7 @@ import (
 )
 
 type ReleasePublishTask struct {
-	plugin.Boilerplate
+	plugin.TaskBoilerplate
 
 	Changelog string
 }

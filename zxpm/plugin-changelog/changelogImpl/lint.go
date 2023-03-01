@@ -7,7 +7,7 @@ import (
 )
 
 type LintChangelogTask struct {
-	plugin.Boilerplate
+	plugin.TaskBoilerplate
 }
 
 func (t *LintChangelogTask) Run(ctx context.Context) (plugin.Operations, error) {
