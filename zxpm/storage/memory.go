@@ -143,15 +143,17 @@ func (m *KVMem) AllKeys() []string {
 			key = item.prefix + "." + key
 		}
 
-		out = append(out, key)
-
 		if nextIn, isStringMap := value.(map[string]any); isStringMap {
 			openList.PushFront(&openItem{
 				prefix: key,
 				keys:   keys[any](nextIn),
 				in:     nextIn,
 			})
+			continue
 		}
+
+		// only append the key name if it's a value, not a nested map[string]any
+		out = append(out, key)
 	}
 
 	out = append(out, keys[string](m.aliases)...)
@@ -274,7 +276,7 @@ func (m *KVMem) Set(key string, value any) {
 
 func (m *KVMem) Update(values map[string]any) {
 	for k, v := range values {
-		m.values[k] = v
+		m.set(k, v)
 	}
 }
 

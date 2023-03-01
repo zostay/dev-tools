@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/spf13/cast"
-
 	"github.com/zostay/dev-tools/zxpm/config"
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/storage"
@@ -37,7 +35,11 @@ func (ti *Interface) SetTargetName(name string) {
 }
 
 func (ti *Interface) Define(values map[string]string) {
-	ti.properties.Update(cast.ToStringMap(values))
+	vals := make(map[string]any, len(values))
+	for k, v := range values {
+		vals[k] = v
+	}
+	ti.properties.Update(vals)
 }
 
 func (ti *Interface) ctxFor(
