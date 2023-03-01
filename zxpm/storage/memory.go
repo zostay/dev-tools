@@ -60,7 +60,7 @@ func (m *KVMem) getExists(key string) (any, bool) {
 			return n, false
 		}
 
-		val, exists := m.values[k]
+		val, exists := n[k]
 		if !exists {
 			return nil, false
 		} else if i == len(keys)-1 {
