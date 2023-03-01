@@ -148,13 +148,20 @@ func (s *TaskExecution) closeTask(
 		Storage: map[string]string{},
 	}, plugin.Task.Teardown)
 
-	state, err := s.deref(taskRef)
+	state, derefErr := s.deref(taskRef)
+	if derefErr != nil {
+		plugin.Logger(ctx).Error("fatal error during cancel: %v", derefErr)
+		// TODO This here is a sign that there's a problem with this API layout. This should be fixed.
+		panic("fatal error during plugin cancellation")
+	}
+
 	ctx = plugin.InitializeContext(ctx, state.Context)
-	if !completed {
-		err = s.Impl.Cancel(ctx, state.Task)
-	} else if err != nil {
+
+	if err != nil {
 		anotherErr := s.Impl.Cancel(ctx, state.Task)
 		plugin.Logger(ctx).Error("error during plugin cancel: %v", anotherErr)
+	} else if !completed {
+		err = s.Impl.Cancel(ctx, state.Task)
 	} else {
 		err = s.Impl.Complete(ctx, state.Task)
 	}
