@@ -36,6 +36,7 @@ func LoadPlugins(cfg *config.Config) (Clients, error) {
 			},
 			Cmd:              exec.Command(cmd[0], cmd[1:]...), //nolint:gosec // foot guns have been handed to user, so tainted value here is expected
 			AllowedProtocols: []goPlugin.Protocol{goPlugin.ProtocolGRPC},
+			// TODO Implement SecureConfig
 		})
 
 		clients[pcfg.Name] = client

@@ -61,7 +61,7 @@ func (f *ReleasePublishTask) CheckReadyForMerge(ctx context.Context) error {
 		"owner", owner,
 		"project", project,
 		"branch", branch,
-	).Infof("All Github required checks appear to be passing")
+	).Info("All Github required checks appear to be passing")
 
 	return nil
 }
@@ -130,7 +130,7 @@ func (f *ReleasePublishTask) MergePullRequest(ctx context.Context) error {
 		"project", project,
 		"branch", branch,
 		"pullRequestID", prId,
-	).Infof("Marged the pull request into the target branch.")
+	).Info("Merged the pull request into the target branch.")
 
 	return nil
 }
@@ -170,7 +170,7 @@ func (f *ReleasePublishTask) CreateRelease(ctx context.Context) error {
 		"project", project,
 		"tag", tag,
 		"releaseName", releaseName,
-	).Infof("Created a release named %q", releaseName)
+	).Info("Created a release named %q", releaseName)
 
 	return nil
 }

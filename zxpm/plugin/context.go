@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/cast"
-	"go.uber.org/zap"
 
 	"github.com/zostay/dev-tools/zxpm/config"
 	"github.com/zostay/dev-tools/zxpm/storage"
@@ -15,7 +15,7 @@ import (
 
 type contextKey struct{}
 type Context struct {
-	logger     *zap.SugaredLogger
+	logger     hclog.Logger
 	cleanup    []SimpleTask
 	addFiles   []string
 	properties *storage.KVChanges
@@ -27,7 +27,7 @@ func NewContext(
 	properties storage.KV,
 ) *Context {
 	return &Context{
-		logger:     zap.L().Sugar(),
+		logger:     hclog.L(),
 		cleanup:    make([]SimpleTask, 0, 10),
 		addFiles:   make([]string, 0, 10),
 		properties: storage.WithChangeTracking(properties),
@@ -67,7 +67,7 @@ func contextFrom(ctx context.Context) *Context {
 	return pctx
 }
 
-func Logger(ctx context.Context, withArgs ...interface{}) *zap.SugaredLogger {
+func Logger(ctx context.Context, withArgs ...interface{}) hclog.Logger {
 	pctx := contextFrom(ctx)
 	if len(withArgs) > 0 {
 		return pctx.logger.With(withArgs...)

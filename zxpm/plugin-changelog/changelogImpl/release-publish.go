@@ -36,7 +36,7 @@ func (f *ReleasePublishTask) CaptureChangesInfo(ctx context.Context) error {
 
 	plugin.Logger(ctx,
 		"version", version,
-	).Infof("Captured release description from changelog for version %q.", version)
+	).Info("Captured release description from changelog for version %q.", version)
 
 	return nil
 }

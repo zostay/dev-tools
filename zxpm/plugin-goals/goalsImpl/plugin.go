@@ -2,6 +2,7 @@ package goalsImpl
 
 import (
 	"context"
+	"log"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin-goals/pkg/goals"
@@ -11,8 +12,15 @@ var _ plugin.Interface = &Plugin{}
 
 type Plugin struct{}
 
+type InfoDisplayTask struct {
+	plugin.Boilerplate
+}
+
 func (p *Plugin) Implements(context.Context) ([]plugin.TaskDescription, error) {
-	return nil, nil
+	info := goals.DescribeInfo()
+	return []plugin.TaskDescription{
+		info.Task("display", "Display information."),
+	}, nil
 }
 
 func (p *Plugin) Goal(
@@ -46,16 +54,27 @@ func (p *Plugin) Goal(
 }
 
 func (p *Plugin) Prepare(
-	context.Context,
-	string,
+	_ context.Context,
+	taskName string,
 ) (plugin.Task, error) {
+	switch taskName {
+	case "/info/display":
+		return &InfoDisplayTask{}, nil
+	}
 	return nil, plugin.ErrUnsupportedTask
 }
 
 func (p *Plugin) Cancel(context.Context, plugin.Task) error {
-	return plugin.ErrUnsupportedTask
+	return nil
 }
 
-func (p *Plugin) Complete(context.Context, plugin.Task) error {
-	return plugin.ErrUnsupportedTask
+func (p *Plugin) Complete(ctx context.Context, task plugin.Task) error {
+	// TODO is Complete actually the best place to display info?
+	// currently, only a single task is supported, so use this opportunity to output all the info.
+	values := plugin.KV(ctx)
+	for _, key := range values.AllKeys() {
+		// TODO is key.subkey.subsubkey....=value the best output format?
+		log.Printf("%s = %#v", key, plugin.Get(ctx, key))
+	}
+	return nil
 }

@@ -83,7 +83,7 @@ func (s *ReleaseMintTask) CheckGitCleanliness(ctx context.Context) error {
 		"operaiton", "CheckGitCleanliness",
 		"headRef", headRef,
 		"masterRef", masterRef,
-	).Infow("Git working tree is clean for release.")
+	).Info("Git working tree is clean for release.")
 
 	return nil
 }
@@ -128,7 +128,7 @@ func (s *ReleaseMintTask) MakeReleaseBranch(ctx context.Context) error {
 		"headRef", headRef,
 		"branchRefName", branchRefName,
 		"branch", branch,
-	).Infof("Created git branch %q for managing the release.", branch)
+	).Info("Created git branch %q for managing the release.", branch)
 
 	return nil
 }
@@ -170,7 +170,7 @@ func (s *ReleaseMintTask) AddAndCommit(ctx context.Context) error {
 
 	plugin.Logger(ctx,
 		"version", version,
-	).Infof("Adding and committing %d changed files to git.", len(addedFiles))
+	).Info("Adding and committing %d changed files to git.", len(addedFiles))
 
 	return nil
 }

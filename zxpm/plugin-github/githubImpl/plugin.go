@@ -5,7 +5,6 @@ import (
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin-goals/pkg/goals"
-	"github.com/zostay/dev-tools/zxpm/release"
 )
 
 var githubPlugin = plugin.ConfigName(Plugin{})
@@ -32,9 +31,9 @@ func (p *Plugin) Prepare(
 	task string,
 ) (plugin.Task, error) {
 	switch task {
-	case release.StartTask:
+	case "/release/mint/github":
 		return &ReleaseMintTask{}, nil
-	case release.FinishTask:
+	case "/release/publish/github":
 		return &ReleasePublishTask{}, nil
 	}
 	return nil, plugin.ErrUnsupportedTask

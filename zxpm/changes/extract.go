@@ -28,6 +28,11 @@ func ExtractSection(fn string, vstring string) (io.Reader, error) {
 		buf     = &bytes.Buffer{}
 	)
 
+	// detect first section if no section selected
+	if vstring == "" {
+		vprefix = ""
+	}
+
 	for sc.Scan() {
 		line := sc.Text()
 		if strings.HasPrefix(line, vprefix) {

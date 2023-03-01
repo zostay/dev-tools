@@ -136,6 +136,7 @@ func (s *TaskExecution) deref(ref *api.Task_Ref) (*TaskState, error) {
 func (s *TaskExecution) closeTask(
 	ctx context.Context,
 	taskRef *api.Task_Ref,
+	completed bool,
 ) error {
 	_, err := s.deref(taskRef)
 	if err != nil {
@@ -147,6 +148,17 @@ func (s *TaskExecution) closeTask(
 		Storage: map[string]string{},
 	}, plugin.Task.Teardown)
 
+	state, err := s.deref(taskRef)
+	ctx = plugin.InitializeContext(ctx, state.Context)
+	if !completed {
+		err = s.Impl.Cancel(ctx, state.Task)
+	} else if err != nil {
+		anotherErr := s.Impl.Cancel(ctx, state.Task)
+		plugin.Logger(ctx).Error("error during plugin cancel: %v", anotherErr)
+	} else {
+		err = s.Impl.Complete(ctx, state.Task)
+	}
+
 	delete(s.state[taskRef.GetName()], taskRef.GetStateId())
 
 	return err
@@ -156,7 +168,7 @@ func (s *TaskExecution) Cancel(
 	ctx context.Context,
 	request *api.Task_Cancel_Request,
 ) (*api.Task_Cancel_Response, error) {
-	err := s.closeTask(ctx, request.GetTask())
+	err := s.closeTask(ctx, request.GetTask(), false)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +179,7 @@ func (s *TaskExecution) Complete(
 	ctx context.Context,
 	request *api.Task_Complete_Request,
 ) (*api.Task_Complete_Response, error) {
-	err := s.closeTask(ctx, request.GetTask())
+	err := s.closeTask(ctx, request.GetTask(), true)
 	if err != nil {
 		return nil, err
 	}

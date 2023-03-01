@@ -47,7 +47,7 @@ func (s *ReleaseMintTask) CreateGithubPullRequest(ctx context.Context) error {
 		"project", project,
 		"branch", branch,
 		"pullRequestName", prName,
-	).Infof("Created Github pull request %q", prName)
+	).Info("Created Github pull request %q", prName)
 
 	return nil
 }

@@ -84,7 +84,7 @@ func (f *ReleasePublishTask) TagRelease(ctx context.Context) error {
 		"tag", tag,
 		"head", head,
 		"tagRefSpec", tagRefSpec,
-	).Infof("Creating release tag %q and pushing to remote.", tag)
+	).Info("Creating release tag %q and pushing to remote.", tag)
 
 	return nil
 }

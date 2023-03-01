@@ -56,7 +56,7 @@ func (s *ReleaseMintTask) FixupChangelog(ctx context.Context) error {
 
 	plugin.Logger(ctx,
 		"changelog", Changelog(ctx),
-	).Infof("Applied changes to changelog to fixup for release.")
+	).Info("Applied changes to changelog to fixup for release.")
 
 	return nil
 }

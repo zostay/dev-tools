@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/zostay/dev-tools/zxpm/changes"
 	"github.com/zostay/dev-tools/zxpm/plugin"
@@ -21,10 +20,12 @@ func (t *InfoChangelogTask) ExtractChangelog(ctx context.Context) error {
 		return fmt.Errorf("failed to read changelog section: %w", err)
 	}
 
-	_, err = io.Copy(os.Stdout, r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return fmt.Errorf("failed to read changelog data: %w", err)
 	}
+
+	plugin.Set(ctx, "release.description", string(data))
 
 	return nil
 }
