@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
+	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 var _ plugin.Task = &Task{}
@@ -110,8 +111,15 @@ func (t *Task) executeTaskOperation(
 	for i := range t.taskInfo {
 		info := t.taskInfo[i]
 		opfs = append(opfs, func(ctx context.Context) error {
-			ctx = t.ti.ctxFor(ctx, taskName, info.pluginName)
-			return op(ctx, info.task)
+			ctx, pctx := t.ti.ctxFor(ctx, taskName, info.pluginName)
+			err := op(ctx, info.task)
+			if err != nil {
+				return err
+			}
+
+			pctx.UpdateStorage(pctx.StorageChanges())
+
+			return nil
 		})
 	}
 
@@ -135,17 +143,24 @@ func (t *Task) evaluateOperations(
 	op func(plugin.Task, context.Context) (plugin.Operations, error),
 ) ([]*operationInfo, error) {
 	opInfo := make([]*operationInfo, 0, len(t.taskInfo))
+	accChanges := storage.New()
 	for _, tInfo := range t.taskInfo {
-		ctx = t.ti.ctxFor(ctx, t.taskName, tInfo.pluginName)
+		ctx, pctx := t.ti.ctxFor(ctx, t.taskName, tInfo.pluginName)
+
 		theseOps, err := op(tInfo.task, ctx)
 		if err != nil {
 			return nil, err
 		}
+
+		accChanges.UpdateStrings(pctx.StorageChanges())
+
 		for _, thisOp := range theseOps {
 			info := newOperationInfo(tInfo.pluginName, thisOp)
 			opInfo = append(opInfo, info)
 		}
 	}
+
+	t.ti.properties.UpdateStrings(accChanges.AllSettingsStrings())
 
 	sort.Slice(opInfo, operationInfoLess(opInfo))
 

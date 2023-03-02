@@ -30,8 +30,8 @@ type KV interface {
 
 	Clear()
 	Set(string, any)
-	Update(values map[string]any)
-	UpdateStrings(values map[string]string)
+	Update(map[string]any)
+	UpdateStrings(map[string]string)
 
 	RegisterAlias(string, string)
 }

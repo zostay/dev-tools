@@ -44,7 +44,14 @@ func (h *OperationHandler) Call(ctx context.Context) error {
 		ctx,
 		NewSliceIterator[*operationInfo](h.opInfo),
 		func(ctx context.Context, _ int, info *operationInfo) error {
-			ctx = h.ti.ctxFor(ctx, h.taskName, info.pluginName)
-			return info.op.Action.Call(ctx)
+			ctx, pctx := h.ti.ctxFor(ctx, h.taskName, info.pluginName)
+			err := info.op.Action.Call(ctx)
+			if err != nil {
+				return err
+			}
+
+			pctx.UpdateStorage(pctx.StorageChanges())
+
+			return nil
 		})
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/go-hclog"
@@ -18,6 +19,8 @@ type Context struct {
 	cleanup    []SimpleTask
 	addFiles   []string
 	properties *storage.KVChanges
+	safeProps  *storage.KVCon
+	lock       *sync.Mutex
 }
 
 type SimpleTask func()
@@ -25,11 +28,14 @@ type SimpleTask func()
 func NewContext(
 	properties storage.KV,
 ) *Context {
+	props := storage.WithChangeTracking(properties)
 	return &Context{
 		logger:     hclog.L(),
 		cleanup:    make([]SimpleTask, 0, 10),
 		addFiles:   make([]string, 0, 10),
-		properties: storage.WithChangeTracking(properties),
+		properties: props,
+		safeProps:  storage.WithSafeConcurrency(props),
+		lock:       &sync.Mutex{},
 	}
 }
 
@@ -43,13 +49,30 @@ func NewConfigContext(
 	return NewContext(cfg.ToKV(runtime, taskName, targetName, pluginName))
 }
 
-func (p *Context) UpdateStorage(store map[string]any) {
-	p.properties.Inner.Update(store)
+func (p *Context) UpdateStorage(store map[string]string) {
+	// This is a bit odd, but hear me out... the safeProps lock is providing us
+	// with a write-safe mutex here. We could write the following as:
+	//
+	//   p.safeProps.Atomic(func(kv storage.KV) {
+	//       kv.(*KVChanges).Inner.UpdateStrings(store)
+	//   })
+	//
+	// But we already have "kv.(*storage.KVChanges)" in p.properties, so let's
+	// not worry about the type coercion thing. However, if ever p.properties !=
+	// kv(*storage.KVChanges), this will (probably) break in an ugly way.
+	p.safeProps.Atomic(func(storage.KV) {
+		p.properties.Inner.UpdateStrings(store)
+	})
 }
 
 func (p *Context) StorageChanges() map[string]string {
-	changes := p.properties.ChangesStrings()
-	p.properties.ClearChanges()
+	var changes map[string]string
+	// See the comment in UpdateStorage regarding why this is written this
+	// way...
+	p.safeProps.Atomic(func(storage.KV) {
+		changes = p.properties.ChangesStrings()
+		p.properties.ClearChanges()
+	})
 	return changes
 }
 
@@ -81,11 +104,15 @@ func ConfigName(o any) string {
 
 func ForCleanup(ctx context.Context, newCleaner SimpleTask) {
 	pctx := contextFrom(ctx)
+	pctx.lock.Lock()
+	defer pctx.lock.Unlock()
 	pctx.cleanup = append(pctx.cleanup, newCleaner)
 }
 
 func ListCleanupTasks(ctx context.Context) []SimpleTask {
 	pctx := contextFrom(ctx)
+	pctx.lock.Lock()
+	defer pctx.lock.Unlock()
 	tasks := make([]SimpleTask, len(pctx.cleanup))
 	for i, f := range pctx.cleanup {
 		tasks[len(tasks)-i-1] = f
@@ -95,27 +122,36 @@ func ListCleanupTasks(ctx context.Context) []SimpleTask {
 
 func ToAdd(ctx context.Context, newFile string) {
 	pctx := contextFrom(ctx)
+	pctx.lock.Lock()
+	defer pctx.lock.Unlock()
 	pctx.addFiles = append(pctx.addFiles, newFile)
 }
 
 func ListAdded(ctx context.Context) []string {
 	pctx := contextFrom(ctx)
+	pctx.lock.Lock()
+	defer pctx.lock.Unlock()
 	return pctx.addFiles
+}
+
+func AtomicProperties(ctx context.Context, atomicOp func(storage.KV)) {
+	pctx := contextFrom(ctx)
+	pctx.safeProps.Atomic(atomicOp)
 }
 
 func IsSet(ctx context.Context, key string) bool {
 	pctx := contextFrom(ctx)
-	return pctx.properties.IsSet(key)
+	return pctx.safeProps.IsSet(key)
 }
 
 func Set(ctx context.Context, key string, value any) {
 	pctx := contextFrom(ctx)
-	pctx.properties.Set(key, value)
+	pctx.safeProps.Set(key, value)
 }
 
 func get[T any](ctx context.Context, key string, getter func(storage.KV, string) T) T {
 	pctx := contextFrom(ctx)
-	return getter(pctx.properties, key)
+	return getter(pctx.safeProps, key)
 }
 
 func Get(ctx context.Context, key string) any {
@@ -192,10 +228,10 @@ func GetUint64(ctx context.Context, key string) uint64 {
 
 func KV(ctx context.Context) storage.KV {
 	pctx := contextFrom(ctx)
-	return pctx.properties
+	return pctx.safeProps
 }
 
-func UpdateStrings(ctx context.Context, changes map[string]string) {
+func UpdateStorage(ctx context.Context, changes map[string]string) {
 	pctx := contextFrom(ctx)
-	pctx.properties.UpdateStrings(changes)
+	pctx.UpdateStorage(changes)
 }

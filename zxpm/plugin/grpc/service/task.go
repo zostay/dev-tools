@@ -3,8 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/spf13/cast"
-
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin/api"
 )
@@ -19,7 +17,7 @@ func (s *TaskExecution) executeStage(
 		return nil, err
 	}
 
-	state.Context.UpdateStorage(cast.ToStringMap(request.GetStorage()))
+	state.Context.UpdateStorage(request.GetStorage())
 	ctx = plugin.InitializeContext(ctx, state.Context)
 
 	err = op(state.Task, ctx)
