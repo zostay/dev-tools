@@ -83,8 +83,8 @@ func (t *Task) Teardown(ctx context.Context) error {
 type taskOperationFunc func(plugin.Task, context.Context) error
 
 func executeBasicStage(
-	opFunc taskOperationFunc,
 	stage string,
+	opFunc taskOperationFunc,
 ) func(context.Context, plugin.Task) error {
 	return func(ctx context.Context, t plugin.Task) error {
 		err := opFunc(t, ctx)
@@ -96,10 +96,10 @@ func executeBasicStage(
 }
 
 var (
-	executeSetup    = executeBasicStage(plugin.Task.Setup, "setup")
-	executeCheck    = executeBasicStage(plugin.Task.Check, "check")
-	executeFinish   = executeBasicStage(plugin.Task.Finish, "finish")
-	executeTeardown = executeBasicStage(plugin.Task.Teardown, "teardown")
+	executeSetup    = executeBasicStage("setup", plugin.Task.Setup)
+	executeCheck    = executeBasicStage("check", plugin.Task.Check)
+	executeFinish   = executeBasicStage("finish", plugin.Task.Finish)
+	executeTeardown = executeBasicStage("teardown", plugin.Task.Teardown)
 )
 
 func (t *Task) executeTaskOperation(
