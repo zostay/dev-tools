@@ -55,7 +55,7 @@ func (l *KVLayer) AllSettingsStrings() map[string]string {
 }
 
 func getl[T any](c *KVLayer, key string, getter func(KV, string) T, zero func() T) T {
-	for i := len(c.Layers) - 1; i >= 0; i-- {
+	for i := 0; i < len(c.Layers); i++ {
 		if c.Layers[i].IsSet(key) {
 			return getter(c.Layers[i], key)
 		}
@@ -159,15 +159,15 @@ func (l *KVLayer) Clear() {
 }
 
 func (l *KVLayer) Set(key string, value any) {
-	l.Layers[len(l.Layers)-1].Set(key, value)
+	l.Layers[0].Set(key, value)
 }
 
 func (l *KVLayer) Update(values map[string]any) {
-	l.Layers[len(l.Layers)-1].Update(values)
+	l.Layers[0].Update(values)
 }
 
 func (l *KVLayer) UpdateStrings(values map[string]string) {
-	l.Layers[len(l.Layers)-1].UpdateStrings(values)
+	l.Layers[0].UpdateStrings(values)
 }
 
 func (l *KVLayer) RegisterAlias(alias, key string) {
