@@ -231,7 +231,7 @@ func KV(ctx context.Context) storage.KV {
 	return pctx.safeProps
 }
 
-func UpdateStorage(ctx context.Context, changes map[string]string) {
+func ApplyChanges(ctx context.Context, changes map[string]string) {
 	pctx := contextFrom(ctx)
-	pctx.UpdateStorage(changes)
+	pctx.safeProps.UpdateStrings(changes)
 }

@@ -62,8 +62,7 @@ func (c *Interface) Prepare(
 		return nil, err
 	}
 
-	chgs := res.GetStorage()
-	plugin.UpdateStorage(ctx, chgs)
+	plugin.ApplyChanges(ctx, res.GetStorage())
 
 	return &Task{
 		client: c.client,
@@ -77,7 +76,8 @@ func (c *Interface) Cancel(
 ) error {
 	ref := task.(*Task).ref
 	_, err := c.client.Cancel(ctx, &api.Task_Cancel_Request{
-		Task: ref,
+		Task:    ref,
+		Storage: translate.KVToStringMapString(plugin.KV(ctx)),
 	})
 	return err
 }
@@ -88,7 +88,8 @@ func (c *Interface) Complete(
 ) error {
 	ref := task.(*Task).ref
 	_, err := c.client.Complete(ctx, &api.Task_Complete_Request{
-		Task: ref,
+		Task:    ref,
+		Storage: translate.KVToStringMapString(plugin.KV(ctx)),
 	})
 	return err
 }

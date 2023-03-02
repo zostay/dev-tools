@@ -35,7 +35,7 @@ func (t *Task) operation(
 		return err
 	}
 
-	plugin.UpdateStorage(ctx, res.GetStorageUpdate())
+	plugin.ApplyChanges(ctx, res.GetStorageUpdate())
 
 	return nil
 }

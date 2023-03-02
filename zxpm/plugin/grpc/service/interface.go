@@ -136,6 +136,7 @@ func (s *TaskExecution) deref(ref *api.Task_Ref) (*TaskState, error) {
 func (s *TaskExecution) closeTask(
 	ctx context.Context,
 	taskRef *api.Task_Ref,
+	storage map[string]string,
 	completed bool,
 ) error {
 	_, err := s.deref(taskRef)
@@ -145,7 +146,7 @@ func (s *TaskExecution) closeTask(
 
 	_, err = s.executeStage(ctx, &api.Task_Operation_Request{
 		Task:    taskRef,
-		Storage: map[string]string{},
+		Storage: storage,
 	}, plugin.Task.Teardown)
 
 	state, derefErr := s.deref(taskRef)
@@ -175,7 +176,7 @@ func (s *TaskExecution) Cancel(
 	ctx context.Context,
 	request *api.Task_Cancel_Request,
 ) (*api.Task_Cancel_Response, error) {
-	err := s.closeTask(ctx, request.GetTask(), false)
+	err := s.closeTask(ctx, request.GetTask(), request.GetStorage(), false)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +187,7 @@ func (s *TaskExecution) Complete(
 	ctx context.Context,
 	request *api.Task_Complete_Request,
 ) (*api.Task_Complete_Response, error) {
-	err := s.closeTask(ctx, request.GetTask(), true)
+	err := s.closeTask(ctx, request.GetTask(), request.GetStorage(), true)
 	if err != nil {
 		return nil, err
 	}

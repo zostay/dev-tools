@@ -163,22 +163,32 @@ func (ti *Interface) Prepare(
 	return nil, plugin.ErrUnsupportedTask
 }
 
-func (ti *Interface) Cancel(ctx context.Context, pluginTask plugin.Task) error {
+func (ti *Interface) Cancel(
+	ctx context.Context,
+	pluginTask plugin.Task,
+) error {
 	task := pluginTask.(*Task)
+	taskName := finalTaskName(ctx)
 	return RunTasksAndAccumulateErrors[int, *taskInfo](
 		ctx,
 		NewSliceIterator[*taskInfo](task.taskInfo),
 		func(ctx context.Context, _ int, p *taskInfo) error {
+			ctx, _ = ti.ctxFor(ctx, taskName, p.pluginName)
 			return p.iface.Cancel(ctx, p.task)
 		})
 }
 
-func (ti *Interface) Complete(ctx context.Context, pluginTask plugin.Task) error {
+func (ti *Interface) Complete(
+	ctx context.Context,
+	pluginTask plugin.Task,
+) error {
 	task := pluginTask.(*Task)
+	taskName := finalTaskName(ctx)
 	return RunTasksAndAccumulateErrors[int, *taskInfo](
 		ctx,
 		NewSliceIterator[*taskInfo](task.taskInfo),
 		func(ctx context.Context, _ int, p *taskInfo) error {
+			ctx, _ = ti.ctxFor(ctx, taskName, p.pluginName)
 			return p.iface.Complete(ctx, p.task)
 		})
 }

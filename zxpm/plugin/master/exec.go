@@ -45,7 +45,7 @@ func (e *InterfaceExecutor) tryCancel(
 	stage string,
 ) {
 	logger := hclog.FromContext(ctx)
-	cancelErr := e.m.Cancel(ctx, task)
+	cancelErr := e.m.Cancel(withFinalTaskName(ctx, taskName), task)
 	if cancelErr != nil {
 		logger.Error("failed while canceling task due to error",
 			"stage", stage,
@@ -179,12 +179,22 @@ func (e *InterfaceExecutor) teardown(
 	return e.taskOperation(ctx, taskName, "Teardown", task, task.Teardown)
 }
 
+type finalTaskNameKey struct{}
+
+func withFinalTaskName(ctx context.Context, taskName string) context.Context {
+	return context.WithValue(ctx, finalTaskNameKey{}, taskName)
+}
+
+func finalTaskName(ctx context.Context) string {
+	return ctx.Value(finalTaskNameKey{}).(string)
+}
+
 func (e *InterfaceExecutor) complete(
 	ctx context.Context,
 	taskName string,
 	task plugin.Task,
 ) error {
-	err := e.m.Complete(ctx, task)
+	err := e.m.Complete(withFinalTaskName(ctx, taskName), task)
 	if err != nil {
 		logger := hclog.FromContext(ctx)
 		logger.Error("failed while completing task due to error",

@@ -29,7 +29,7 @@ func (o *Operation) Call(ctx context.Context) error {
 		return err
 	}
 
-	plugin.UpdateStorage(ctx, res.GetStorageUpdate())
+	plugin.ApplyChanges(ctx, res.GetStorageUpdate())
 
 	return nil
 }
