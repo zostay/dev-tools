@@ -28,6 +28,10 @@ func New() *KVMem {
 	}
 }
 
+func (m *KVMem) RO() *KVCfg {
+	return &KVCfg{*m}
+}
+
 func (m *KVMem) prefixKey(key string) string {
 	if m.prefix != "" {
 		return m.prefix + "." + key

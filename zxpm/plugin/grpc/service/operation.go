@@ -45,7 +45,6 @@ func (s *TaskExecution) executePrioritizedStage(
 
 	// TODO Should we run plugin-side operations concurrently in goroutines?
 	var res *api.Task_Operation_Response
-	// accChanges := make(map[string]string, 10)
 	for _, op := range ops {
 		if op.Order == plugin.Ordering(request.SubStage) {
 			res, err = s.executeStage(ctx,

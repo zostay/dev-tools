@@ -63,7 +63,7 @@ func p(prefix, key string) string {
 
 func decodeRawProperties(prefix string, in cty.Value) (storage.KV, error) {
 	if in.IsNull() {
-		return storage.New(), nil
+		return storage.New().RO(), nil
 	}
 
 	if !in.Type().IsObjectType() {
@@ -106,7 +106,7 @@ func decodeRawProperties(prefix string, in cty.Value) (storage.KV, error) {
 		}
 	}
 
-	return out, nil
+	return out.RO(), nil
 }
 
 func decodeRawConfig(rc *RawConfig) (*Config, error) {

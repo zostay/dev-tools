@@ -57,27 +57,27 @@ func LocateAndLoadProject() (*Config, error) {
 
 func DefaultConfig() *Config {
 	return &Config{
-		Properties: storage.New(),
+		Properties: storage.New().RO(),
 		Plugins: []PluginConfig{
 			{
 				Name:       "goals",
 				Command:    "zxpm-plugin-goals",
-				Properties: storage.New(),
+				Properties: storage.New().RO(),
 			},
 			{
 				Name:       "changelog",
 				Command:    "zxpm-plugin-changelog",
-				Properties: storage.New(),
+				Properties: storage.New().RO(),
 			},
 			{
 				Name:       "git",
 				Command:    "zxpm-plugin-git",
-				Properties: storage.New(),
+				Properties: storage.New().RO(),
 			},
 			{
 				Name:       "github",
 				Command:    "zxpm-plugin-github",
-				Properties: storage.New(),
+				Properties: storage.New().RO(),
 			},
 		},
 	}
