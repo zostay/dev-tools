@@ -35,7 +35,7 @@ func (t *Task) operation(
 		return err
 	}
 
-	plugin.UpdateKV(ctx, res.GetStorageUpdate())
+	plugin.UpdateStrings(ctx, res.GetStorageUpdate())
 
 	return nil
 }

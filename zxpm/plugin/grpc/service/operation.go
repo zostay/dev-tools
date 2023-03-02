@@ -5,6 +5,7 @@ import (
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin/api"
+	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 func (s *TaskExecution) executeSubStage(
@@ -35,8 +36,16 @@ func (s *TaskExecution) executePrioritizedStage(
 		return nil, err
 	}
 
+	// This is used to accumulate changes because we want to ensure that
+	// operations that are supposed to be able run concurrently don't interfere
+	// with each other. If the plugin author really wants to depend on the
+	// values saved, they need to prioritize the operations as appropriate to
+	// make that work.
+	accChanges := storage.New()
+
+	// TODO Should we run plugin-side operations concurrently in goroutines?
 	var res *api.Task_Operation_Response
-	accChanges := make(map[string]string, 10)
+	// accChanges := make(map[string]string, 10)
 	for _, op := range ops {
 		if op.Order == plugin.Ordering(request.SubStage) {
 			res, err = s.executeStage(ctx,
@@ -50,10 +59,7 @@ func (s *TaskExecution) executePrioritizedStage(
 			)
 
 			theseChanges := res.GetStorageUpdate()
-			for k, v := range theseChanges {
-				accChanges[k] = v
-			}
-
+			accChanges.UpdateStrings(theseChanges)
 			if err != nil {
 				return nil, err
 			}
@@ -61,7 +67,7 @@ func (s *TaskExecution) executePrioritizedStage(
 	}
 
 	return &api.Task_Operation_Response{
-		StorageUpdate: accChanges,
+		StorageUpdate: accChanges.AllSettingsStrings(),
 	}, nil
 }
 

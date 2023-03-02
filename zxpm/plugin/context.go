@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-hclog"
-	"github.com/spf13/cast"
 
 	"github.com/zostay/dev-tools/zxpm/config"
 	"github.com/zostay/dev-tools/zxpm/storage"
@@ -49,7 +48,7 @@ func (p *Context) UpdateStorage(store map[string]any) {
 }
 
 func (p *Context) StorageChanges() map[string]string {
-	changes := p.properties.ChangesFlattenedToString()
+	changes := p.properties.ChangesStrings()
 	p.properties.ClearChanges()
 	return changes
 }
@@ -196,7 +195,7 @@ func KV(ctx context.Context) storage.KV {
 	return pctx.properties
 }
 
-func UpdateKV(ctx context.Context, changes map[string]string) {
+func UpdateStrings(ctx context.Context, changes map[string]string) {
 	pctx := contextFrom(ctx)
-	pctx.properties.Update(cast.ToStringMap(changes))
+	pctx.properties.UpdateStrings(changes)
 }

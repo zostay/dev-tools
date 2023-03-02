@@ -24,11 +24,26 @@ func NewViper(v *viper.Viper) *KVViper {
 	return &KVViper{Viper: v}
 }
 
+func (v *KVViper) AllSettingsStrings() map[string]string {
+	keys := v.AllKeys()
+	out := make(map[string]string, len(keys))
+	for _, k := range keys {
+		out[k] = v.GetString(k)
+	}
+	return out
+}
+
 func (v *KVViper) Clear() {
 	v.Viper = viper.New()
 }
 
 func (v *KVViper) Update(values map[string]any) {
+	for k, val := range values {
+		v.Set(k, val)
+	}
+}
+
+func (v *KVViper) UpdateStrings(values map[string]string) {
 	for k, val := range values {
 		v.Set(k, val)
 	}

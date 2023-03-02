@@ -176,6 +176,15 @@ func (m *KVMem) AllSettings() map[string]any {
 	return tmp.values
 }
 
+func (m *KVMem) AllSettingsStrings() map[string]string {
+	keys := m.AllKeys()
+	out := make(map[string]string, len(keys))
+	for _, k := range keys {
+		out[k] = m.GetString(k)
+	}
+	return out
+}
+
 func (m *KVMem) Get(key string) any {
 	return m.get(key)
 }
@@ -275,6 +284,12 @@ func (m *KVMem) Set(key string, value any) {
 }
 
 func (m *KVMem) Update(values map[string]any) {
+	for k, v := range values {
+		m.set(k, v)
+	}
+}
+
+func (m *KVMem) UpdateStrings(values map[string]string) {
 	for k, v := range values {
 		m.set(k, v)
 	}

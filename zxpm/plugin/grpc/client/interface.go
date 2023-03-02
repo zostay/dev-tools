@@ -63,7 +63,7 @@ func (c *Interface) Prepare(
 	}
 
 	chgs := res.GetStorage()
-	plugin.UpdateKV(ctx, chgs)
+	plugin.UpdateStrings(ctx, chgs)
 
 	return &Task{
 		client: c.client,

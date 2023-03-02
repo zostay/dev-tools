@@ -5,6 +5,7 @@ import "time"
 type KV interface {
 	AllKeys() []string
 	AllSettings() map[string]any
+	AllSettingsStrings() map[string]string
 	Get(string) any
 	GetBool(string) bool
 	GetDuration(string) time.Duration
@@ -30,6 +31,7 @@ type KV interface {
 	Clear()
 	Set(string, any)
 	Update(values map[string]any)
+	UpdateStrings(values map[string]string)
 
 	RegisterAlias(string, string)
 }

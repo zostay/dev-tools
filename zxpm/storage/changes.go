@@ -51,6 +51,15 @@ func (c *KVChanges) AllSettings() map[string]any {
 	return out
 }
 
+func (c *KVChanges) AllSettingsStrings() map[string]string {
+	keys := c.AllKeys()
+	out := make(map[string]string, len(keys))
+	for _, k := range keys {
+		out[k] = c.GetString(k)
+	}
+	return out
+}
+
 func getc[T any](c *KVChanges, key string, getter func(KV, string) T) T {
 	if c.changes.IsSet(key) {
 		return getter(c.changes, key)
@@ -154,6 +163,10 @@ func (c *KVChanges) Update(values map[string]any) {
 	c.changes.Update(values)
 }
 
+func (c *KVChanges) UpdateStrings(values map[string]string) {
+	c.changes.UpdateStrings(values)
+}
+
 func (c *KVChanges) RegisterAlias(alias, key string) {
 	c.changes.RegisterAlias(alias, key)
 	c.Inner.RegisterAlias(alias, key)
@@ -163,7 +176,7 @@ func (c *KVChanges) Changes() map[string]any {
 	return c.changes.AllSettings()
 }
 
-func (c *KVChanges) ChangesFlattenedToString() map[string]string {
+func (c *KVChanges) ChangesStrings() map[string]string {
 	changesKeys := c.changes.AllKeys()
 	out := make(map[string]string, len(changesKeys))
 	for _, key := range changesKeys {
