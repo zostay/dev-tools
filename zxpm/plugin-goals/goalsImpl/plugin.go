@@ -2,7 +2,7 @@ package goalsImpl
 
 import (
 	"context"
-	"fmt"
+	"os"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin-goals/pkg/goals"
@@ -69,12 +69,7 @@ func (p *Plugin) Cancel(context.Context, plugin.Task) error {
 }
 
 func (p *Plugin) Complete(ctx context.Context, task plugin.Task) error {
-	// TODO is Complete actually the best place to display info?
-	// currently, only a single task is supported, so use this opportunity to output all the info.
 	values := plugin.KV(ctx)
-	for _, key := range values.AllKeys() {
-		// TODO is key.subkey.subsubkey....=value the best output format?
-		fmt.Printf("%s = %#v\n", key, plugin.Get(ctx, key))
-	}
-	return nil
+	formatter := InfoOutputFormatter(ctx)
+	return formatter(os.Stdout, values)
 }
