@@ -6,6 +6,7 @@ import (
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin-goals/pkg/goals"
+	"github.com/zostay/dev-tools/zxpm/storage"
 )
 
 var _ plugin.Interface = &Plugin{}
@@ -70,6 +71,10 @@ func (p *Plugin) Cancel(context.Context, plugin.Task) error {
 
 func (p *Plugin) Complete(ctx context.Context, task plugin.Task) error {
 	values := plugin.KV(ctx)
+	outputAll := InfoOutputAll(ctx)
+	if !outputAll {
+		values = storage.ExportsOnly(values)
+	}
 	formatter := InfoOutputFormatter(ctx)
 	return formatter(os.Stdout, values)
 }

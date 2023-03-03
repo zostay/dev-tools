@@ -14,6 +14,7 @@ import (
 type OutputFormatter func(io.Writer, storage.KV) error
 
 const InfoOutputFormatKey = "info.outputFormat"
+const InfoOutputAllKey = "info.outputAll"
 
 var outputFormats = map[string]OutputFormatter{
 	"properties": WriteOutProperties,
@@ -29,6 +30,10 @@ func InfoOutputFormatter(ctx context.Context) OutputFormatter {
 		return formatter
 	}
 	return DefaultInfoOutputFormatter
+}
+
+func InfoOutputAll(ctx context.Context) bool {
+	return plugin.GetBool(ctx, InfoOutputAllKey)
 }
 
 func WriteOutProperties(w io.Writer, values storage.KV) error {

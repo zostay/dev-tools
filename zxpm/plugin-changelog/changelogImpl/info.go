@@ -26,6 +26,7 @@ func (t *InfoChangelogTask) ExtractChangelog(ctx context.Context) error {
 	}
 
 	plugin.Set(ctx, "release.description", string(data))
+	plugin.Set(ctx, "__export__.release.description", true)
 
 	return nil
 }
