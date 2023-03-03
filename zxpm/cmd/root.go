@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -29,7 +30,10 @@ func Execute() {
 		panic(fmt.Sprintf("zxpm failed to load: %v\n", err))
 	}
 
-	plugins, err := metal.LoadPlugins(cfg)
+	stdOut := metal.NewSyncBuffer(os.Stdout)
+	stdErr := metal.NewSyncBuffer(os.Stderr)
+
+	plugins, err := metal.LoadPlugins(cfg, stdOut, stdErr)
 	if err != nil {
 		panic(err) // TODO Fix this panic, it's temporary
 	}

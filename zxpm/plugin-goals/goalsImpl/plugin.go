@@ -2,7 +2,7 @@ package goalsImpl
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/zostay/dev-tools/zxpm/plugin"
 	"github.com/zostay/dev-tools/zxpm/plugin-goals/pkg/goals"
@@ -74,7 +74,7 @@ func (p *Plugin) Complete(ctx context.Context, task plugin.Task) error {
 	values := plugin.KV(ctx)
 	for _, key := range values.AllKeys() {
 		// TODO is key.subkey.subsubkey....=value the best output format?
-		log.Printf("%s = %#v", key, plugin.Get(ctx, key))
+		fmt.Printf("%s = %#v\n", key, plugin.Get(ctx, key))
 	}
 	return nil
 }
