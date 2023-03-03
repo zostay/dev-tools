@@ -9,10 +9,9 @@ import (
 
 	"github.com/zostay/dev-tools/zxpm/config"
 	"github.com/zostay/dev-tools/zxpm/plugin"
-	"github.com/zostay/dev-tools/zxpm/plugin-changelog/changelogImpl"
 )
 
-// TODO This is a cheap debugging, but should be made nicer and configgable somehow for debugging those sticky problems.
+// TODO This is a cheap debugging aid, but should be made nicer and configgable somehow for debugging those sticky problems.
 var runPluginServerLocally = map[string]plugin.Interface{}
 
 type Clients map[string]*goPlugin.Client
